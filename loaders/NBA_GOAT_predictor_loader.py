@@ -14,40 +14,33 @@ import numpy as np
 # -------------------------------------------------------------------
 # DATA INGESTION (The "Model")
 # -------------------------------------------------------------------
+# UPDATE THIS FUNCTION IN: loaders/nba_goat_loader.py
+
 def load_and_filter_raw_data():
     """
-    Downloads the massive Kaggle dataset and strictly filters it to our 10 candidates.
+    Loads our pre-shrunk top 50 CSV and strictly filters it to our 10 active candidates.
     Returns a memory-efficient DataFrame of individual game logs.
-    
-    MATLAB Analogy: 
-    This process mimics using `readtable()` with specific `'ReadVariableNames'` 
-    and `'ReadRowNames'` to save memory, followed by logical indexing 
-    (e.g., `data(ismember(data.Player, players), :)`) to subset the data.
     """
     try:
-        # Note for DigitalOcean Deployment: If you don't want to download 1GB every time 
-        # your Docker container spins up, you can pre-download this CSV and place it in 
-        # your 'documents/' folder, then change this path to point locally.
-        path = kagglehub.dataset_download("eoinamoore/historical-nba-data-and-player-box-scores")
-        player_stats_path = os.path.join(path, 'PlayerStatistics.csv')
+        # Dynamically find the 'documents' folder relative to this loader script
+        # __file__ is loaders/nba_goat_loader.py
+        # os.path.dirname(__file__) is the 'loaders' directory
+        # os.path.dirname(os.path.dirname(__file__)) is the root repo directory
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        player_stats_path = os.path.join(base_dir, 'documents', 'goat_data_top50.csv')
         
-        # We explicitly load ONLY the columns we need to prevent memory exhaustion (RAM optimization)
-        cols_to_load = ['firstName', 'lastName', 'gameType', 'gameDate', 'points', 'reboundsTotal', 'assists', 'blocks']
-        df_all = pd.read_csv(player_stats_path, usecols=cols_to_load)
+        # We no longer need usecols because the CSV is already perfectly shrunk!
+        df_all = pd.read_csv(player_stats_path)
         
-        # Combine first and last name for easier matching
-        df_all['Player'] = df_all['firstName'] + " " + df_all['lastName']
-        
-        # Logical Indexing: Keep only rows where 'Player' exists in our PLAYERS list
+        # Logical Indexing: We filter the 50 players down to just the 10 active ones in PLAYERS
         df_goat = df_all[df_all['Player'].isin(PLAYERS)].copy()
         
-        # Extract Year for Longevity calculations (datetime conversion)
-        # MATLAB Analogy: year(datetime(df_goat.gameDate))
+        # Extract Year for Longevity calculations
         df_goat['Year'] = pd.to_datetime(df_goat['gameDate']).dt.year
         return df_goat
         
     except Exception as e:
-        raise RuntimeError(f"Failed to load dataset: {e}")
+        raise RuntimeError(f"Failed to load local dataset. Ensure goat_data_top50.csv is in the documents/ folder. Error: {e}")
 
 # -------------------------------------------------------------------
 # FEATURE ENGINEERING & AGGREGATION
