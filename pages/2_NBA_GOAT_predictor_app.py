@@ -35,7 +35,7 @@ with st.sidebar:
     st.page_link("data_projects_app.py", label="Data Hub Home", icon="🏠")
     st.page_link("pages/1_oil_predictor_app.py", label="Macro Oil Predictor", icon="🛢️")
     # Note: Activated the NBA link since this is the actual file! 
-    st.page_link("pages/2_nba_goat_app.py", label="NBA GOAT Predictor", icon="🏀")
+    st.page_link("pages/2_NBA_GOAT_predictor_app.py", label="NBA GOAT Predictor", icon="🏀")
     st.markdown("💻 Tech in Education *(Coming Soon)*")
     
     # 4. Professional Presence

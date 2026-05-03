@@ -87,9 +87,9 @@ with st.sidebar:
     # Internal Pages (Make sure filenames match your pages/ directory)
     st.page_link("data_projects_app.py", label="Data Hub Home", icon="🏠")
     st.page_link("pages/1_oil_predictor_app.py", label="Macro Oil Predictor", icon="🛢️")
-    
+    st.page_link("pages/2_NBA_GOAT_predictor_app.py", label="NBA GOAT Predictor", icon="🏀")
+
     # Placeholders for future projects
-    st.markdown("🏀 NBA GOAT Predictor *(Coming Soon)*")
     st.markdown("💻 Tech in Education *(Coming Soon)*")
     
     st.divider()
