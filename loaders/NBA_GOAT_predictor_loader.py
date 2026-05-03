@@ -59,9 +59,30 @@ def load_and_filter_raw_data():
         
         # We no longer need usecols because the CSV is already perfectly shrunk!
         df_all = pd.read_csv(player_stats_path)
+
+        df_all['Player'] = df_all['firstName'] + " " + df_all['lastName']
+        df_all['Year'] = pd.to_datetime(df_all['gameDate']).dt.year
         
+        # MATLAB Analogy: groupsummary(df, 'Year', {'mean', 'std'})
+        # We calculate the average and standard deviation of points and rebounds for EVERY year in history
+        league_yearly = df_all.groupby('Year').agg({
+            'points': ['mean', 'std'],
+            'reboundsTotal': ['mean', 'std']
+        }).reset_index()
+        
+        # Flatten the multi-level columns created by agg() so they are easy to use
+        league_yearly.columns = ['Year', 'pts_mean', 'pts_std', 'reb_mean', 'reb_std']
+
         # Logical Indexing: We filter the 50 players down to just the 10 active ones in PLAYERS
         df_goat = df_all[df_all['Player'].isin(PLAYERS)].copy()
+
+        # MATLAB Analogy: innerjoin()
+        # Merge the historical yearly averages back to our specific GOAT players' game logs
+        df_goat = pd.merge(df_goat, league_yearly, on='Year', how='left')
+        
+        # Z-Score Formula: (Player Score - League Average) / League Standard Deviation
+        df_goat['pts_z'] = (df_goat['points'] - df_goat['pts_mean']) / df_goat['pts_std']
+        df_goat['reb_z'] = (df_goat['reboundsTotal'] - df_goat['reb_mean']) / df_goat['reb_std']
         
         # Extract Year for Longevity calculations
         df_goat['Year'] = pd.to_datetime(df_goat['gameDate']).dt.year
@@ -108,6 +129,23 @@ def get_awards_hardware():
         "Finals_MVPs": [6, 4, 3, 1, 3, 2, 2, 0, 1, 1], 
         "DPOY": [1, 0, 0, 0, 0, 0, 0, 0, 0, 0] 
     })
+
+def get_era_adjusted_stats(df_goat):
+    """
+    Calculates the real Era-Adjusted Dominance (Z-Scores) by averaging
+    the game-by-game Z-scores we calculated during ingestion.
+    """
+    # We use 'pts_mean' (the average points scored by an average NBA player that year) as a proxy for Era Pace
+    df_era = df_goat.groupby('Player')[['pts_z', 'reb_z', 'pts_mean']].mean().reset_index()
+    
+    # Rename columns so they instantly link to our Plotly UI
+    df_era.rename(columns={
+        'pts_z': 'Scoring_Z_Score',
+        'reb_z': 'Rebound_Z_Score',
+        'pts_mean': 'Era_Pace'
+    }, inplace=True)
+
+    return df_era
 
 def analyze_longevity_vs_peak(df_goat):
     """

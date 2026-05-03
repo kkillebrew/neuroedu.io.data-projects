@@ -27,7 +27,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from loaders.NBA_GOAT_predictor_loader import (
     PLAYERS, get_player_colors, load_and_filter_raw_data, 
     calculate_career_baselines, get_awards_hardware, 
-    analyze_longevity_vs_peak, run_scoring_segment_analysis
+    analyze_longevity_vs_peak, run_scoring_segment_analysis,
+    get_era_adjusted_stats
 )
 
 # -------------------------------------------------------------------
@@ -100,12 +101,13 @@ def load_all_dashboard_data():
     df_awards = get_awards_hardware()
     df_longevity = analyze_longevity_vs_peak(df_goat)
     bin_pct, significant_findings = run_scoring_segment_analysis(df_goat)
+    df_era = get_era_adjusted_stats(df_goat)
     colors = get_player_colors()
-    return df_goat, df_career, df_clutch, df_awards, df_longevity, bin_pct, significant_findings, colors
+    return df_goat, df_career, df_clutch, df_awards, df_longevity, bin_pct, significant_findings, df_era, colors
 
 # Display a loading spinner while the backend fetches data
 with st.spinner("Crunching historical NBA game logs..."):
-    df_goat, df_career, df_clutch, df_awards, df_longevity, bin_pct, sig_findings, player_colors = load_all_dashboard_data()
+    df_goat, df_career, df_clutch, df_awards, df_longevity, bin_pct, sig_findings, df_era, player_colors = load_all_dashboard_data()
 
 # -------------------------------------------------------------------
 # MAIN APP LAYOUT (Interactive Controls on Main Page)
@@ -132,6 +134,31 @@ with tab1:
     # MATLAB Analogy: bar(categorical(x), y, 'grouped')
     fig1 = px.bar(df_melt_career, x='Stat', y='Value', color='Player', barmode='group', color_discrete_map=player_colors)
     st.plotly_chart(fig1, use_container_width=True)
+
+    st.divider()
+    st.subheader("Era-Adjusted Dominance (Z-Scores vs Peers)")
+    st.markdown("Raw stats can be deceiving. Here we adjust for the 'Pace' of different eras by standardizing stats (Z-scores) against a player's contemporaries. *Bubble size indicates the pace of their era.*")
+    
+    # Filter based on multiselect
+    filtered_era = df_era[df_era['Player'].isin(selected_players)]
+    
+    # Create the scatter plot (MATLAB Analogy: scatter() with varying marker sizes)
+    fig_era = px.scatter(
+        filtered_era, x='Scoring_Z_Score', y='Rebound_Z_Score', 
+        text='Player', size='Era_Pace', color='Player',
+        color_discrete_map=player_colors # Keeping our strict colors!
+    )
+    
+    # Formatting the quadrant lines and labels
+    fig_era.update_traces(textposition='top center', marker=dict(line=dict(width=1, color='Black')))
+    fig_era.add_hline(y=1.5, line_dash="dot", line_color="gray")
+    fig_era.add_vline(x=1.5, line_dash="dot", line_color="gray")
+    fig_era.update_layout(
+        xaxis_title="Scoring Dominance (Std Devs above era average)",
+        yaxis_title="Rebounding Dominance (Std Devs above era average)",
+        showlegend=False
+    )
+    st.plotly_chart(fig_era, use_container_width=True)
 
 # --- TAB 2: Hardware & Clutch ---
 with tab2:
