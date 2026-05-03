@@ -21,7 +21,7 @@ from sklearn.metrics import accuracy_score
 # Ensure local modules (like data_loader) are discoverable in the container
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from data_loader import fetch_real_oil_data, fetch_ripple_data
+from oil_predictor_loader import fetch_real_oil_data, fetch_ripple_data
 
 # ------------------------------------------------------------------------------
 # PAGE CONFIG & ECOSYSTEM NAVIGATION
