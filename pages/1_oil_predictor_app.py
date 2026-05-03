@@ -19,7 +19,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
 # Ensure local modules (like data_loader) are discoverable in the container
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# --- PATH CONFIGURATION ---
+# This tells the script to look one folder up to find the 'loaders' directory
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from oil_predictor_loader import fetch_real_oil_data, fetch_ripple_data
 
