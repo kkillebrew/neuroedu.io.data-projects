@@ -6,3 +6,4 @@ seaborn
 statsmodels
 scikit-learn
 pandas-datareader
+requests
