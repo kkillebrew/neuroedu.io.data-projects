@@ -23,7 +23,7 @@ from sklearn.metrics import accuracy_score
 # This tells the script to look one folder up to find the 'loaders' directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from oil_predictor_loader import fetch_real_oil_data, fetch_ripple_data
+from loaders.oil_predictor_loader import fetch_real_oil_data, fetch_ripple_data
 
 # ------------------------------------------------------------------------------
 # PAGE CONFIG & ECOSYSTEM NAVIGATION
