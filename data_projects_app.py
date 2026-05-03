@@ -74,8 +74,8 @@ with st.sidebar:
     # --- 2. RETURN TO MAIN HUB ---
     st.markdown("""
         <div style="padding-bottom: 1rem;">
-            <a href="https://career-hub.neuro-edu.io" class="return-gate">
-                &larr; Return to Career Hub
+            <a href="https://data-projects.neuro-edu.io" style="text-decoration: none; color: #1f77b4; font-weight: bold;">
+                &larr; Return to Data-Projects Hub
             </a>
         </div>
     """, unsafe_allow_html=True)

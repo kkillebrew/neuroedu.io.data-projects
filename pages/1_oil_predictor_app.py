@@ -32,8 +32,8 @@ st.set_page_config(page_title="Macro Oil Explorer | Neuro-Edu", layout="wide")
 
 # Hub & Spoke Navigation Link
 st.markdown("""
-<a href="https://kylewkillebrew.neuro-edu.io" style="text-decoration: none; color: #1f77b4; font-weight: bold;">
-    &larr; Return to Neuro-Edu Hub
+<a href="https://data-projects.neuro-edu.io" style="text-decoration: none; color: #1f77b4; font-weight: bold;">
+    &larr; Return to Data-Projects Hub
 </a>
 <br><br>
 """, unsafe_allow_html=True)
