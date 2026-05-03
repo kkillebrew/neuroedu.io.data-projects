@@ -119,7 +119,7 @@ with col_text:
     dl_col1, dl_col2 = st.columns(2)
     
     with dl_col1:
-        ds_cv_path = os.path.join(base_dir, "documents", "KWK_Data_Science_Resume.pdf")
+        ds_cv_path = os.path.join(base_dir, "documents", "KWK_Data_Science_Resume_20240520.pdf")
         if os.path.exists(ds_cv_path):
             with open(ds_cv_path, "rb") as f:
                 st.download_button("📂 Download Data Science Resume", f.read(), "KWK_Data_Science_Resume.pdf", use_container_width=True)
@@ -127,7 +127,7 @@ with col_text:
             st.button("📄 DS Resume Not Found", disabled=True, use_container_width=True)
             
     with dl_col2:
-        ai_cv_path = os.path.join(base_dir, "documents", "KWK_AI_SME_Resume.pdf")
+        ai_cv_path = os.path.join(base_dir, "documents", "KWK_SME_AI_Resume_20260325.pdf")
         if os.path.exists(ai_cv_path):
             with open(ai_cv_path, "rb") as f:
                 st.download_button("📂 Download AI SME Resume", f.read(), "KWK_AI_SME_Resume.pdf", use_container_width=True)
