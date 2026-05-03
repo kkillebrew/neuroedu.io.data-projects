@@ -79,20 +79,85 @@ if df.empty:
 # ------------------------------------------------------------------------------
 # SIDEBAR CONTROLS
 # ------------------------------------------------------------------------------
-st.sidebar.header("Dashboard Controls")
+# --- CUSTOM CSS FOR SIDEBAR BUTTON ---
+st.markdown("""
+    <style>
+    .return-gate {
+        background-color: #0f172a; color: white !important; padding: 12px;
+        border-radius: 8px; text-align: center; font-weight: bold; 
+        text-decoration: none; display: block; font-size: 1rem;
+        transition: background-color 0.3s ease; border: 1px solid #334155;
+    }
+    .return-gate:hover { background-color: #1e293b; }
+    </style>
+""", unsafe_allow_html=True)
+
+# --- UNIFIED SIDEBAR ---
+with st.sidebar:
+    # 1. Hide default Streamlit navigation
+    st.markdown("""
+        <style>
+            [data-testid="stSidebarNav"] {display: none !important;}
+        </style>
+    """, unsafe_allow_html=True)
+
+    # 2. Return to Career Hub
+    st.markdown("""
+        <div style="padding-bottom: 1rem;">
+            <a href="https://career-hub.neuro-edu.io" target="_blank" class="return-gate">
+                &larr; Return to Career Hub
+            </a>
+        </div>
+    """, unsafe_allow_html=True)
+
+    # 3. Data Projects Navigation
+    st.divider()
+    st.subheader("🧭 Data Projects")
+    st.page_link("data_projects_app.py", label="Data Hub Home", icon="🏠")
+    st.page_link("pages/1_oil_predictor_app.py", label="Macro Oil Predictor", icon="🛢️")
+    st.markdown("🏀 NBA GOAT Predictor *(Coming Soon)*")
+    st.markdown("💻 Tech in Education *(Coming Soon)*")
+    
+    # 4. Professional Presence
+    st.divider()
+    st.subheader("🌐 Presence")
+    st.markdown("🔬 [ORCID Profile](https://orcid.org/0000-0002-9662-9844)")
+    st.markdown("📈 [Google Scholar](https://scholar.google.com/citations?user=y-2G-voAAAAJ&hl=en)")
+    st.markdown("💼 [LinkedIn Profile](https://www.linkedin.com/in/kylewkillebrew/)")
+    st.markdown("💻 [GitHub Profile](https://github.com/kkillebrew)")
+
+    st.divider()
+    st.caption("Data Science Portfolio | 2026")
+
+# ------------------------------------------------------------------------------
+# DASHBOARD CONTROLS: MAIN PAGE
+# ------------------------------------------------------------------------------
+st.markdown("### 🎛️ Analysis Controls")
+
+# Set up columns so the slider and checkbox sit nicely next to each other
+control_col1, control_col2 = st.columns([2, 1])
+
 min_year = int(df['Year'].min())
 max_year = int(df['Year'].max())
-selected_years = st.sidebar.slider("Select Year Range:", min_value=min_year, max_value=max_year, value=(1980, 2024))
-adjust_inflation = st.sidebar.checkbox("Adjust for Inflation (Real Price)", value=True)
 
+with control_col1:
+    selected_years = st.slider("Select Year Range:", min_value=min_year, max_value=max_year, value=(1980, 2024))
+
+with control_col2:
+    st.write("") # Adds a tiny bit of vertical padding to align with the slider
+    st.write("")
+    adjust_inflation = st.checkbox("Adjust for Inflation (Real Price)", value=True)
+
+# Apply the filters
 mask = (df['Year'] >= selected_years[0]) & (df['Year'] <= selected_years[1])
 df_filtered = df.loc[mask]
 
 oil_metric = 'Real_Oil_Price' if adjust_inflation else 'Nominal_Oil_Price'
 gas_metric = 'Real_Gas_Price' if adjust_inflation else 'Nominal_Gas_Price'
 
+
 # ------------------------------------------------------------------------------
-# VISUALIZATION 1: HISTORICAL TIMELINE (Tufte Aesthetics Applied)
+# VISUALIZATION: HISTORICAL TIMELINE (Tufte Aesthetics Applied)
 # ------------------------------------------------------------------------------
 st.subheader("Historical Timeline")
 
