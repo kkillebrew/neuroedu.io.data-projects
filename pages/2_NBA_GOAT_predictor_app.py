@@ -9,8 +9,46 @@ DESCRIPTION:
     and fetches cached data from the nba_goat_loader backend.
 =============================================================================
 """
+
 import sys
 import os
+import streamlit as st
+import plotly.express as px
+import plotly.graph_objects as go
+import numpy as np
+import scipy.stats as stats
+
+# -------------------------------------------------------------------
+# SYSTEM PATH ROUTING
+# -------------------------------------------------------------------
+# This allows the 'pages' directory to see and import from the 'loaders' directory.
+# MATLAB Analogy: Equivalent to `addpath('../loaders')` to make backend functions accessible.
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from loaders.nba_goat_loader import (
+    PLAYERS, get_player_colors, load_and_filter_raw_data, 
+    calculate_career_baselines, get_awards_hardware, 
+    analyze_longevity_vs_peak, run_scoring_segment_analysis
+)
+
+# -------------------------------------------------------------------
+# UI CONFIGURATION & CUSTOM SIDEBAR (The "View")
+# -------------------------------------------------------------------
+st.set_page_config(page_title="NBA GOAT Predictor | Neuro-Edu", page_icon="🏀", layout="wide")
+
+# --- CUSTOM CSS FOR SIDEBAR BUTTON ---
+st.markdown("""
+    <style>
+    .return-gate {
+        background-color: #0f172a; color: white !important; padding: 12px;
+        border-radius: 8px; text-align: center; font-weight: bold; 
+        text-decoration: none; display: block; font-size: 1rem;
+        transition: background-color 0.3s ease; border: 1px solid #334155;
+    }
+    .return-gate:hover { background-color: #1e293b; }
+    </style>
+""", unsafe_allow_html=True)
+
+# --- UNIFIED SIDEBAR ---
 # MATLAB Analogy: Building static UI elements in App Designer that exist globally on the left panel.
 with st.sidebar:
     # 1. Hide default Streamlit navigation
