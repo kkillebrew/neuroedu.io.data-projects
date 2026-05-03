@@ -38,9 +38,9 @@ def get_project_descriptions():
         {
             "title": "🏀 NBA GOAT Predictor",
             "desc": "Statistical analysis and machine learning models weighing historical player metrics to evaluate the 'Greatest of All Time' debate.",
-            "status": "development", 
+            "status": "active", 
             "page": "pages/2_nba_goat_predictor_app.py",
-            "button_text": "Coming Soon"
+            "button_text": "Launch NBA GOAT Predictor"
         },
         {
             "title": "💻 Tech in Education",
