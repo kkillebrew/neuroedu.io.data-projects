@@ -24,7 +24,7 @@ import scipy.stats as stats
 # This allows the 'pages' directory to see and import from the 'loaders' directory.
 # MATLAB Analogy: Equivalent to `addpath('../loaders')` to make backend functions accessible.
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from loaders.nba_goat_loader import (
+from loaders.NBA_GOAT_predictor_loader import (
     PLAYERS, get_player_colors, load_and_filter_raw_data, 
     calculate_career_baselines, get_awards_hardware, 
     analyze_longevity_vs_peak, run_scoring_segment_analysis
