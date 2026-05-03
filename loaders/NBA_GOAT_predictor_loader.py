@@ -11,6 +11,34 @@ DESCRIPTION:
 """
 import pandas as pd
 import numpy as np
+import scipy.stats as stats
+import os
+
+# -------------------------------------------------------------------
+# CONFIGURATION & CONSTANTS
+# -------------------------------------------------------------------
+# CRITICAL: This is the exact variable your UI is looking for!
+# Define our target cohort. In MATLAB, this would be a string array or cell array.
+PLAYERS = [
+    "Michael Jordan", "LeBron James", "Magic Johnson", "Stephen Curry", 
+    "Shaquille O'Neal", "Kareem Abdul-Jabbar", "Kobe Bryant", 
+    "Bill Russell", "Wilt Chamberlain", "Nikola Jokic"
+]
+
+def get_player_colors():
+    """
+    Maintains our strict color consistency rule for the UI layer.
+    
+    MATLAB Analogy: 
+    This is equivalent to creating a custom colormap (e.g., customMap = lines(10)) 
+    and ensuring every subsequent plot uses the exact same color-to-entity mapping 
+    so visual identification remains consistent across figures.
+    """
+    import plotly.express as px
+    palette = px.colors.qualitative.Bold
+    # Creates a dictionary mapping player name to a specific hex color
+    return {player: palette[i % len(palette)] for i, player in enumerate(PLAYERS)}
+
 # -------------------------------------------------------------------
 # DATA INGESTION (The "Model")
 # -------------------------------------------------------------------
