@@ -57,11 +57,9 @@ def load_and_filter_raw_data():
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         player_stats_path = os.path.join(base_dir, 'documents', 'goat_data_extended.csv')
         
-        # We no longer need usecols because the CSV is already perfectly shrunk!
-        # We explicitly load ONLY the columns we need to prevent memory exhaustion
-        # >>> FIX: Added 'turnovers' right here! <<<
-        cols_to_load = ['firstName', 'lastName', 'gameType', 'gameDate', 'points', 'reboundsTotal', 'assists', 'blocks', 'steals', 'turnovers']
-        df_all = pd.read_csv(player_stats_path, usecols=cols_to_load)
+        # No 'usecols' bouncer. Since the CSV is already small, this guarantees 
+        # EVERY column (including turnovers and steals) makes it into the dataframe.
+        df_all = pd.read_csv(player_stats_path)
 
         df_all['Player'] = df_all['firstName'] + " " + df_all['lastName']
         df_all['Year'] = pd.to_datetime(df_all['gameDate']).dt.year
