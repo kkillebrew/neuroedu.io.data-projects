@@ -17,14 +17,6 @@ import os
 # -------------------------------------------------------------------
 # CONFIGURATION & CONSTANTS
 # -------------------------------------------------------------------
-# CRITICAL: This is the exact variable your UI is looking for!
-# Define our target cohort. In MATLAB, this would be a string array or cell array.
-PLAYERS = [
-    "Michael Jordan", "LeBron James", "Magic Johnson", "Stephen Curry", 
-    "Shaquille O'Neal", "Kareem Abdul-Jabbar", "Kobe Bryant", 
-    "Bill Russell", "Wilt Chamberlain", "Nikola Jokic"
-]
-
 def get_player_colors():
     """
     Maintains our strict color consistency rule for the UI layer.
@@ -64,7 +56,7 @@ def load_and_filter_raw_data():
         df_all['Player'] = df_all['firstName'] + " " + df_all['lastName']
         df_all['Year'] = pd.to_datetime(df_all['gameDate']).dt.year
 
-        # >>> Create the stl_blk value using steals and blocks <<<
+        # Create the stl_blk value using steals and blocks 
         df_all['stl_blk'] = df_all['steals'].fillna(0) + df_all['blocks'].fillna(0)
         
         # MATLAB Analogy: groupsummary(df, 'Year', {'mean', 'std'})
@@ -81,12 +73,8 @@ def load_and_filter_raw_data():
             'ast_mean', 'ast_std', 'stl_blk_mean', 'stl_blk_std'
         ]
 
-        # Logical Indexing: We filter the 50 players down to just the 10 active ones in PLAYERS
-        df_goat = df_all[df_all['Player'].isin(PLAYERS)].copy()
-
-        # MATLAB Analogy: innerjoin()
-        # Merge the historical yearly averages back to our specific GOAT players' game logs
-        df_goat = pd.merge(df_goat, league_yearly, on='Year', how='left')
+        # Merge the historical yearly averages directly to all 50 players
+        df_goat = pd.merge(df_all, league_yearly, on='Year', how='left')
         
         # Z-Score Formula: (Player Score - League Average) / League Standard Deviation
         df_goat['pts_z'] = np.where(df_goat['pts_std'] > 0, (df_goat['points'] - df_goat['pts_mean']) / df_goat['pts_std'], 0)
@@ -189,9 +177,6 @@ def get_awards_hardware():
         # this turns them into 0s so the math doesn't crash!
         df_awards.fillna(0, inplace=True)
         
-        # Filter the 50 awards down to just the active ones selected in the UI
-        df_awards = df_awards[df_awards['Player'].isin(PLAYERS)].copy()
-        
         return df_awards
         
     except FileNotFoundError:
@@ -260,7 +245,7 @@ def get_era_adjusted_stats(df_goat):
         df_era['Pace_Bubble_Size'] = 10 + ((df_era['Era_Pace'] - min_pace) * (40 - 10) / (max_pace - min_pace))
     else:
         df_era['Pace_Bubble_Size'] = 25 # Fallback if all eras are identical
-        
+
     return df_era
 
 def analyze_longevity_vs_peak(df_goat):
@@ -394,3 +379,80 @@ def get_dumbbell_longevity_peak(df_goat):
     # Sort by Longevity to make the dumbbell chart look like a clean staircase
     df_merged = df_merged.sort_values('Longevity_Score', ascending=True)
     return df_merged
+
+def get_philanthropy_data():
+    """
+    Loads the Philanthropy footprint and sentence matrix.
+    """
+    try:
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        phil_path = os.path.join(base_dir, 'documents', 'social_impact_scores_with_sentences.csv')
+        df_phil = pd.read_csv(phil_path)
+        return df_phil
+    except Exception as e:
+        print(f"Error loading Philanthropy data: {e}")
+        return pd.DataFrame()
+
+def calculate_cultural_impact_score(df_goat, df_mvp, df_trends, df_civic, df_phil):
+    """
+    Merges all Phase 4 datasets, applies Min-Max normalization, 
+    and calculates a weighted out-of-100 Cultural Impact Score.
+    """
+    if any(df.empty for df in [df_goat, df_mvp, df_trends, df_civic, df_phil]):
+        return pd.DataFrame()
+
+    # 1. MVP (Zeitgeist Dominance)
+    df_mvp_grouped = df_mvp.groupby('Player')['Share'].sum().reset_index()
+    df_mvp_grouped.rename(columns={'Share': 'Total_MVP_Shares'}, inplace=True)
+
+    # 2. Trends (Modern Relevance)
+    df_trends_mean = df_trends.drop(columns=['date', 'Unnamed: 0'], errors='ignore').mean().reset_index()
+    df_trends_mean.columns = ['Player', 'Mean_Search_Volume']
+
+    # 3. Civic Awards (Character)
+    award_cols = [col for col in df_civic.columns if col not in ['Player', 'Award', 'Won']]
+    # If the civic matrix is pivoted, we just sum the numeric columns
+    df_civic_copy = df_civic.copy()
+    numeric_cols = df_civic_copy.select_dtypes(include='number').columns
+    df_civic_copy['Civic_Hardware_Total'] = df_civic_copy[numeric_cols].sum(axis=1)
+    df_civic_grouped = df_civic_copy[['Player', 'Civic_Hardware_Total']]
+
+    # 4. Philanthropy (Real World Impact)
+    df_phil_grouped = df_phil[['Player', 'Philanthropic_Footprint']]
+
+    # 5. Master Merge (Anchored to our 50 players)
+    df_master = df_goat[['Player']].drop_duplicates()
+    df_master = pd.merge(df_master, df_mvp_grouped, on='Player', how='left')
+    df_master = pd.merge(df_master, df_trends_mean, on='Player', how='left')
+    df_master = pd.merge(df_master, df_civic_grouped, on='Player', how='left')
+    df_master = pd.merge(df_master, df_phil_grouped, on='Player', how='left').fillna(0)
+
+    # 6. Min-Max Normalization
+    metrics = ['Total_MVP_Shares', 'Mean_Search_Volume', 'Civic_Hardware_Total', 'Philanthropic_Footprint']
+    for col in metrics:
+        min_val = df_master[col].min()
+        max_val = df_master[col].max()
+        if max_val - min_val == 0:
+            df_master[f'{col}_Norm'] = 0.0
+        else:
+            df_master[f'{col}_Norm'] = (df_master[col] - min_val) / (max_val - min_val)
+
+    # 7. The Weighting Schema
+    WEIGHTS = {
+        'Total_MVP_Shares_Norm': 0.35,     
+        'Mean_Search_Volume_Norm': 0.20,   
+        'Philanthropic_Footprint_Norm': 0.22, 
+        'Civic_Hardware_Total_Norm': 0.23  
+    }
+
+    df_master['Cultural_Impact_Score'] = (
+        (df_master['Total_MVP_Shares_Norm'] * WEIGHTS['Total_MVP_Shares_Norm']) +
+        (df_master['Mean_Search_Volume_Norm'] * WEIGHTS['Mean_Search_Volume_Norm']) +
+        (df_master['Philanthropic_Footprint_Norm'] * WEIGHTS['Philanthropic_Footprint_Norm']) +
+        (df_master['Civic_Hardware_Total_Norm'] * WEIGHTS['Civic_Hardware_Total_Norm'])
+    ) * 100
+
+    df_master['Cultural_Impact_Score'] = df_master['Cultural_Impact_Score'].round(1)
+    df_master = df_master.sort_values(by='Cultural_Impact_Score', ascending=False)
+    
+    return df_master

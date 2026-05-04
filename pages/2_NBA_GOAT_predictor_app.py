@@ -29,7 +29,8 @@ from loaders.NBA_GOAT_predictor_loader import (
     calculate_career_baselines, get_awards_hardware, 
     analyze_longevity_vs_peak, run_scoring_segment_analysis,
     get_era_adjusted_stats, get_radar_scaled_stats, get_dumbbell_longevity_peak,
-    calculate_hardware_score
+    calculate_hardware_score, get_google_trends, get_mvp_shares, get_league_trends, 
+    get_civic_awards, get_philanthropy_data, calculate_cultural_impact_score
 )
 
 # --- GLOBAL PLOTLY CONFIG (Mobile Scroll Lock) ---
@@ -113,12 +114,21 @@ def load_all_dashboard_data():
     df_era = get_era_adjusted_stats(df_goat)
     df_radar = get_radar_scaled_stats(df_career)
     df_dumbbell = get_dumbbell_longevity_peak(df_goat)
+    df_google = get_google_trends()
+    df_mvp = get_mvp_shares()
+    df_trends = get_league_trends()
+    df_civic = get_civic_awards()
+    df_phil = get_philanthropy_data()
+    df_impact_score = calculate_cultural_impact_score(df_goat, df_mvp, df_google, df_civic, df_phil)
+
     colors = get_player_colors()
-    return df_goat, df_career, df_clutch, df_awards, df_scored, df_hw_melted, df_longevity, bin_pct, significant_findings, df_era, df_radar, df_dumbbell, colors
+    return df_goat, df_career, df_clutch, df_awards, df_scored, df_hw_melted, df_longevity, bin_pct, significant_findings, 
+        df_era, df_radar, df_dumbbell, df_google, df_mvp, df_trends, df_civic, df_phil, df_impact_score, colors
 
 # Display a loading spinner while the backend fetches data
 with st.spinner("Crunching historical NBA game logs..."):
-    df_goat, df_career, df_clutch, df_awards, df_scored, df_hw_melted, df_longevity, bin_pct, sig_findings, df_era, df_radar, df_dumbbell, player_colors = load_all_dashboard_data()
+    df_goat, df_career, df_clutch, df_awards, df_scored, df_hw_melted, df_longevity, bin_pct, sig_findings, df_era, df_radar, 
+    df_dumbbell, df_google, df_mvp, df_trends, df_civic, df_phil, df_impact_score, player_colors = load_all_dashboard_data()
 
 # -------------------------------------------------------------------
 # MAIN APP LAYOUT (Interactive Controls on Main Page)
@@ -129,7 +139,31 @@ st.divider()
 
 # Interactive Filter: Allows users to subset which players they want to compare
 # MATLAB Analogy: Connecting a drop-down UI Component callback to update data.
-selected_players = st.multiselect("Select Players to Compare:", PLAYERS, default=PLAYERS)
+
+# --- SIDEBAR CONTROLS ---
+st.sidebar.image("https://cdn-icons-png.flaticon.com/512/889/889442.png", width=100) # Optional basketball icon
+st.sidebar.title("Dashboard Controls")
+
+# 1. Define the original 10 to act as our default startup view
+DEFAULT_10 = [
+"Michael Jordan", "LeBron James", "Magic Johnson", "Stephen Curry", 
+"Shaquille O'Neal", "Kareem Abdul-Jabbar", "Kobe Bryant", 
+"Bill Russell", "Wilt Chamberlain", "Nikola Jokic"
+]
+
+# 2. Extract the full list of 50 players dynamically from the dataset and sort alphabetically
+all_available_players = sorted(df_goat['Player'].unique().tolist())
+
+# 3. The Dynamic Dropdown
+selected_players = st.sidebar.multiselect(
+    "Select Players to Compare:",
+    options=all_available_players,
+    default=DEFAULT_10
+    )
+
+if not selected_players:
+    st.error("Please select at least one player from the sidebar to view the analytics.")
+    st.stop()
 
 # Create layout tabs for clean MVC separation in the UI
 tab1, tab2, tab3, tab4 = st.tabs(["📊 Career Baselines", "🏆 Hardware & Clutch", "📈 Consistency & Variance", "⏳ Longevity vs Peak"])
@@ -417,5 +451,146 @@ with tab3:
         st.info("No statistically significant anomalies detected for the currently selected players in comparison to the broader group.")
 
 # --- TAB 4: Longevity vs Peak ---
-# with tab4:
+with tab4:
+    st.header("Cultural Impact & The Eye Test")
+    
+    # ---------------------------------------------------------
+    # 1. Cultural Zeitgeist (Google Trends)
+    # ---------------------------------------------------------
+    st.subheader("1. The Cultural Zeitgeist (Google Trends)")
+    st.markdown("""
+        *Relative Search Volume over the last 5 years.* Who controls the modern news cycle? Peaks often align with Finals runs, trades, documentary releases, or MVP races.
+    """)
+    
+    if not df_google.empty:
+        valid_cols = ['date'] + [p for p in selected_players if p in df_google.columns]
+        if len(valid_cols) > 1:
+            df_g_filtered = df_google[valid_cols]
+            df_g_melted = df_g_filtered.melt(id_vars='date', var_name='Player', value_name='Search Volume')
+            fig_google = px.line(df_g_melted, x='date', y='Search Volume', color='Player', color_discrete_map=player_colors)
+            fig_google.update_traces(line=dict(width=2.5))
+            fig_google.update_layout(xaxis_title="Date", yaxis_title="Relative Search Volume (0-100)", height=450)
+            st.plotly_chart(fig_google, use_container_width=True, config=PLOTLY_CONFIG)
+        else:
+            st.info("No Google Trends data found for the currently selected players.")
+    
+    # ---------------------------------------------------------
+    # 2. The Eye Test: MVP Voting Shares
+    # ---------------------------------------------------------
+    st.divider()
+    st.subheader("2. MVP Voting Shares (The Peak 'Eye Test')")
+    st.markdown("""
+        *MVP Voting Share = (Points Won / Total Possible Points).* MVP *shares* reveal how heavily a player dominated the league's consciousness year-over-year, even if they didn't officially win the trophy.
+    """)
+    
+    if not df_mvp.empty:
+        df_mvp_filtered = df_mvp[df_mvp['Player'].isin(selected_players)]
+        if not df_mvp_filtered.empty:
+            fig_mvp = px.area(
+                df_mvp_filtered.sort_values(by=['Year']), 
+                x='Year', y='Share', color='Player', 
+                color_discrete_map=player_colors, line_group='Player'
+            )
+            fig_mvp.update_layout(xaxis_title="Year", yaxis_title="MVP Voting Share", height=500)
+            fig_mvp.update_traces(opacity=0.6)
+            st.plotly_chart(fig_mvp, use_container_width=True, config=PLOTLY_CONFIG)
+        else:
+             st.info("No MVP voting data found for the currently selected players.")
+
+    # ---------------------------------------------------------
+    # 3. Character & Leadership (Civic Awards)
+    # ---------------------------------------------------------
+    st.divider()
+    st.subheader("3. Character & Leadership (The Civic Matrix)")
+    st.markdown("""
+        *The Locker Room Impact.* This matrix tracks the four major NBA civic/leadership awards: the J. Walter Kennedy Citizenship Award, NBA Sportsmanship Award, Twyman-Stokes Teammate of the Year, and the Kareem Abdul-Jabbar Social Justice Champion Award.
+    """)
+    
+    if not df_civic.empty:
+        df_civic_filtered = df_civic[df_civic['Player'].isin(selected_players)]
+        if not df_civic_filtered.empty:
+            civic_melted = df_civic_filtered.melt(id_vars='Player', var_name='Award', value_name='Won')
+            civic_melted['Status'] = civic_melted['Won'].apply(lambda x: '🏆 Won' if isinstance(x, (int, float)) and x > 0 else '—')
+            
+            fig_civic = px.density_heatmap(
+                civic_melted, x='Award', y='Player', z='Won',
+                color_continuous_scale=['#f4f4f4', '#FFD700'], 
+                text_auto=True
+            )
+            fig_civic.update_traces(text=civic_melted['Status'], texttemplate="%{text}")
+            fig_civic.update_layout(height=400, yaxis_title="", xaxis_title="", coloraxis_showscale=False)
+            st.plotly_chart(fig_civic, use_container_width=True, config=PLOTLY_CONFIG)
+        else:
+            st.info("None of the currently selected players have won these specific civic awards.")
+
+    # ---------------------------------------------------------
+    # 4. Real World Philanthropy (NLP Extracted)
+    # ---------------------------------------------------------
+    st.divider()
+    st.subheader("4. Real World Philanthropy (NLP Text Mining)")
+    st.markdown("""
+        *The Philanthropic Footprint.* We used an NLP algorithm to scan Wikipedia for verified charitable actions, foundations, and community scholarships. The larger the footprint, the more documented social impact the player has generated off the court.
+    """)
+
+    if not df_phil.empty:
+        df_phil_filtered = df_phil[df_phil['Player'].isin(selected_players)]
+        if not df_phil_filtered.empty:
+            fig_phil = px.bar(
+                df_phil_filtered.sort_values(by='Philanthropic_Footprint', ascending=True),
+                x='Philanthropic_Footprint', y='Player', orientation='h',
+                color='Player', color_discrete_map=player_colors,
+                text='Philanthropic_Footprint'
+            )
+            fig_phil.update_layout(xaxis_title="Verified Philanthropic Sentences", yaxis_title="", height=350, showlegend=False)
+            st.plotly_chart(fig_phil, use_container_width=True, config=PLOTLY_CONFIG)
+            
+            # Display random sentence highlights for the top selected player!
+            st.markdown("##### 🔍 Philanthropy Highlights")
+            top_phil_player = df_phil_filtered.sort_values(by='Philanthropic_Footprint', ascending=False).iloc[0]
+            
+            if top_phil_player['Philanthropic_Footprint'] > 0:
+                st.success(f"**{top_phil_player['Player']}'s Community Impact:**")
+                sentence_cols = [c for c in df_phil.columns if 'Sentence_' in c]
+                valid_sentences = top_phil_player[sentence_cols].dropna().tolist()
+                
+                for idx, sentence in enumerate(valid_sentences[:3]): 
+                    st.write(f"*{idx+1}. {sentence}*")
+        else:
+             st.info("No philanthropy data found for the currently selected players.")
+
+    # ---------------------------------------------------------
+    # 5. The Master Cultural Impact Score
+    # ---------------------------------------------------------
+    st.divider()
+    st.subheader("5. Overall Cultural Impact Score")
+    st.markdown("""
+        *The definitive off-court metric.* By Min-Max normalizing all four datasets (MVP Shares, Google Trends, Civic Awards, and Philanthropy) into a shared dimensional space, we can calculate a singular weighted score out of 100 representing a player's absolute cultural gravity.
+    """)
+    
+    if not df_impact_score.empty:
+        df_impact_filtered = df_impact_score[df_impact_score['Player'].isin(selected_players)]
+        
+        fig_impact = px.bar(
+            df_impact_filtered.sort_values(by='Cultural_Impact_Score', ascending=True),
+            x='Cultural_Impact_Score', y='Player', orientation='h',
+            color='Player', color_discrete_map=player_colors,
+            text='Cultural_Impact_Score'
+        )
+        fig_impact.update_traces(texttemplate='%{text}', textposition='outside')
+        fig_impact.update_layout(xaxis_title="Weighted Cultural Impact Score (0-100)", yaxis_title="", height=400, showlegend=False)
+        fig_impact.update_xaxes(range=[0, 105]) 
+        st.plotly_chart(fig_impact, use_container_width=True, config=PLOTLY_CONFIG)
+
+    # ---------------------------------------------------------
+    # Methodology Expander
+    # ---------------------------------------------------------
+    with st.expander("📊 Methodology & Data Sources"):
+        st.markdown("""
+        **How was this off-court data collected?**
+        * **Google Trends (The Popularity Metric):** A custom Python script connected to the `pytrends` API to pull 5-year Relative Search Volume (RSV), batched and anchored mathematically to a single baseline for all 50 players.
+        * **MVP Voting Shares (The Eye Test):** Pandas `read_html` was used to web-scrape 68 years of historical MVP voting tables from *Basketball-Reference*, tracking peak dominance even in years the award wasn't won.
+        * **Civic Awards (Character):** Web-scraped directly from Wikipedia tables tracking the NBA's four major character awards, with aggressive text cleaning to remove Wikipedia footnotes and symbols.
+        * **Philanthropy (Real World Impact):** A Natural Language Processing (NLP) pipeline parsed every paragraph of the players' biographies using the `nltk` tokenizer. A Dual-Filter system cross-referenced sentences against a Positive Dictionary (e.g., *'charity'*, *'scholarship'*) and a Negative Dictionary (e.g., *'contract'*, *'lawsuit'*) to isolate verified social impact. 
+        """)
+
     
