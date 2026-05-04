@@ -135,7 +135,7 @@ with st.spinner("Crunching historical NBA game logs..."):
     (
         df_goat, df_career, df_clutch, df_awards, df_scored, df_melted, 
         df_longevity, bin_pct, significant_findings, df_era, df_radar, df_dumbbell, 
-        df_google, df_mvp, df_civic, df_phil, df_impact_score, df_objective
+        df_google, df_mvp, df_civic, df_phil, df_impact_score, df_objective,
         player_colors
     ) = load_all_dashboard_data()
     
