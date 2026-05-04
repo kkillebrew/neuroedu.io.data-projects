@@ -184,6 +184,7 @@ with tab1:
         fig = px.scatter(
             filtered_era, x=x_col, y=y_col, text='Player', 
             size='Pace_Bubble_Size', size_max=45, # HUGE bubbles for the fast eras
+            size_max=30, # Shrunk down by 1/3rd from 45!
             color='Player', color_discrete_map=player_colors, title=title
         )
         fig.update_traces(textposition='top center', marker=dict(line=dict(width=1, color='Black')))

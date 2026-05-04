@@ -176,8 +176,7 @@ def get_era_adjusted_stats(df_goat):
         'pts_mean': 'Era_Pace'
     }, inplace=True)
     
-    # Exponential Bubble Scaling: Raising it to the 4th power makes small pace differences highly visible!
-    df_era['Pace_Bubble_Size'] = (df_era['Era_Pace'] / df_era['Era_Pace'].min()) ** 4
+    df_era['Pace_Bubble_Size'] = df_era['Era_Pace']
     return df_era
 
 def analyze_longevity_vs_peak(df_goat):
