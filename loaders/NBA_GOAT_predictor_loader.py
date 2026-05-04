@@ -501,6 +501,30 @@ def calculate_cultural_impact_score(df_goat, df_mvp, df_trends, df_civic, df_phi
     
     return df_master
 
+# -------------------------------------------------------------------
+# PHASE 5: MACHINE LEARNING PREDICTORS
+# -------------------------------------------------------------------
+def predict_user_subjective_goat(user_data):
+    """
+    HEURISTIC MODEL: Predicts GOAT preference based on demographic bias.
+    Logic: Older generations favor Rings/Defense; Younger favor Efficiency/Impact.
+    """
+    age = user_data['age']
+    era = user_data['fav_era']
+    fandom = user_data['fandom']
+    
+    # Heuristic Logic Flow
+    if age > 55 or era == "1960s":
+        return "Bill Russell", "Bias: Defensive dominance and championship quantity (11 Rings)."
+    elif 40 <= age <= 55 or era == "1990s":
+        return "Michael Jordan", "Bias: Peak dominance and 6-0 Finals narrative."
+    elif era == "2010s" or fandom == "Analytic-Heavy":
+        return "LeBron James", "Bias: Longevity, cumulative stats, and versatility."
+    elif fandom == "High-Volume Scoring":
+        return "Stephen Curry", "Bias: Gravity and the 3-point revolution."
+    else:
+        return "Nikola Jokic", "Bias: Modern efficiency and t
+
 def train_subjective_model():
     """
     PHASE 5A: Training a Random Forest to predict fan preference.
