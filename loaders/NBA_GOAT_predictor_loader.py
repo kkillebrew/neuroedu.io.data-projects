@@ -55,7 +55,7 @@ def load_and_filter_raw_data():
         # os.path.dirname(__file__) is the 'loaders' directory
         # os.path.dirname(os.path.dirname(__file__)) is the root repo directory
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        player_stats_path = os.path.join(base_dir, 'documents', 'goat_data_top50.csv')
+        player_stats_path = os.path.join(base_dir, 'documents', 'goat_data_extended.csv')
         
         # We no longer need usecols because the CSV is already perfectly shrunk!
         # We explicitly load ONLY the columns we need to prevent memory exhaustion
@@ -105,9 +105,9 @@ def calculate_career_baselines(df_goat):
     It automatically aggregates the dataset based on unique categories.
     """
     # 1. Base Averages
-    df_career = df_goat.groupby('Player')[['points', 'reboundsTotal', 'assists', 'blocks', 'steals']].mean().reset_index()
+    df_career = df_goat.groupby('Player')[['points', 'reboundsTotal', 'assists', 'blocks', 'steals', 'turnovers']].mean().reset_index()
     # Rename columns for cleaner UI presentation (fillna prevents errors for 1960s players)
-    df_career.rename(columns={'points': 'PTS', 'reboundsTotal': 'TRB', 'assists': 'AST', 'blocks': 'BLK', 'steals': 'STL'}, inplace=True)
+    df_career.rename(columns={'points': 'PTS', 'reboundsTotal': 'TRB', 'assists': 'AST', 'blocks': 'BLK', 'steals': 'STL', 'turnovers': 'TOV'}, inplace=True)
     df_career.fillna(0, inplace=True)
     
     # 2. Clutch Factor (Playoffs vs Regular Season)
