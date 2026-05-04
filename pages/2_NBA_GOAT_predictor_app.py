@@ -375,5 +375,5 @@ with tab3:
         st.info("No statistically significant anomalies detected for the currently selected players in comparison to the broader group.")
 
 # --- TAB 4: Longevity vs Peak ---
-with tab4:
+# with tab4:
     
