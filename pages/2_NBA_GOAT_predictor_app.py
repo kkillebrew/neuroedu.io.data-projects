@@ -134,7 +134,6 @@ tab1, tab2, tab3, tab4 = st.tabs(["📊 Career Baselines", "🏆 Hardware & Clut
 
 # --- TAB 1: Baseline Stats ---
 with tab1:
-    with tab1:
     st.subheader("The 'Shape' of Greatness (Radar Chart)")
     st.markdown("""
         How do these players visually compare across major statistical categories? 
