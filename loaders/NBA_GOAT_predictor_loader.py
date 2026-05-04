@@ -223,8 +223,16 @@ def get_era_adjusted_stats(df_goat):
         'ast_z': 'Assist_Z', 'def_z': 'Defense_Z',
         'pts_mean': 'Era_Pace'
     }, inplace=True)
+
+    min_pace = df_era['Era_Pace'].min()
+    max_pace = df_era['Era_Pace'].max()
     
-    df_era['Pace_Bubble_Size'] = df_era['Era_Pace']
+    # Formula: Scaled = Min_Size + (Raw - Min_Raw) * (Max_Size - Min_Size) / (Max_Raw - Min_Raw)
+    if max_pace > min_pace: # Safeguard against divide-by-zero
+        df_era['Pace_Bubble_Size'] = 10 + ((df_era['Era_Pace'] - min_pace) * (40 - 10) / (max_pace - min_pace))
+    else:
+        df_era['Pace_Bubble_Size'] = 25 # Fallback if all eras are identical
+        
     return df_era
 
 def analyze_longevity_vs_peak(df_goat):
