@@ -262,7 +262,7 @@ with tab3:
     # 1. ERA-ADJUSTED DOMINANCE (Moved from Tab 1)
     # ---------------------------------------------------------
     st.divider()
-    st.subheader("Era-Adjusted Dominance (Z-Scores vs Peers)")
+    st.subheader("1. Era-Adjusted Dominance (Z-Scores vs Peers)")
     st.markdown("Adjusted for era pacing.")    
     st.markdown("*Pace is calculated by the average points scored per game across the entire NBA during that player's active years. Faster eras (like the 1960s) have higher averages, which naturally inflated raw stats compared to slower, defensive eras (like the 2000s). Think Wilt's 1960s vs Kobe's 2000s.*")
 
@@ -305,24 +305,13 @@ with tab3:
     st.subheader("2. The Clutch Factor (Playoff Elevation)")
     st.markdown("""
         How do players perform when the pressure is highest? **Players above the diagonal dashed line elevate their game in the playoffs.** Players below the line shrink under pressure. Use the dropdown to explore different facets of the game.
+        *Note: Players from the 1960s (Wilt, Russell) did not have the 3-point line and will appear at 0%.*
     """)
     
     filtered_clutch = df_clutch[df_clutch['Player'].isin(selected_players)].copy()
     
-    # --- The Dynamic Dropdown Plot ---
-    stat_options = {
-        "Points Scored": "PTS",
-        "Overall Impact (+/-)": "PLUS_MINUS",
-        "Defense (Steals + Blocks)": "DEF",
-        "Total Rebounds": "TRB"
-    }
-    
-    # Streamlit Selectbox (The Dropdown!)
-    selected_stat_label = st.selectbox("Select Core Metric to Analyze:", options=list(stat_options.keys()))
-    stat_key = stat_options[selected_stat_label]
-    
-    # A reusable helper function to generate perfectly scaled 45-degree scatter plots
-    def create_clutch_scatter(stat_key, title, is_percentage=False):
+    # --- The Dynamic Helper Function (Now with plot_height!) ---
+    def create_clutch_scatter(stat_key, title, is_percentage=False, plot_height=450):
         reg_col = f"Regular_Season_{stat_key}"
         play_col = f"Playoffs_{stat_key}"
         
@@ -336,7 +325,7 @@ with tab3:
         max_val = max(filtered_clutch[reg_col].max(), filtered_clutch[play_col].max())
         min_val = min(filtered_clutch[reg_col].min(), filtered_clutch[play_col].min())
         
-        # Add 10% visual padding so names don't hit the borders
+        # Add 10% visual padding
         padding = (max_val - min_val) * 0.1 if max_val != min_val else 1
         max_val += padding
         min_val -= padding
@@ -344,28 +333,40 @@ with tab3:
         fig.add_shape(type="line", x0=min_val, y0=min_val, x1=max_val, y1=max_val, line=dict(color="gray", dash="dash"))
         
         fig.update_traces(textposition='top center', marker=dict(size=12, line=dict(width=1, color='Black')))
-        fig.update_layout(xaxis_title=f"Reg Season {title}", yaxis_title=f"Playoffs {title}", showlegend=False, height=450)
         
-        # Format as percentages if it's a shooting stat!
+        # >>> Apply dynamic plot_height here! <<<
+        fig.update_layout(xaxis_title=f"Reg Season {title}", yaxis_title=f"Playoffs {title}", showlegend=False, height=plot_height)
+        
         if is_percentage:
             fig.update_layout(xaxis_tickformat=".1%", yaxis_tickformat=".1%")
             
-        # Forces mathematically square grids!
         fig.update_yaxes(scaleanchor="x", scaleratio=1)
         return fig
 
-    # Plot 1: The Dynamic Main Plot
-    st.plotly_chart(create_clutch_scatter(stat_key, selected_stat_label), use_container_width=True, config=PLOTLY_CONFIG)
+    # --- 3-Column Row Layout ---
+    clutch_col1, clutch_col2, clutch_col3 = st.columns(3)
     
-    # --- The Static Shooting Percentage Plots ---
-    st.markdown("##### Shooting Efficiency Under Pressure")
-    st.markdown("*Note: Players from the 1960s (Wilt, Russell) did not have the 3-point line and will appear at 0%.*")
-    
-    clutch_col1, clutch_col2 = st.columns(2)
     with clutch_col1:
-        st.plotly_chart(create_clutch_scatter('TS_PCT', 'True Shooting %', is_percentage=True), use_container_width=True, config=PLOTLY_CONFIG)
+        stat_options = {
+            "Points Scored": "PTS",
+            "Overall Impact (+/-)": "PLUS_MINUS",
+            "Defense (Steals + Blocks)": "DEF",
+            "Total Rebounds": "TRB"
+        }
+        # The dropdown sits at the top of column 1
+        selected_stat_label = st.selectbox("Select Metric:", options=list(stat_options.keys()))
+        stat_key = stat_options[selected_stat_label]
+        
+        # We shrink this specific plot to 360px so it perfectly compensates for the dropdown menu!
+        st.plotly_chart(create_clutch_scatter(stat_key, selected_stat_label, plot_height=360), use_container_width=True, config=PLOTLY_CONFIG)
+
     with clutch_col2:
-        st.plotly_chart(create_clutch_scatter('3PT_PCT', '3-Point %', is_percentage=True), use_container_width=True, config=PLOTLY_CONFIG)
+        # Full 450px height
+        st.plotly_chart(create_clutch_scatter('TS_PCT', 'True Shooting %', is_percentage=True, plot_height=450), use_container_width=True, config=PLOTLY_CONFIG)
+
+    with clutch_col3:
+        # Full 450px height
+        st.plotly_chart(create_clutch_scatter('3PT_PCT', '3-Point %', is_percentage=True, plot_height=450), use_container_width=True, config=PLOTLY_CONFIG)
 
     # ---------------------------------------------------------
     # 3. STATISTICAL DISTRIBUTIONS & ANOMALIES
