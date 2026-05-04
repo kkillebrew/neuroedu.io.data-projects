@@ -26,7 +26,7 @@ PLAYERS = [
     "Bill Russell", "Wilt Chamberlain", "Nikola Jokic"
 ]
 
-def get_player_colors():
+def get_player_colors(df_goat):
     """
     Maintains our strict color consistency rule for the UI layer.
     
