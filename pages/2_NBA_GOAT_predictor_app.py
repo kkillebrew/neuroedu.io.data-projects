@@ -125,23 +125,27 @@ def load_all_dashboard_data():
     return df_goat, df_career, df_clutch, df_awards, df_scored, df_hw_melted, df_longevity, bin_pct, significant_findings, 
         df_era, df_radar, df_dumbbell, df_google, df_mvp, df_trends, df_civic, df_phil, df_impact_score, colors
 
-# Display a loading spinner while the backend fetches data
+# --- DATA LOADING SECTION ---
 with st.spinner("Crunching historical NBA game logs..."):
+    # Step 1: Load the bundle from the cache
+    data_bundle = load_all_dashboard_data()
+    
+    # Step 2: Unpack the bundle (Ensure this line aligns perfectly with the line above)
     (df_goat, df_career, df_clutch, df_awards, df_scored, df_hw_melted, 
      df_longevity, bin_pct, sig_findings, df_era, df_radar, df_dumbbell, 
      df_google, df_mvp, df_trends, df_civic, df_phil, df_impact_score, 
-     player_colors) = load_all_dashboard_data()
+     player_colors) = data_bundle
 
-# Now, we define the sidebar right after the spinner block finishes
+# --- SIDEBAR CONTROLS (Starts here, outside the with block) ---
 st.sidebar.title("Dashboard Controls")
 
-# Define the default 10
 DEFAULT_10 = [
     "Michael Jordan", "LeBron James", "Magic Johnson", "Stephen Curry", 
     "Shaquille O'Neal", "Kareem Abdul-Jabbar", "Kobe Bryant", 
     "Bill Russell", "Wilt Chamberlain", "Nikola Jokic"
 ]
 
+# Pull the player list from our newly unpacked df_goat
 all_available_players = sorted(df_goat['Player'].unique().tolist())
 
 selected_players = st.sidebar.multiselect(
