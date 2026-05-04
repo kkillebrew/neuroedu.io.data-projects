@@ -152,7 +152,8 @@ all_available_players = sorted(df_goat['Player'].unique().tolist())
 selected_players = st.sidebar.multiselect(
     "Select Players to Compare:",
     options=all_available_players,
-    default=DEFAULT_10
+    default=DEFAULT_10,
+    key="goat_player_selector" # <--- Adding this key makes the ID unique
 )
 
 # -------------------------------------------------------------------
@@ -178,13 +179,6 @@ DEFAULT_10 = [
 
 # 2. Extract the full list of 50 players dynamically from the dataset and sort alphabetically
 all_available_players = sorted(df_goat['Player'].unique().tolist())
-
-# 3. The Dynamic Dropdown
-selected_players = st.sidebar.multiselect(
-    "Select Players to Compare:",
-    options=all_available_players,
-    default=DEFAULT_10
-    )
 
 if not selected_players:
     st.error("Please select at least one player from the sidebar to view the analytics.")
