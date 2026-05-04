@@ -523,7 +523,24 @@ def predict_user_subjective_goat(user_data):
     elif fandom == "High-Volume Scoring":
         return "Stephen Curry", "Bias: Gravity and the 3-point revolution."
     else:
-        return "Nikola Jokic", "Bias: Modern efficiency and t
+        return "Nikola Jokic", "Bias: Modern efficiency and triple-double versatility."
+
+def calculate_objective_goat_ranking(df_career, df_hardware, df_era, df_impact):
+    """
+    ENSEMBLE MODEL: Weighted fusion of Stats, Z-Scores, Hardware, and Impact.
+    De-biases the 'Rings' argument by balancing it with Era-Adjusted Z-Scores.
+    """
+    # 1. Normalize all inputs to 0.0 - 1.0
+    # [Insert Min-Max scaling logic for Career, Hardware, Z-Score, and Impact]
+    
+    # 2. Apply Weights
+    # Career Stats (25%), Hardware (35%), Era-Adjusted Dominance (25%), Cultural Impact (15%)
+    weights = {'stats': 0.25, 'hardware': 0.35, 'era': 0.25, 'impact': 0.15}
+    
+    # 3. Calculate Final Index
+    # [Calculation logic]
+    
+    return ranking_results
 
 def train_subjective_model():
     """
