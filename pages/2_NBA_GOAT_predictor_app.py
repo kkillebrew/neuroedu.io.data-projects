@@ -120,7 +120,7 @@ def load_all_dashboard_data():
     df_civic = get_civic_awards()
     df_phil = get_philanthropy_data()
     df_impact_score = calculate_cultural_impact_score(df_goat, df_mvp, df_google, df_civic, df_phil)
-    df_objective = 
+    df_objective = calculate_objective_goat_ranking(df_career, df_scored, df_era, df_impact_score)
 
     colors = get_player_colors(df_goat)
     return (
