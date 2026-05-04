@@ -129,9 +129,9 @@ with st.spinner("Crunching historical NBA game logs..."):
     # We unpack using parentheses to prevent IndentationErrors on multi-line lists
     (
         df_goat, df_career, df_clutch, df_awards, df_scored, df_hw_melted, 
-        df_longevity, bin_pct, sig_findings, df_era, df_radar, df_dumbbell, 
+        df_longevity, bin_pct, significant_findings, df_era, df_radar, df_dumbbell, 
         df_google, df_mvp, df_trends, df_civic, df_phil, df_impact_score, 
-        player_colors
+        colors
     ) = load_all_dashboard_data()
 
 # --- SIDEBAR CONTROLS ---
@@ -453,7 +453,7 @@ with tab3:
     """)
     
     # Filter the significant findings to only show players currently selected in the sidebar
-    relevant_findings = [f for f in sig_findings if f['Player'] in selected_players]
+    relevant_findings = [f for f in significant_findings if f['Player'] in selected_players]
     
     if relevant_findings:
         for finding in relevant_findings:

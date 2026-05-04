@@ -380,6 +380,20 @@ def get_dumbbell_longevity_peak(df_goat):
     df_merged = df_merged.sort_values('Longevity_Score', ascending=True)
     return df_merged
 
+def get_civic_awards():
+    """
+    Loads the Civic & Leadership awards matrix scraped from Wikipedia.
+    """
+    try:
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        # Ensure this filename matches exactly what you downloaded from Colab
+        civic_path = os.path.join(base_dir, 'documents', 'real_man_of_the_year.csv')
+        df_civic = pd.read_csv(civic_path)
+        return df_civic
+    except Exception as e:
+        st.error(f"Error loading Civic Awards: {e}")
+        return pd.DataFrame()
+
 def get_philanthropy_data():
     """
     Loads the Philanthropy footprint and sentence matrix.
@@ -456,3 +470,44 @@ def calculate_cultural_impact_score(df_goat, df_mvp, df_trends, df_civic, df_phi
     df_master = df_master.sort_values(by='Cultural_Impact_Score', ascending=False)
     
     return df_master
+
+@st.cache_data
+def load_all_dashboard_data():
+    """
+    The Master Wrapper: Calls all individual loaders and aggregators.
+    Returns a tuple of every dataset needed for the dashboard.
+    """
+    # 1. Base Stats & Era Data
+    df_goat = load_and_filter_raw_data() # Your existing function
+    df_career = calculate_career_baselines(df_goat)
+    df_era = get_era_adjusted_stats(df_goat)
+    df_radar = get_radar_scaled_stats(df_goat)
+    
+    # 2. Advanced Analysis (Tabs 1-3)
+    df_clutch = run_clutch_analysis(df_goat) 
+    df_awards = get_awards_hardware()
+    df_scored = run_scoring_segment_analysis(df_goat)
+    df_longevity, bin_pct, significant_findings = analyze_longevity_vs_peak(df_goat)
+    df_dumbbell = get_dumbbell_longevity_peak(df_goat)
+    
+    # 3. Cultural & Civic Data (Tab 4)
+    df_google = get_google_trends()
+    df_mvp = get_mvp_shares()
+    df_trends = get_league_trends()
+    df_civic = get_civic_awards()
+    df_phil = get_philanthropy_data()
+    
+    # 4. The Master Impact Score (Calculated dynamically)
+    df_impact_score = calculate_cultural_impact_score(df_goat, df_mvp, df_google, df_civic, df_phil)
+    
+    # 5. UI Helpers
+    colors = get_player_colors()
+    
+    # The order here MUST match the unpacking order in your app.py!
+    return (
+        df_goat, df_career, df_clutch, df_awards, df_scored, calculate_hardware_score(df_awards), # df_hw_melted
+        df_longevity, bin_pct, significant_findings, 
+        df_era, df_radar, df_dumbbell, 
+        df_google, df_mvp, df_trends, df_civic, df_phil, 
+        df_impact_score, colors
+    )
