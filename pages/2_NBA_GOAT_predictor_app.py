@@ -282,7 +282,7 @@ with tab2:
     """)
     
     # Filter the datasets based on user sidebar selection
-    filtered_melted = df_hw_melted[df_hw_melted['Player'].isin(selected_players)]
+    filtered_melted = df_melted[df_melted['Player'].isin(selected_players)]
     filtered_scored = df_scored[df_scored['Player'].isin(selected_players)]
     
     # 1. The Stacked Bar Chart
