@@ -139,9 +139,37 @@ def calculate_career_baselines(df_goat):
     
     # 2. Clutch Factor (Playoffs vs Regular Season)
     # We group by two variables here, then use `.unstack()` to pivot the 'gameType' into separate columns
-    df_clutch = df_goat.groupby(['Player', 'gameType'])['points'].mean().unstack().reset_index()
-    if 'Regular Season' in df_clutch.columns and 'Playoffs' in df_clutch.columns:
-        df_clutch.rename(columns={'Regular Season': 'Reg_Season_PTS', 'Playoffs': 'Finals_PTS'}, inplace=True)
+    # 2. Clutch Factor (Playoffs vs Regular Season)
+    clutch_agg = df_goat.groupby(['Player', 'gameType']).agg({
+        'points': ['mean', 'sum'],
+        'plusMinusPoints': 'mean',
+        'stl_blk': 'mean',
+        'reboundsTotal': 'mean',
+        'fieldGoalsAttempted': 'sum',
+        'threePointersMade': 'sum',
+        'threePointersAttempted': 'sum',
+        'freeThrowsAttempted': 'sum'
+    }).reset_index()
+    
+    # Flatten the messy multi-level columns
+    clutch_agg.columns = [
+        'Player', 'gameType', 'PTS', 'PTS_sum', 'PLUS_MINUS', 
+        'DEF', 'TRB', 'FGA_sum', '3PM_sum', '3PA_sum', 'FTA_sum'
+    ]
+    
+    # Mathematically accurate True Shooting & 3PT%
+    clutch_agg['TS_PCT'] = clutch_agg['PTS_sum'] / (2 * (clutch_agg['FGA_sum'] + 0.44 * clutch_agg['FTA_sum']))
+    clutch_agg['3PT_PCT'] = clutch_agg['3PM_sum'] / clutch_agg['3PA_sum']
+    
+    # Fill NAs (e.g., Wilt/Russell didn't have 3-pointers, so we default to 0 to avoid crashes)
+    clutch_agg.fillna({'TS_PCT': 0, '3PT_PCT': 0}, inplace=True)
+    
+    # Pivot the data so "Regular Season" and "Playoffs" become their own column headers
+    df_clutch = clutch_agg.pivot(index='Player', columns='gameType', values=['PTS', 'PLUS_MINUS', 'DEF', 'TRB', 'TS_PCT', '3PT_PCT'])
+    
+    # Flatten the pivoted headers (e.g., turns into "Regular_Season_PTS")
+    df_clutch.columns = [f"{col[1].replace(' ', '_')}_{col[0]}" for col in df_clutch.columns]
+    df_clutch.reset_index(inplace=True)
     
     return df_career, df_clutch
 

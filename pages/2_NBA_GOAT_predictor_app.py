@@ -303,28 +303,69 @@ with tab3:
     # ---------------------------------------------------------
     st.divider()
     st.subheader("2. The Clutch Factor (Playoff Elevation)")
-    st.markdown("Comparing Regular Season PPG to Playoff PPG. **Players above the diagonal dashed line elevate their game in the playoffs.** Players below the line shrink under pressure.")
+    st.markdown("""
+        How do players perform when the pressure is highest? **Players above the diagonal dashed line elevate their game in the playoffs.** Players below the line shrink under pressure. Use the dropdown to explore different facets of the game.
+    """)
     
     filtered_clutch = df_clutch[df_clutch['Player'].isin(selected_players)].copy()
     
-    fig_clutch = px.scatter(
-        filtered_clutch, x='Reg_Season_PTS', y='Finals_PTS', text='Player',
-        color='Player', color_discrete_map=player_colors, size_max=15
-    )
+    # --- The Dynamic Dropdown Plot ---
+    stat_options = {
+        "Points Scored": "PTS",
+        "Overall Impact (+/-)": "PLUS_MINUS",
+        "Defense (Steals + Blocks)": "DEF",
+        "Total Rebounds": "TRB"
+    }
     
-    # Create the y=x Identity Line (The Experimental Baseline)
-    max_pts = max(filtered_clutch['Reg_Season_PTS'].max(), filtered_clutch['Finals_PTS'].max()) + 2
-    min_pts = min(filtered_clutch['Reg_Season_PTS'].min(), filtered_clutch['Finals_PTS'].min()) - 2
+    # Streamlit Selectbox (The Dropdown!)
+    selected_stat_label = st.selectbox("Select Core Metric to Analyze:", options=list(stat_options.keys()))
+    stat_key = stat_options[selected_stat_label]
     
-    fig_clutch.add_shape(type="line", x0=min_pts, y0=min_pts, x1=max_pts, y1=max_pts, line=dict(color="gray", dash="dash"))
+    # A reusable helper function to generate perfectly scaled 45-degree scatter plots
+    def create_clutch_scatter(stat_key, title, is_percentage=False):
+        reg_col = f"Regular_Season_{stat_key}"
+        play_col = f"Playoffs_{stat_key}"
+        
+        # Fallback empty chart if a column somehow goes missing
+        if reg_col not in filtered_clutch.columns or play_col not in filtered_clutch.columns:
+            return go.Figure()
+            
+        fig = px.scatter(filtered_clutch, x=reg_col, y=play_col, text='Player', color='Player', color_discrete_map=player_colors, title=title)
+        
+        # Calculate the perfect 45-degree baseline
+        max_val = max(filtered_clutch[reg_col].max(), filtered_clutch[play_col].max())
+        min_val = min(filtered_clutch[reg_col].min(), filtered_clutch[play_col].min())
+        
+        # Add 10% visual padding so names don't hit the borders
+        padding = (max_val - min_val) * 0.1 if max_val != min_val else 1
+        max_val += padding
+        min_val -= padding
+        
+        fig.add_shape(type="line", x0=min_val, y0=min_val, x1=max_val, y1=max_val, line=dict(color="gray", dash="dash"))
+        
+        fig.update_traces(textposition='top center', marker=dict(size=12, line=dict(width=1, color='Black')))
+        fig.update_layout(xaxis_title=f"Reg Season {title}", yaxis_title=f"Playoffs {title}", showlegend=False, height=450)
+        
+        # Format as percentages if it's a shooting stat!
+        if is_percentage:
+            fig.update_layout(xaxis_tickformat=".1%", yaxis_tickformat=".1%")
+            
+        # Forces mathematically square grids!
+        fig.update_yaxes(scaleanchor="x", scaleratio=1)
+        return fig
+
+    # Plot 1: The Dynamic Main Plot
+    st.plotly_chart(create_clutch_scatter(stat_key, selected_stat_label), use_container_width=True, config=PLOTLY_CONFIG)
     
-    fig_clutch.update_traces(textposition='top center', marker=dict(size=12, line=dict(width=1, color='Black')))
-    fig_clutch.update_layout(xaxis_title="Regular Season Average (PTS)", yaxis_title="Playoff Average (PTS)", showlegend=False, height=500)
+    # --- The Static Shooting Percentage Plots ---
+    st.markdown("##### Shooting Efficiency Under Pressure")
+    st.markdown("*Note: Players from the 1960s (Wilt, Russell) did not have the 3-point line and will appear at 0%.*")
     
-    # Force axes to be mathematically square so the 45-degree line is perfectly accurate
-    fig_clutch.update_yaxes(scaleanchor="x", scaleratio=1)
-    
-    st.plotly_chart(fig_clutch, use_container_width=True, config=PLOTLY_CONFIG)
+    clutch_col1, clutch_col2 = st.columns(2)
+    with clutch_col1:
+        st.plotly_chart(create_clutch_scatter('TS_PCT', 'True Shooting %', is_percentage=True), use_container_width=True, config=PLOTLY_CONFIG)
+    with clutch_col2:
+        st.plotly_chart(create_clutch_scatter('3PT_PCT', '3-Point %', is_percentage=True), use_container_width=True, config=PLOTLY_CONFIG)
 
     # ---------------------------------------------------------
     # 3. STATISTICAL DISTRIBUTIONS & ANOMALIES
