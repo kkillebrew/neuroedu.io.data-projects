@@ -28,8 +28,15 @@ from loaders.NBA_GOAT_predictor_loader import (
     PLAYERS, get_player_colors, load_and_filter_raw_data, 
     calculate_career_baselines, get_awards_hardware, 
     analyze_longevity_vs_peak, run_scoring_segment_analysis,
-    get_era_adjusted_stats
+    get_era_adjusted_stats, get_radar_scaled_stats, get_dumbbell_longevity_peak
 )
+
+# --- GLOBAL PLOTLY CONFIG (Mobile Scroll Lock) ---
+PLOTLY_CONFIG = {
+    'scrollZoom': False, 
+    'displayModeBar': False, # Hides the messy floating toolbar
+    'staticPlot': False
+}
 
 # -------------------------------------------------------------------
 # UI CONFIGURATION & CUSTOM SIDEBAR (The "View")
@@ -102,12 +109,14 @@ def load_all_dashboard_data():
     df_longevity = analyze_longevity_vs_peak(df_goat)
     bin_pct, significant_findings = run_scoring_segment_analysis(df_goat)
     df_era = get_era_adjusted_stats(df_goat)
+    df_radar = get_radar_scaled_stats(df_career)
+    df_dumbbell = get_dumbbell_longevity_peak(df_goat)
     colors = get_player_colors()
-    return df_goat, df_career, df_clutch, df_awards, df_longevity, bin_pct, significant_findings, df_era, colors
+    return df_goat, df_career, df_clutch, df_awards, df_longevity, bin_pct, significant_findings, df_era, df_radar, df_dumbbell, colors
 
 # Display a loading spinner while the backend fetches data
 with st.spinner("Crunching historical NBA game logs..."):
-    df_goat, df_career, df_clutch, df_awards, df_longevity, bin_pct, sig_findings, df_era, player_colors = load_all_dashboard_data()
+    df_goat, df_career, df_clutch, df_awards, df_longevity, bin_pct, sig_findings, df_era, df_radar, df_dumbbell, player_colors = load_all_dashboard_data()
 
 # -------------------------------------------------------------------
 # MAIN APP LAYOUT (Interactive Controls on Main Page)
@@ -125,15 +134,36 @@ tab1, tab2, tab3, tab4 = st.tabs(["📊 Career Baselines", "🏆 Hardware & Clut
 
 # --- TAB 1: Baseline Stats ---
 with tab1:
-    st.subheader("Real Career Averages (Grouped by Stat)")
-    # Filter the dataframe based on the user's multiselect input
-    filtered_career = df_career[df_career['Player'].isin(selected_players)]
-    df_melt_career = filtered_career.melt(id_vars=['Player'], value_vars=['PTS', 'TRB', 'AST'], var_name='Stat', value_name='Value')
+    with tab1:
+    st.subheader("The 'Shape' of Greatness (Radar Chart)")
+    st.markdown("""
+        How do these players visually compare across major statistical categories? 
+        *Note: Stats are min-max scaled (0-100) relative to the highest performer in this specific group.*
+    """)
     
-    # Plotly Express automatically builds interactive grouped bar charts
-    # MATLAB Analogy: bar(categorical(x), y, 'grouped')
-    fig1 = px.bar(df_melt_career, x='Stat', y='Value', color='Player', barmode='group', color_discrete_map=player_colors)
-    st.plotly_chart(fig1, use_container_width=True)
+    fig_radar = go.Figure()
+    categories = ['PTS', 'TRB', 'AST', 'BLK', 'STL']
+    
+    for p in selected_players:
+        # Extract player data
+        player_data = df_radar[df_radar['Player'] == p].iloc[0]
+        values = player_data[categories].tolist()
+        
+        # Plotly Radar charts need the last value to loop back to the first value to close the circle!
+        values += values[:1]
+        cat_loop = categories + [categories[0]]
+        
+        fig_radar.add_trace(go.Scatterpolar(
+            r=values, theta=cat_loop, name=p,
+            fill='toself', line=dict(color=player_colors[p], width=2), opacity=0.6
+        ))
+        
+    fig_radar.update_layout(
+        polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
+        showlegend=True, height=600
+    )
+    # Applied PLOTLY_CONFIG here!
+    st.plotly_chart(fig_radar, use_container_width=True, config=PLOTLY_CONFIG)
 
     st.divider()
     st.subheader("Era-Adjusted Dominance (Z-Scores vs Peers)")
@@ -158,7 +188,7 @@ with tab1:
         yaxis_title="Rebounding Dominance (Std Devs above era average)",
         showlegend=False
     )
-    st.plotly_chart(fig_era, use_container_width=True)
+    st.plotly_chart(fig_era, use_container_width=True, config=PLOTLY_CONFIG)
 
 # --- TAB 2: Hardware & Clutch ---
 with tab2:
@@ -169,14 +199,14 @@ with tab2:
         filtered_awards = df_awards[df_awards['Player'].isin(selected_players)]
         df_melt_awards = filtered_awards.melt(id_vars=['Player'], value_vars=['MVPs', 'Rings', 'Finals_MVPs', 'DPOY'], var_name='Award', value_name='Count')
         fig2 = px.bar(df_melt_awards, x='Award', y='Count', color='Player', barmode='group', color_discrete_map=player_colors)
-        st.plotly_chart(fig2, use_container_width=True)
+        st.plotly_chart(fig2, use_container_width=True, config=PLOTLY_CONFIG)
         
     with col2:
         st.subheader("The Clutch Factor (Reg Season vs Playoffs)")
         filtered_clutch = df_clutch[df_clutch['Player'].isin(selected_players)]
         df_melt_clutch = filtered_clutch.melt(id_vars=['Player'], value_vars=['Reg_Season_PTS', 'Finals_PTS'], var_name='Context', value_name='PPG')
         fig3 = px.bar(df_melt_clutch, x='Context', y='PPG', color='Player', barmode='group', color_discrete_map=player_colors)
-        st.plotly_chart(fig3, use_container_width=True)
+        st.plotly_chart(fig3, use_container_width=True, config=PLOTLY_CONFIG)
 
 # --- TAB 3: Consistency & Variance ---
 with tab3:
@@ -192,7 +222,7 @@ with tab3:
             # Add a smoothed line trace to the figure
             fig_dist.add_trace(go.Scatter(x=x_range, y=kde(x_range), mode='lines', name=p, line=dict(color=player_colors[p], width=2.5)))
     fig_dist.update_layout(xaxis_title="Points in a Single Game", yaxis_title="Probability Density", hovermode="x unified")
-    st.plotly_chart(fig_dist, use_container_width=True)
+    st.plotly_chart(fig_dist, use_container_width=True, config=PLOTLY_CONFIG)
     
     st.divider()
     col1, col2 = st.columns([2, 1])
@@ -205,7 +235,7 @@ with tab3:
         # We use a sequential palette (Plasma) here because the ranges are ordered (<10 to 50+)
         fig_bins = px.bar(df_melt_bins, x='Player', y='Percentage', color='Points Range', color_discrete_sequence=px.colors.sequential.Plasma, text_auto='.1f')
         fig_bins.update_layout(yaxis_title="Percentage of Career Games (%)", barmode='stack')
-        st.plotly_chart(fig_bins, use_container_width=True)
+        st.plotly_chart(fig_bins, use_container_width=True, config=PLOTLY_CONFIG)
         
     with col2:
         st.subheader("🔬 Statistically Significant Discoveries")
@@ -218,15 +248,49 @@ with tab3:
 
 # --- TAB 4: Longevity vs Peak ---
 with tab4:
-    st.subheader("Absolute Totals vs. Per-Season Accumulation")
-    filtered_longevity = df_longevity[df_longevity['Player'].isin(selected_players)]
+    st.subheader("Peak Dominance vs. Career Longevity (Dumbbell Plot)")
+    st.markdown("""
+        Does extreme peak performance sacrifice longevity? 
+        **Peak** (Points Per Game) is connected to **Longevity** (Total Career Points). 
+        Both metrics are scaled 0-100 relative to the top performer for direct comparison.
+    """)
     
-    # Facet grid instantly splits data into synchronized subplots (MATLAB Analogy: tiledlayout or subplot loops)
-    fig_long = px.bar(filtered_longevity, x='Player', y='Value', color='Player',
-                      facet_row='Measurement', facet_col='Stat',
-                      color_discrete_map=player_colors)
+    filtered_dumb = df_dumbbell[df_dumbbell['Player'].isin(selected_players)]
     
-    # We must explicitly decouple the Y-axes because total 'Points' dwarf 'Assists' visually
-    fig_long.update_yaxes(matches=None)
-    fig_long.update_layout(showlegend=False, height=700)
-    st.plotly_chart(fig_long, use_container_width=True)
+    fig_dumb = go.Figure()
+    
+    for i, row in filtered_dumb.iterrows():
+        p = row['Player']
+        
+        # 1. The Connector Line
+        fig_dumb.add_trace(go.Scatter(
+            x=[row['Peak_Score'], row['Longevity_Score']], y=[p, p],
+            mode='lines', line=dict(color='rgba(150, 150, 150, 0.5)', width=3), showlegend=False
+        ))
+        
+        # 2. The Peak Dot (Circle)
+        fig_dumb.add_trace(go.Scatter(
+            x=[row['Peak_Score']], y=[p], mode='markers',
+            marker=dict(color=player_colors[p], size=16, symbol='circle'), 
+            name=f"{p} (Peak)", showlegend=False,
+            hovertemplate=f"<b>{p}</b><br>Peak PPG Index: %{{x:.1f}}<extra></extra>"
+        ))
+        
+        # 3. The Longevity Dot (Diamond)
+        fig_dumb.add_trace(go.Scatter(
+            x=[row['Longevity_Score']], y=[p], mode='markers',
+            marker=dict(color=player_colors[p], size=16, symbol='diamond'), 
+            name=f"{p} (Longevity)", showlegend=False,
+            hovertemplate=f"<b>{p}</b><br>Longevity Total Index: %{{x:.1f}}<extra></extra>"
+        ))
+    
+    # Custom Legend (Dummy traces just so the user knows what the shapes mean)
+    fig_dumb.add_trace(go.Scatter(x=[None], y=[None], mode='markers', marker=dict(color='gray', size=12, symbol='circle'), name='Peak (PPG)'))
+    fig_dumb.add_trace(go.Scatter(x=[None], y=[None], mode='markers', marker=dict(color='gray', size=12, symbol='diamond'), name='Longevity (Total Points)'))
+
+    fig_dumb.update_layout(
+        xaxis_title="Relative Score Index (0-100)",
+        yaxis_title="", height=600,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+    )
+    st.plotly_chart(fig_dumb, use_container_width=True, config=PLOTLY_CONFIG)

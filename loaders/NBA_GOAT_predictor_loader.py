@@ -58,7 +58,9 @@ def load_and_filter_raw_data():
         player_stats_path = os.path.join(base_dir, 'documents', 'goat_data_top50.csv')
         
         # We no longer need usecols because the CSV is already perfectly shrunk!
-        df_all = pd.read_csv(player_stats_path)
+        # We explicitly load ONLY the columns we need to prevent memory exhaustion
+        cols_to_load = ['firstName', 'lastName', 'gameType', 'gameDate', 'points', 'reboundsTotal', 'assists', 'blocks', 'steals']
+        df_all = pd.read_csv(player_stats_path, usecols=cols_to_load)
 
         df_all['Player'] = df_all['firstName'] + " " + df_all['lastName']
         df_all['Year'] = pd.to_datetime(df_all['gameDate']).dt.year
@@ -103,9 +105,10 @@ def calculate_career_baselines(df_goat):
     It automatically aggregates the dataset based on unique categories.
     """
     # 1. Base Averages
-    df_career = df_goat.groupby('Player')[['points', 'reboundsTotal', 'assists', 'blocks']].mean().reset_index()
-    # Rename columns for cleaner UI presentation
-    df_career.rename(columns={'points': 'PTS', 'reboundsTotal': 'TRB', 'assists': 'AST', 'blocks': 'BLK'}, inplace=True)
+    df_career = df_goat.groupby('Player')[['points', 'reboundsTotal', 'assists', 'blocks', 'steals']].mean().reset_index()
+    # Rename columns for cleaner UI presentation (fillna prevents errors for 1960s players)
+    df_career.rename(columns={'points': 'PTS', 'reboundsTotal': 'TRB', 'assists': 'AST', 'blocks': 'BLK', 'steals': 'STL'}, inplace=True)
+    df_career.fillna(0, inplace=True)
     
     # 2. Clutch Factor (Playoffs vs Regular Season)
     # We group by two variables here, then use `.unstack()` to pivot the 'gameType' into separate columns
@@ -248,3 +251,33 @@ def run_scoring_segment_analysis(df_goat):
     # Sort by the magnitude of the difference so the most extreme anomalies rise to the top
     significant_findings.sort(key=lambda x: abs(x['Player_%'] - x['Rest_%']), reverse=True)
     return bin_pct, significant_findings
+
+def get_radar_scaled_stats(df_career):
+    """
+    Min-Max scales baseline stats from 0 to 100 relative to the best performer in this cohort.
+    MATLAB Analogy: mapminmax() or normalizing vectors to [0, 1].
+    """
+    stats_to_scale = ['PTS', 'TRB', 'AST', 'BLK', 'STL']
+    df_radar = df_career[['Player'] + stats_to_scale].copy()
+    
+    for col in stats_to_scale:
+        max_val = df_radar[col].max()
+        # Scale to 100. If max_val is 0 (safeguard), return 0.
+        df_radar[col] = df_radar[col].apply(lambda x: (x / max_val * 100) if max_val > 0 else 0)
+    return df_radar
+
+def get_dumbbell_longevity_peak(df_goat):
+    """
+    Calculates 0-100 scaled scores for Peak (PPG) vs Longevity (Total Points).
+    """
+    df_peak = df_goat.groupby('Player')['points'].mean().reset_index().rename(columns={'points': 'Peak_PPG'})
+    df_long = df_goat.groupby('Player')['points'].sum().reset_index().rename(columns={'points': 'Total_PTS'})
+    df_merged = pd.merge(df_peak, df_long, on='Player')
+
+    # Normalize both variables to a 0-100 scale so they can share an X-axis!
+    df_merged['Peak_Score'] = (df_merged['Peak_PPG'] / df_merged['Peak_PPG'].max()) * 100
+    df_merged['Longevity_Score'] = (df_merged['Total_PTS'] / df_merged['Total_PTS'].max()) * 100
+    
+    # Sort by Longevity to make the dumbbell chart look like a clean staircase
+    df_merged = df_merged.sort_values('Longevity_Score', ascending=True)
+    return df_merged
