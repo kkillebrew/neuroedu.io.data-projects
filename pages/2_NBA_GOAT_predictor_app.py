@@ -116,7 +116,6 @@ def load_all_dashboard_data():
     df_dumbbell = get_dumbbell_longevity_peak(df_goat)
     df_google = get_google_trends()
     df_mvp = get_mvp_shares()
-    df_trends = get_league_trends()
     df_civic = get_civic_awards()
     df_phil = get_philanthropy_data()
     df_impact_score = calculate_cultural_impact_score(df_goat, df_mvp, df_google, df_civic, df_phil)
@@ -125,7 +124,7 @@ def load_all_dashboard_data():
     return (
         df_goat, df_career, df_clutch, df_awards, df_scored, df_melted, 
         df_longevity, bin_pct, significant_findings, df_era, df_radar, 
-        df_dumbbell, df_google, df_mvp, df_trends, df_civic, df_phil, 
+        df_dumbbell, df_google, df_mvp, df_civic, df_phil, 
         df_impact_score, colors
     )
 
@@ -134,7 +133,7 @@ with st.spinner("Crunching historical NBA game logs..."):
     (
         df_goat, df_career, df_clutch, df_awards, df_scored, df_melted, 
         df_longevity, bin_pct, significant_findings, df_era, df_radar, df_dumbbell, 
-        df_google, df_mvp, df_trends, df_civic, df_phil, df_impact_score, 
+        df_google, df_mvp, df_civic, df_phil, df_impact_score, 
         player_colors
     ) = load_all_dashboard_data()
 
