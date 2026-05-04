@@ -137,52 +137,30 @@ with st.spinner("Crunching historical NBA game logs..."):
         player_colors
     ) = load_all_dashboard_data()
 
-# --- SIDEBAR CONTROLS ---
-# Ensure this 'st.sidebar' line is NOT indented at all (Flush to the left margin)
-st.sidebar.title("Dashboard Controls")
+# -------------------------------------------------------------------
+# MAIN APP LAYOUT (Interactive Controls on Main Page)
+# -------------------------------------------------------------------
+st.title("🏀 The Ultimate NBA GOAT Analyzer")
+st.write("An exploratory data science dashboard comparing peak dominance, longevity, and statistical consistency of 10 legendary players.")
 
+# 1. Define the original 10 to act as our default startup view
 DEFAULT_10 = [
     "Michael Jordan", "LeBron James", "Magic Johnson", "Stephen Curry", 
     "Shaquille O'Neal", "Kareem Abdul-Jabbar", "Kobe Bryant", 
     "Bill Russell", "Wilt Chamberlain", "Nikola Jokic"
 ]
 
+# 2. Extract the full list of 50 players dynamically from the dataset and sort alphabetically
 all_available_players = sorted(df_goat['Player'].unique().tolist())
 
-selected_players = st.sidebar.multiselect(
+selected_players = st.multiselect(
     "Select Players to Compare:",
     options=all_available_players,
     default=DEFAULT_10,
     key="goat_player_selector" # <--- Adding this key makes the ID unique
 )
 
-# -------------------------------------------------------------------
-# MAIN APP LAYOUT (Interactive Controls on Main Page)
-# -------------------------------------------------------------------
-st.title("🏀 The Ultimate NBA GOAT Analyzer")
-st.write("An exploratory data science dashboard comparing peak dominance, longevity, and statistical consistency of 10 legendary players.")
 st.divider()
-
-# Interactive Filter: Allows users to subset which players they want to compare
-# MATLAB Analogy: Connecting a drop-down UI Component callback to update data.
-
-# --- SIDEBAR CONTROLS ---
-st.sidebar.image("https://cdn-icons-png.flaticon.com/512/889/889442.png", width=100) # Optional basketball icon
-st.sidebar.title("Dashboard Controls")
-
-# 1. Define the original 10 to act as our default startup view
-DEFAULT_10 = [
-"Michael Jordan", "LeBron James", "Magic Johnson", "Stephen Curry", 
-"Shaquille O'Neal", "Kareem Abdul-Jabbar", "Kobe Bryant", 
-"Bill Russell", "Wilt Chamberlain", "Nikola Jokic"
-]
-
-# 2. Extract the full list of 50 players dynamically from the dataset and sort alphabetically
-all_available_players = sorted(df_goat['Player'].unique().tolist())
-
-if not selected_players:
-    st.error("Please select at least one player from the sidebar to view the analytics.")
-    st.stop()
 
 # Create layout tabs for clean MVC separation in the UI
 tab1, tab2, tab3, tab4 = st.tabs(["📊 Career Baselines", "🏆 Hardware & Clutch", "📈 Consistency & Variance", "⏳ Longevity vs Peak"])
