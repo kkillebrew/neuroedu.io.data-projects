@@ -59,7 +59,8 @@ def load_and_filter_raw_data():
         
         # We no longer need usecols because the CSV is already perfectly shrunk!
         # We explicitly load ONLY the columns we need to prevent memory exhaustion
-        cols_to_load = ['firstName', 'lastName', 'gameType', 'gameDate', 'points', 'reboundsTotal', 'assists', 'blocks', 'steals']
+        # >>> FIX: Added 'turnovers' right here! <<<
+        cols_to_load = ['firstName', 'lastName', 'gameType', 'gameDate', 'points', 'reboundsTotal', 'assists', 'blocks', 'steals', 'turnovers']
         df_all = pd.read_csv(player_stats_path, usecols=cols_to_load)
 
         df_all['Player'] = df_all['firstName'] + " " + df_all['lastName']
@@ -91,7 +92,8 @@ def load_and_filter_raw_data():
         return df_goat
         
     except Exception as e:
-        raise RuntimeError(f"Failed to load local dataset. Ensure goat_data_top50.csv is in the documents/ folder. Error: {e}")
+        # >>> FIX: Updated the error message name here! <<<
+        raise RuntimeError(f"Failed to load local dataset. Ensure goat_data_extended.csv is in the documents/ folder. Error: {e}")
 
 # -------------------------------------------------------------------
 # FEATURE ENGINEERING & AGGREGATION
