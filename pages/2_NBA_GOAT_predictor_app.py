@@ -171,8 +171,9 @@ with tab1:
 
     st.divider()
     st.subheader("Era-Adjusted Dominance (Z-Scores vs Peers)")
-    st.markdown("Adjusted for era pacing. **Bubble size indicates Pace.** We have exponentially scaled the bubble size so the massive pacing differences between eras (e.g., Wilt's 1960s vs Kobe's 2000s) are drastically apparent.")    
-    
+    st.markdown("Adjusted for era pacing.")    
+    st.markdown("*Pace is calculated by the average points scored per game across the entire NBA during that player's active years. Faster eras (like the 1960s) have higher averages, which naturally inflated raw stats compared to slower, defensive eras (like the 2000s). Think Wilt's 1960s vs Kobe's 2000s.*")
+
     # Filter based on multiselect
     filtered_era = df_era[df_era['Player'].isin(selected_players)]
     
