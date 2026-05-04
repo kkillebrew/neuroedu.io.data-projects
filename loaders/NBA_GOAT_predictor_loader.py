@@ -481,7 +481,7 @@ def load_all_dashboard_data():
     df_goat = load_and_filter_raw_data() # Your existing function
     df_career = calculate_career_baselines(df_goat)
     df_era = get_era_adjusted_stats(df_goat)
-    df_radar = get_radar_scaled_stats(df_goat)
+    df_radar = get_radar_scaled_stats(df_career)
     
     # 2. Advanced Analysis (Tabs 1-3)
     df_clutch = run_clutch_analysis(df_goat) 
