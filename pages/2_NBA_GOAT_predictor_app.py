@@ -526,41 +526,38 @@ with tab4:
     """)
     
     if not df_civic.empty:
-    df_civic_filtered = df_civic[df_civic['Player'].isin(selected_players)]
-    
-    if not df_civic_filtered.empty:
-        # 1. Pivot the data so Players are rows and Awards are columns
-        # We use the raw 'Won' values (1 or 0)
-        matrix_data = df_civic_filtered.set_index('Player')
+        # Everything below this 'if' must be indented by 4 spaces
+        df_civic_filtered = df_civic[df_civic['Player'].isin(selected_players)]
         
-        # 2. Create a matching text matrix for the labels
-        # This replaces 1 with '🏆 Won' and 0 with '—'
-        text_matrix = matrix_data.applymap(lambda x: '🏆 Won' if x > 0 else '—')
+        if not df_civic_filtered.empty:
+            # Everything below this second 'if' must be indented by another 4 spaces
+            matrix_data = df_civic_filtered.set_index('Player')
+            
+            # Use applymap to create labels
+            text_matrix = matrix_data.applymap(lambda x: '🏆 Won' if x > 0 else '—')
 
-        # 3. Use imshow for the heatmap
-        fig_civic = px.imshow(
-            matrix_data,
-            labels=dict(x="Award", y="Player", color="Status"),
-            x=matrix_data.columns,
-            y=matrix_data.index,
-            color_continuous_scale=['#f4f4f4', '#FFD700'], # Off-white to Gold
-            text_auto=False # We will provide our own text
-        )
+            fig_civic = px.imshow(
+                matrix_data,
+                labels=dict(x="Award", y="Player", color="Status"),
+                x=matrix_data.columns,
+                y=matrix_data.index,
+                color_continuous_scale=['#f4f4f4', '#FFD700']
+            )
 
-        # 4. Add the custom text labels safely
-        fig_civic.update_traces(
-            text=text_matrix.values,
-            texttemplate="%{text}",
-            hovertemplate="Player: %{y}<br>Award: %{x}<br>Status: %{text}<extra></extra>"
-        )
+            fig_civic.update_traces(
+                text=text_matrix.values,
+                texttemplate="%{text}",
+                hovertemplate="Player: %{y}<br>Award: %{x}<br>Status: %{text}<extra></extra>"
+            )
 
-        fig_civic.update_layout(
-            height=450, 
-            coloraxis_showscale=False, # Hide the color bar for a cleaner look
-            xaxis_tickangle=-45
-        )
-        
-        st.plotly_chart(fig_civic, use_container_width=True, config=PLOTLY_CONFIG)
+            fig_civic.update_layout(height=450, coloraxis_showscale=False)
+            st.plotly_chart(fig_civic, use_container_width=True, config=PLOTLY_CONFIG)
+        else:
+            # This belongs to the inner IF
+            st.info("None of the selected players have won these specific awards.")
+    else:
+        # This belongs to the outer IF
+        st.warning("Civic award data is currently unavailable.")
     # ---------------------------------------------------------
     # 4. Real World Philanthropy (NLP Extracted)
     # ---------------------------------------------------------
