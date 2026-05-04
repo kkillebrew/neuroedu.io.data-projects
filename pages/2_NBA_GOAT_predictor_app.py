@@ -28,7 +28,8 @@ from loaders.NBA_GOAT_predictor_loader import (
     PLAYERS, get_player_colors, load_and_filter_raw_data, 
     calculate_career_baselines, get_awards_hardware, 
     analyze_longevity_vs_peak, run_scoring_segment_analysis,
-    get_era_adjusted_stats, get_radar_scaled_stats, get_dumbbell_longevity_peak
+    get_era_adjusted_stats, get_radar_scaled_stats, get_dumbbell_longevity_peak,
+    calculate_hardware_score
 )
 
 # --- GLOBAL PLOTLY CONFIG (Mobile Scroll Lock) ---
@@ -106,17 +107,18 @@ def load_all_dashboard_data():
     df_goat = load_and_filter_raw_data()
     df_career, df_clutch = calculate_career_baselines(df_goat)
     df_awards = get_awards_hardware()
+    df_scored, df_hw_melted = calculate_hardware_score(df_awards)
     df_longevity = analyze_longevity_vs_peak(df_goat)
     bin_pct, significant_findings = run_scoring_segment_analysis(df_goat)
     df_era = get_era_adjusted_stats(df_goat)
     df_radar = get_radar_scaled_stats(df_career)
     df_dumbbell = get_dumbbell_longevity_peak(df_goat)
     colors = get_player_colors()
-    return df_goat, df_career, df_clutch, df_awards, df_longevity, bin_pct, significant_findings, df_era, df_radar, df_dumbbell, colors
+    return df_goat, df_career, df_clutch, df_awards, df_scored, df_hw_melted, df_longevity, bin_pct, significant_findings, df_era, df_radar, df_dumbbell, colors
 
 # Display a loading spinner while the backend fetches data
 with st.spinner("Crunching historical NBA game logs..."):
-    df_goat, df_career, df_clutch, df_awards, df_longevity, bin_pct, sig_findings, df_era, df_radar, df_dumbbell, player_colors = load_all_dashboard_data()
+    df_goat, df_career, df_clutch, df_awards, df_scored, df_hw_melted, df_longevity, bin_pct, sig_findings, df_era, df_radar, df_dumbbell, player_colors = load_all_dashboard_data()
 
 # -------------------------------------------------------------------
 # MAIN APP LAYOUT (Interactive Controls on Main Page)
@@ -206,24 +208,41 @@ with tab1:
         fig_z3 = create_z_scatter('Rebound_Z', 'Defense_Z', 'Rebounding Dominance', 'STL+BLK Dominance', 'Defensive Dominance')
         st.plotly_chart(fig_z3, use_container_width=True, config=PLOTLY_CONFIG)
 
-# --- TAB 2: Hardware & Clutch ---
+# --- TAB 2: Hardware & The Trophy Predictor ---
 with tab2:
-    # Use columns to position graphs side-by-side
-    col1, col2 = st.columns(2)
-    with col1:
-        st.subheader("The Trophy Cabinet")
-        filtered_awards = df_awards[df_awards['Player'].isin(selected_players)]
-        df_melt_awards = filtered_awards.melt(id_vars=['Player'], value_vars=['MVPs', 'Rings', 'Finals_MVPs', 'DPOY'], var_name='Award', value_name='Count')
-        fig2 = px.bar(df_melt_awards, x='Award', y='Count', color='Player', barmode='group', color_discrete_map=player_colors)
-        st.plotly_chart(fig2, use_container_width=True, config=PLOTLY_CONFIG)
-        
-    with col2:
-        st.subheader("The Clutch Factor (Reg Season vs Playoffs)")
-        filtered_clutch = df_clutch[df_clutch['Player'].isin(selected_players)]
-        df_melt_clutch = filtered_clutch.melt(id_vars=['Player'], value_vars=['Reg_Season_PTS', 'Finals_PTS'], var_name='Context', value_name='PPG')
-        fig3 = px.bar(df_melt_clutch, x='Context', y='PPG', color='Player', barmode='group', color_discrete_map=player_colors)
-        st.plotly_chart(fig3, use_container_width=True, config=PLOTLY_CONFIG)
-
+    st.header("The Hardware Algorithm")
+    st.markdown("""
+        Who is the GOAT based *purely* on resume? We have assigned objective weights to every major NBA accolade. 
+        * Weights: Rings (10), MVP/Finals MVP (8), DPOY (5), Scoring Title (4), ROTY (3), All-NBA/All-Defense/Clutch (2).
+    """)
+    
+    # Filter the datasets based on user sidebar selection
+    filtered_melted = df_hw_melted[df_hw_melted['Player'].isin(selected_players)]
+    filtered_scored = df_scored[df_scored['Player'].isin(selected_players)]
+    
+    # 1. The Stacked Bar Chart
+    # We order the X-axis by the players with the highest total score!
+    fig_hw = px.bar(
+        filtered_melted, 
+        x='Player', 
+        y='Weighted_Points', 
+        color='Award',
+        text='Count', # Shows the raw number of awards inside the colored blocks
+        title="Weighted Career Accolades",
+        category_orders={"Player": filtered_scored['Player'].tolist()} # Sorts X-axis highest to lowest
+    )
+    
+    fig_hw.update_traces(textposition='inside', textfont_color='white')
+    fig_hw.update_layout(yaxis_title="Total Hardware Score", xaxis_title="", barmode='stack', height=600)
+    st.plotly_chart(fig_hw, use_container_width=True, config=PLOTLY_CONFIG)
+    
+    # 2. Show the raw dataset below for transparency
+    st.divider()
+    st.subheader("The Raw Trophy Cabinet")
+    # Clean up the dataframe before showing it
+    display_cols = ['Player', 'Total_Hardware_Score', 'Rings', 'MVPs', 'Finals_MVPs', 'All_NBA', 'All_Defense', 'Scoring_Titles', 'DPOY', 'ROTY', 'Clutch_POY']
+    st.dataframe(filtered_scored[display_cols].set_index('Player'), use_container_width=True)
+    
 # --- TAB 3: Consistency & Variance ---
 with tab3:
     st.subheader("Smoothed Scoring Distributions (KDE)")

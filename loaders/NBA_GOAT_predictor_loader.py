@@ -147,18 +147,60 @@ def calculate_career_baselines(df_goat):
 
 def get_awards_hardware():
     """
-    Returns the hardcoded awards DataFrame (as this requires external scraping not present in our CSV).
-    
-    MATLAB Analogy: 
-    Creating a structured table from scratch using `table(array1, array2, ...)`.
+    Returns the extended hardcoded awards DataFrame.
+    Player Order: Jordan, LeBron, Magic, Curry, Shaq, Kareem, Kobe, Russell, Wilt, Jokic
     """
     return pd.DataFrame({
         "Player": PLAYERS,
-        "MVPs": [5, 4, 3, 2, 1, 6, 1, 5, 4, 3],
         "Rings": [6, 4, 5, 4, 4, 6, 5, 11, 2, 1],
+        "MVPs": [5, 4, 3, 2, 1, 6, 1, 5, 4, 3],
         "Finals_MVPs": [6, 4, 3, 1, 3, 2, 2, 0, 1, 1], 
-        "DPOY": [1, 0, 0, 0, 0, 0, 0, 0, 0, 0] 
+        "DPOY": [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "Scoring_Titles": [10, 1, 0, 2, 2, 2, 2, 0, 7, 0],
+        "ROTY": [1, 1, 0, 0, 1, 1, 0, 0, 1, 0],
+        "Clutch_POY": [0, 0, 0, 1, 0, 0, 0, 0, 0, 0], # Newer award, mostly Curry here!
+        "All_NBA": [11, 20, 10, 10, 14, 15, 15, 11, 10, 6],
+        "All_Defense": [9, 6, 0, 0, 3, 11, 12, 1, 2, 0]
     })
+
+def calculate_hardware_score(df_awards):
+    """
+    Applies mathematical weights to hardware to generate an objective GOAT score.
+    Returns the total scores AND a 'melted' dataset perfect for Plotly stacked bars.
+    """
+    # The GOAT Algorithm Weights! 
+    # (We can easily tweak these later in Canvas if you want to change the importance)
+    weights = {
+        "Rings": 10,
+        "MVPs": 9,
+        "Finals_MVPs": 8,
+        "DPOY": 5,
+        "Scoring_Titles": 4,
+        "ROTY": 3,
+        "Clutch_POY": 1,
+        "All_NBA": 2,
+        "All_Defense": 1
+    }
+    
+    # Calculate Total Score
+    df_scored = df_awards.copy()
+    df_scored['Total_Hardware_Score'] = 0
+    for col, weight in weights.items():
+        df_scored['Total_Hardware_Score'] += df_scored[col] * weight
+        
+    # Sort from highest score to lowest for the UI
+    df_scored = df_scored.sort_values('Total_Hardware_Score', ascending=False)
+    
+    # MATLAB Analogy: reshape/melt. We flatten the data so Plotly can easily stack it by Award Type.
+    df_melted = df_awards.melt(id_vars=['Player'], value_vars=list(weights.keys()), var_name='Award', value_name='Count')
+    
+    # Calculate the actual points contributed by each award
+    df_melted['Weighted_Points'] = df_melted.apply(lambda row: row['Count'] * weights[row['Award']], axis=1)
+    
+    # Filter out 0s so our chart tooltips are super clean
+    df_melted = df_melted[df_melted['Weighted_Points'] > 0]
+    
+    return df_scored, df_melted
 
 def get_era_adjusted_stats(df_goat):
     """
