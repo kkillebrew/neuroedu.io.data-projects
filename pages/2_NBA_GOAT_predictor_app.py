@@ -127,8 +127,28 @@ def load_all_dashboard_data():
 
 # Display a loading spinner while the backend fetches data
 with st.spinner("Crunching historical NBA game logs..."):
-    df_goat, df_career, df_clutch, df_awards, df_scored, df_hw_melted, df_longevity, bin_pct, sig_findings, df_era, df_radar, 
-    df_dumbbell, df_google, df_mvp, df_trends, df_civic, df_phil, df_impact_score, player_colors = load_all_dashboard_data()
+    (df_goat, df_career, df_clutch, df_awards, df_scored, df_hw_melted, 
+     df_longevity, bin_pct, sig_findings, df_era, df_radar, df_dumbbell, 
+     df_google, df_mvp, df_trends, df_civic, df_phil, df_impact_score, 
+     player_colors) = load_all_dashboard_data()
+
+# Now, we define the sidebar right after the spinner block finishes
+st.sidebar.title("Dashboard Controls")
+
+# Define the default 10
+DEFAULT_10 = [
+    "Michael Jordan", "LeBron James", "Magic Johnson", "Stephen Curry", 
+    "Shaquille O'Neal", "Kareem Abdul-Jabbar", "Kobe Bryant", 
+    "Bill Russell", "Wilt Chamberlain", "Nikola Jokic"
+]
+
+all_available_players = sorted(df_goat['Player'].unique().tolist())
+
+selected_players = st.sidebar.multiselect(
+    "Select Players to Compare:",
+    options=all_available_players,
+    default=DEFAULT_10
+)
 
 # -------------------------------------------------------------------
 # MAIN APP LAYOUT (Interactive Controls on Main Page)
