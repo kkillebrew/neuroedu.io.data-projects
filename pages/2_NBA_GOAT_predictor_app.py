@@ -31,7 +31,7 @@ from loaders.NBA_GOAT_predictor_loader import (
     get_era_adjusted_stats, get_radar_scaled_stats, get_dumbbell_longevity_peak,
     calculate_hardware_score, get_google_trends, get_mvp_shares, 
     get_civic_awards, get_philanthropy_data, calculate_cultural_impact_score,
-    train_subjective_model_from_surveys, predict_goat_ml
+    train_subjective_model_from_surveys, predict_goat_ml, calculate_objective_goat_ranking
 )
 
 # --- GLOBAL PLOTLY CONFIG (Mobile Scroll Lock) ---
