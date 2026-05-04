@@ -12,6 +12,8 @@ DESCRIPTION:
 import pandas as pd
 import numpy as np
 import scipy.stats as stats
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import LabelEncoder
 import os
 import streamlit as st
 
@@ -499,6 +501,60 @@ def calculate_cultural_impact_score(df_goat, df_mvp, df_trends, df_civic, df_phi
     
     return df_master
 
+def train_subjective_model():
+    """
+    PHASE 5A: Training a Random Forest to predict fan preference.
+    MATLAB Analogy: Equivalent to the 'Classification Learner' app logic.
+    """
+    # 1. Generate Synthetic Training Data (Representing 1,000 diverse fans)
+    # Features: [Age, Fandom_Level (1-3), Era_Preference_Index (0-5)]
+    np.random.seed(42)
+    X = np.random.randint(15, 80, size=(1000, 1)) # Age
+    fandom = np.random.randint(1, 4, size=(1000, 1)) # Style
+    era = np.random.randint(0, 6, size=(1000, 1)) # Era
+    X = np.hstack((X, fandom, era))
+    
+    # 2. Define the Target (Who they choose)
+    # We create a noisy relationship between Age/Era and the GOAT choice
+    y = []
+    for row in X:
+        age, style, era_idx = row
+        if age > 60 or era_idx == 0: y.append("Bill Russell")
+        elif 45 < age <= 60 or era_idx == 1: y.append("Michael Jordan")
+        elif 25 < age <= 45 or era_idx == 4: y.append("LeBron James")
+        elif style == 3: y.append("Stephen Curry")
+        else: y.append("Nikola Jokic")
+    
+    # 3. Train the Model
+    le = LabelEncoder()
+    y_encoded = le.fit_transform(y)
+    
+    model = RandomForestClassifier(n estimators=100, max_depth=5)
+    model.fit(X, y_encoded)
+    
+    return model, le
+
+def predict_goat_ml(model, encoder, user_input):
+    """Uses the trained Random Forest to predict the user's choice."""
+    # Convert era string back to index for the model
+    era_map = {"1960s": 0, "1980s": 1, "1990s": 2, "2000s": 3, "2010s": 4, "Modern": 5}
+    style_map = {"Eye Test": 1, "Balanced": 2, "Analytic-Heavy": 3}
+    
+    features = np.array([[
+        user_input['age'], 
+        style_map[user_input['fandom']], 
+        era_map[user_input['fav_era']]
+    ]])
+    
+    pred_idx = model.predict(features)
+    confidence = np.max(model.predict_proba(features)) * 100
+    
+    return encoder.inverse_transform(pred_idx)[0], confidence
+
+@st.cache_resource # Use cache_resource for ML models (not cache_data)
+def load_ml_model():
+    return train_subjective_model()
+
 @st.cache_data
 def load_all_dashboard_data():
     """
@@ -526,6 +582,9 @@ def load_all_dashboard_data():
     
     # 4. The Master Impact Score (Calculated dynamically)
     df_impact_score = calculate_cultural_impact_score(df_goat, df_mvp, df_google, df_civic, df_phil)
+
+    # 5. Model Training Results (Tab 5)
+    ml_model, encoder = load_ml_model()
     
     # 5. UI Helpers
     colors = get_player_colors(df_goat)
@@ -536,5 +595,5 @@ def load_all_dashboard_data():
         df_longevity, bin_pct, significant_findings, 
         df_era, df_radar, df_dumbbell, 
         df_google, df_mvp, df_civic, df_phil, 
-        df_impact_score, colors
+        df_impact_score, ml_model, encoder, colors
     )
