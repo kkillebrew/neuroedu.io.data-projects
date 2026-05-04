@@ -632,4 +632,75 @@ with tab4:
         * **Philanthropy (Real World Impact):** A Natural Language Processing (NLP) pipeline parsed every paragraph of the players' biographies using the `nltk` tokenizer. A Dual-Filter system cross-referenced sentences against a Positive Dictionary (e.g., *'charity'*, *'scholarship'*) and a Negative Dictionary (e.g., *'contract'*, *'lawsuit'*) to isolate verified social impact. 
         """)
 
+# --- TAB 5: Model Predictions ---
+with tab5:
+    st.header("Phase 5: The GOAT Predictors")
+    st.markdown("Comparing human psychological bias against pure mathematical dominance.")
+    st.divider()
     
+    col_sub, col_obj = st.columns(2, gap="large")
+    
+    # --- 5A: The Subjective Predictor (ML Model) ---
+    with col_sub:
+        st.subheader("5A. The Subjective Predictor")
+        st.markdown("*A Random Forest Classifier trained on demographic survey data.*")
+        
+        with st.form("subjective_goat_form"):
+            user_age = st.slider("Your Age", 15, 85, 30)
+            fandom_style = st.select_slider("Fandom Style", options=["Eye Test", "Balanced", "Analytic-Heavy"])
+            fav_era = st.selectbox("Favorite NBA Era", ["1960s", "1980s", "1990s", "2000s", "2010s", "Modern"])
+            
+            submit_btn = st.form_submit_button("Predict My Personal GOAT")
+            
+            if submit_btn:
+                user_features = {'age': user_age, 'fav_era': fav_era, 'fandom': fandom_style}
+                
+                # Execute the ML Model
+                prediction, confidence = predict_goat_ml(ml_model, encoder, user_features)
+                
+                st.success(f"### The Algorithm Predicts: **{prediction}**")
+                st.progress(confidence / 100)
+                st.caption(f"**Confidence Score:** {confidence:.1f}%")
+                
+                # Show Feature Importance
+                importances = ml_model.feature_importances_
+                fig_imp = px.bar(
+                    x=['Age', 'Fandom Style', 'Era Preference'], 
+                    y=importances, 
+                    title="What drove your prediction?",
+                    labels={'x': 'Demographic Feature', 'y': 'Model Weight'}
+                )
+                fig_imp.update_layout(height=300)
+                st.plotly_chart(fig_imp, use_container_width=True, config=PLOTLY_CONFIG)
+
+    # --- 5B: The Objective Algorithm ---
+    with col_obj:
+        st.subheader("5B. The Objective Algorithm")
+        st.markdown("*A mathematically de-biased ensemble of Phases 1 through 4.*")
+        
+        # Filter the objective data based on the global player selector
+        df_obj_f = df_objective[df_objective['Player'].isin(selected_players)]
+        
+        if not df_obj_f.empty:
+            fig_obj = px.bar(
+                df_obj_f.sort_values('Objective_GOAT_Score', ascending=True), 
+                x='Objective_GOAT_Score', 
+                y='Player', 
+                orientation='h', 
+                color='Player', 
+                color_discrete_map=player_colors, 
+                text='Objective_GOAT_Score'
+            )
+            fig_obj.update_traces(texttemplate='%{text}', textposition='outside')
+            fig_obj.update_layout(
+                xaxis_title="Ultimate Ensemble Score (0-100)", 
+                yaxis_title="", 
+                height=550, 
+                showlegend=False,
+                xaxis=dict(range=[0, 105])
+            )
+            st.plotly_chart(fig_obj, use_container_width=True, config=PLOTLY_CONFIG)
+            
+            # Crown the winner mathematically
+            objective_winner = df_obj_f.iloc[0]['Player']
+            st.info(f"🏆 According to the weighted metrics, **{objective_winner}** is the objective Greatest of All Time among your selected players.")
