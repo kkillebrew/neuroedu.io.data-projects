@@ -612,8 +612,11 @@ def load_all_dashboard_data():
     
     # 4. The Master Impact Score (Calculated dynamically)
     df_impact_score = calculate_cultural_impact_score(df_goat, df_mvp, df_google, df_civic, df_phil)
+
+    # 5. Model Predictors
+    df_objective = calculate_objective_goat_ranking(df_career, df_scored, df_era, df_impact_score)
     
-    # 5. UI Helpers
+    # 6. UI Helpers
     colors = get_player_colors(df_goat)
     
     # The order here MUST match the unpacking order in your app.py!
@@ -622,5 +625,5 @@ def load_all_dashboard_data():
         df_longevity, bin_pct, significant_findings, 
         df_era, df_radar, df_dumbbell, 
         df_google, df_mvp, df_civic, df_phil, 
-        df_impact_score, colors
+        df_impact_score, df_objective, colors
     )
