@@ -68,11 +68,15 @@ def load_and_filter_raw_data():
         # We calculate the average and standard deviation of points and rebounds for EVERY year in history
         league_yearly = df_all.groupby('Year').agg({
             'points': ['mean', 'std'],
-            'reboundsTotal': ['mean', 'std']
+            'reboundsTotal': ['mean', 'std'],
+            'assists': ['mean', 'std'],
+            'stl_blk': ['mean', 'std']
         }).reset_index()
         
-        # Flatten the multi-level columns created by agg() so they are easy to use
-        league_yearly.columns = ['Year', 'pts_mean', 'pts_std', 'reb_mean', 'reb_std']
+        league_yearly.columns = [
+            'Year', 'pts_mean', 'pts_std', 'reb_mean', 'reb_std', 
+            'ast_mean', 'ast_std', 'stl_blk_mean', 'stl_blk_std'
+        ]
 
         # Logical Indexing: We filter the 50 players down to just the 10 active ones in PLAYERS
         df_goat = df_all[df_all['Player'].isin(PLAYERS)].copy()
@@ -82,8 +86,10 @@ def load_and_filter_raw_data():
         df_goat = pd.merge(df_goat, league_yearly, on='Year', how='left')
         
         # Z-Score Formula: (Player Score - League Average) / League Standard Deviation
-        df_goat['pts_z'] = (df_goat['points'] - df_goat['pts_mean']) / df_goat['pts_std']
-        df_goat['reb_z'] = (df_goat['reboundsTotal'] - df_goat['reb_mean']) / df_goat['reb_std']
+        df_goat['pts_z'] = np.where(df_goat['pts_std'] > 0, (df_goat['points'] - df_goat['pts_mean']) / df_goat['pts_std'], 0)
+        df_goat['reb_z'] = np.where(df_goat['reb_std'] > 0, (df_goat['reboundsTotal'] - df_goat['reb_mean']) / df_goat['reb_std'], 0)
+        df_goat['ast_z'] = np.where(df_goat['ast_std'] > 0, (df_goat['assists'] - df_goat['ast_mean']) / df_goat['ast_std'], 0)
+        df_goat['def_z'] = np.where(df_goat['stl_blk_std'] > 0, (df_goat['stl_blk'] - df_goat['stl_blk_mean']) / df_goat['stl_blk_std'], 0)
         
         # Extract Year for Longevity calculations
         df_goat['Year'] = pd.to_datetime(df_goat['gameDate']).dt.year
@@ -105,9 +111,27 @@ def calculate_career_baselines(df_goat):
     It automatically aggregates the dataset based on unique categories.
     """
     # 1. Base Averages
-    df_career = df_goat.groupby('Player')[['points', 'reboundsTotal', 'assists', 'blocks', 'steals', 'turnovers']].mean().reset_index()
+    # Add the new fields to the groupby!
+    cols_to_avg = [
+        'points', 'reboundsTotal', 'assists', 'blocks', 
+        'steals', 'turnovers', 'plusMinusPoints', 
+        'fieldGoalsMade', 'fieldGoalsAttempted'
+    ]
+    df_career = df_goat.groupby('Player')[cols_to_avg].mean().reset_index()
+
+    # Calculate Field Goal Percentage
+    df_career['FG_PCT'] = np.where(
+        df_career['fieldGoalsAttempted'] > 0, 
+        df_career['fieldGoalsMade'] / df_career['fieldGoalsAttempted'], 
+        0
+    )
+
     # Rename columns for cleaner UI presentation (fillna prevents errors for 1960s players)
-    df_career.rename(columns={'points': 'PTS', 'reboundsTotal': 'TRB', 'assists': 'AST', 'blocks': 'BLK', 'steals': 'STL', 'turnovers': 'TOV'}, inplace=True)
+    df_career.rename(columns={
+        'points': 'PTS', 'reboundsTotal': 'TRB', 'assists': 'AST', 
+        'blocks': 'BLK', 'steals': 'STL', 'turnovers': 'TOV',
+        'plusMinusPoints': 'PLUS_MINUS'
+    }, inplace=True)
     df_career.fillna(0, inplace=True)
     
     # 2. Clutch Factor (Playoffs vs Regular Season)
@@ -138,16 +162,19 @@ def get_era_adjusted_stats(df_goat):
     Calculates the real Era-Adjusted Dominance (Z-Scores) by averaging
     the game-by-game Z-scores we calculated during ingestion.
     """
+    # Group the new Z-scores
     # We use 'pts_mean' (the average points scored by an average NBA player that year) as a proxy for Era Pace
-    df_era = df_goat.groupby('Player')[['pts_z', 'reb_z', 'pts_mean']].mean().reset_index()
+    df_era = df_goat.groupby('Player')[['pts_z', 'reb_z', 'ast_z', 'def_z', 'pts_mean']].mean().reset_index()
     
     # Rename columns so they instantly link to our Plotly UI
     df_era.rename(columns={
-        'pts_z': 'Scoring_Z_Score',
-        'reb_z': 'Rebound_Z_Score',
+        'pts_z': 'Scoring_Z', 'reb_z': 'Rebound_Z', 
+        'ast_z': 'Assist_Z', 'def_z': 'Defense_Z',
         'pts_mean': 'Era_Pace'
     }, inplace=True)
-
+    
+    # Exponential Bubble Scaling: Raising it to the 4th power makes small pace differences highly visible!
+    df_era['Pace_Bubble_Size'] = (df_era['Era_Pace'] / df_era['Era_Pace'].min()) ** 4
     return df_era
 
 def analyze_longevity_vs_peak(df_goat):
@@ -257,7 +284,7 @@ def get_radar_scaled_stats(df_career):
     Min-Max scales baseline stats from 0 to 100 relative to the best performer in this cohort.
     MATLAB Analogy: mapminmax() or normalizing vectors to [0, 1].
     """
-    stats_to_scale = ['PTS', 'TRB', 'AST', 'BLK', 'STL']
+    stats_to_scale = ['PTS', 'AST', 'PLUS_MINUS', 'FG_PCT', 'TRB', 'STL', 'BLK', 'TOV']
     df_radar = df_career[['Player'] + stats_to_scale].copy()
     
     for col in stats_to_scale:

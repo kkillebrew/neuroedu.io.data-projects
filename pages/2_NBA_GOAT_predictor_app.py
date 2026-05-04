@@ -134,60 +134,75 @@ tab1, tab2, tab3, tab4 = st.tabs(["📊 Career Baselines", "🏆 Hardware & Clut
 
 # --- TAB 1: Baseline Stats ---
 with tab1:
-    st.subheader("The 'Shape' of Greatness (Radar Chart)")
+    st.subheader("The 'Shape' of Greatness (Radar Charts)")
     st.markdown("""
         How do these players visually compare across major statistical categories? 
-        *Note: Stats are min-max scaled (0-100) relative to the highest performer in this specific group.*
+        *Stats are min-max scaled (0-100) relative to the highest performer. (Note: A higher TOV score means more turnovers, which is negative).*
     """)
     
-    fig_radar = go.Figure()
-    categories = ['PTS', 'TRB', 'AST', 'BLK', 'STL']
+    # Side-by-side columns for the Radars
+    radar_col1, radar_col2 = st.columns(2)
     
-    for p in selected_players:
-        # Extract player data
-        player_data = df_radar[df_radar['Player'] == p].iloc[0]
-        values = player_data[categories].tolist()
+    # 1. Offensive Radar
+    with radar_col1:
+        fig_off = go.Figure()
+        cat_off = ['PTS', 'AST', 'PLUS_MINUS', 'FG_PCT']
+        cat_off_loop = cat_off + [cat_off[0]] # Close the loop
         
-        # Plotly Radar charts need the last value to loop back to the first value to close the circle!
-        values += values[:1]
-        cat_loop = categories + [categories[0]]
+        for p in selected_players:
+            player_data = df_radar[df_radar['Player'] == p].iloc[0]
+            values = player_data[cat_off].tolist() + [player_data[cat_off[0]]]
+            fig_off.add_trace(go.Scatterpolar(r=values, theta=cat_off_loop, name=p, fill='toself', line=dict(color=player_colors[p], width=2), opacity=0.5))
+        fig_off.update_layout(title="Offensive Shape", polar=dict(radialaxis=dict(visible=True, range=[0, 100])), showlegend=False, height=450)
+        st.plotly_chart(fig_off, use_container_width=True, config=PLOTLY_CONFIG)
+
+    # 2. Defensive Radar
+    with radar_col2:
+        fig_def = go.Figure()
+        cat_def = ['TRB', 'STL', 'BLK', 'TOV']
+        cat_def_loop = cat_def + [cat_def[0]]
         
-        fig_radar.add_trace(go.Scatterpolar(
-            r=values, theta=cat_loop, name=p,
-            fill='toself', line=dict(color=player_colors[p], width=2), opacity=0.6
-        ))
-        
-    fig_radar.update_layout(
-        polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
-        showlegend=True, height=600
-    )
-    # Applied PLOTLY_CONFIG here!
-    st.plotly_chart(fig_radar, use_container_width=True, config=PLOTLY_CONFIG)
+        for p in selected_players:
+            player_data = df_radar[df_radar['Player'] == p].iloc[0]
+            values = player_data[cat_def].tolist() + [player_data[cat_def[0]]]
+            fig_def.add_trace(go.Scatterpolar(r=values, theta=cat_def_loop, name=p, fill='toself', line=dict(color=player_colors[p], width=2), opacity=0.5))
+        fig_def.update_layout(title="Defensive Shape", polar=dict(radialaxis=dict(visible=True, range=[0, 100])), showlegend=True, height=450)
+        st.plotly_chart(fig_def, use_container_width=True, config=PLOTLY_CONFIG)
 
     st.divider()
     st.subheader("Era-Adjusted Dominance (Z-Scores vs Peers)")
-    st.markdown("Raw stats can be deceiving. Here we adjust for the 'Pace' of different eras by standardizing stats (Z-scores) against a player's contemporaries. *Bubble size indicates the pace of their era.*")
+    st.markdown("Adjusted for era pacing. **Bubble size indicates Pace.** We have exponentially scaled the bubble size so the massive pacing differences between eras (e.g., Wilt's 1960s vs Kobe's 2000s) are drastically apparent.")    
     
     # Filter based on multiselect
     filtered_era = df_era[df_era['Player'].isin(selected_players)]
     
-    # Create the scatter plot (MATLAB Analogy: scatter() with varying marker sizes)
-    fig_era = px.scatter(
-        filtered_era, x='Scoring_Z_Score', y='Rebound_Z_Score', 
-        text='Player', size='Era_Pace', color='Player',
-        color_discrete_map=player_colors # Keeping our strict colors!
-    )
-    
-    # Formatting the quadrant lines and labels
-    fig_era.update_traces(textposition='top center', marker=dict(line=dict(width=1, color='Black')))
-    fig_era.add_hline(y=1.5, line_dash="dot", line_color="gray")
-    fig_era.add_vline(x=1.5, line_dash="dot", line_color="gray")
-    fig_era.update_layout(
-        xaxis_title="Scoring Dominance (Std Devs above era average)",
-        yaxis_title="Rebounding Dominance (Std Devs above era average)",
-        showlegend=False
-    )
-    st.plotly_chart(fig_era, use_container_width=True, config=PLOTLY_CONFIG)
+    # Create 3 columns for our scatter plots!
+    z_col1, z_col2, z_col3 = st.columns(3)
+
+    # Create the scatter plots (MATLAB Analogy: scatter() with varying marker sizes)
+    def create_z_scatter(x_col, y_col, x_label, y_label, title):
+        fig = px.scatter(
+            filtered_era, x=x_col, y=y_col, text='Player', 
+            size='Pace_Bubble_Size', size_max=45, # HUGE bubbles for the fast eras
+            color='Player', color_discrete_map=player_colors, title=title
+        )
+        fig.update_traces(textposition='top center', marker=dict(line=dict(width=1, color='Black')))
+        fig.add_hline(y=1.5, line_dash="dot", line_color="gray")
+        fig.add_vline(x=1.5, line_dash="dot", line_color="gray")
+        fig.update_layout(xaxis_title=x_label, yaxis_title=y_label, showlegend=False, height=500)
+        return fig
+
+    with z_col1:
+        fig_z1 = create_z_scatter('Scoring_Z', 'Rebound_Z', 'Scoring Dominance', 'Rebounding Dominance', 'Overall Dominance')
+        st.plotly_chart(fig_z1, use_container_width=True, config=PLOTLY_CONFIG)
+        
+    with z_col2:
+        fig_z2 = create_z_scatter('Scoring_Z', 'Assist_Z', 'Scoring Dominance', 'Playmaking Dominance', 'Offensive Dominance')
+        st.plotly_chart(fig_z2, use_container_width=True, config=PLOTLY_CONFIG)
+        
+    with z_col3:
+        fig_z3 = create_z_scatter('Rebound_Z', 'Defense_Z', 'Rebounding Dominance', 'STL+BLK Dominance', 'Defensive Dominance')
+        st.plotly_chart(fig_z3, use_container_width=True, config=PLOTLY_CONFIG)
 
 # --- TAB 2: Hardware & Clutch ---
 with tab2:
