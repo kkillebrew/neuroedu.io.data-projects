@@ -505,13 +505,30 @@ with tab4:
     if not df_mvp.empty:
         df_mvp_filtered = df_mvp[df_mvp['Player'].isin(selected_players)]
         if not df_mvp_filtered.empty:
-            fig_mvp = px.area(
-                df_mvp_filtered.sort_values(by=['Year']), 
-                x='Year', y='Share', color='Player', 
-                color_discrete_map=player_colors, line_group='Player'
+            # We use go.Figure here instead of px.area to get finer control over the 'stacking'
+            fig_mvp = go.Figure()
+    
+            for p in selected_players:
+                p_data = df_mvp_filtered[df_mvp_filtered['Player'] == p].sort_values('Year')
+                
+                fig_mvp.add_trace(go.Scatter(
+                    x=p_data['Year'], 
+                    y=p_data['Share'],
+                    name=p,
+                    mode='lines',
+                    fill='tozeroy', # This creates the "area" look
+                    line=dict(color=player_colors[p], width=2),
+                    # This is the key: we do NOT specify a stackgroup, 
+                    # so they all start at the bottom
+                ))
+    
+            fig_mvp.update_layout(
+                xaxis_title="Year",
+                yaxis_title="MVP Voting Share (0.0 - 1.0)",
+                height=500,
+                hovermode="x unified", # Shows all players' shares for a specific year at once
+                yaxis=dict(range=[0, 1.1]) # Sets a hard limit so it never "breaks" the top border
             )
-            fig_mvp.update_layout(xaxis_title="Year", yaxis_title="MVP Voting Share", height=500)
-            fig_mvp.update_traces(opacity=0.6)
             st.plotly_chart(fig_mvp, use_container_width=True, config=PLOTLY_CONFIG)
         else:
              st.info("No MVP voting data found for the currently selected players.")
