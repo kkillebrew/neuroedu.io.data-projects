@@ -171,118 +171,7 @@ with tab1:
         fig_def.update_layout(title="Defensive Shape", polar=dict(radialaxis=dict(visible=True, range=[0, 100])), showlegend=True, height=450)
         st.plotly_chart(fig_def, use_container_width=True, config=PLOTLY_CONFIG)
 
-    st.divider()
-    st.subheader("Era-Adjusted Dominance (Z-Scores vs Peers)")
-    st.markdown("Adjusted for era pacing.")    
-    st.markdown("*Pace is calculated by the average points scored per game across the entire NBA during that player's active years. Faster eras (like the 1960s) have higher averages, which naturally inflated raw stats compared to slower, defensive eras (like the 2000s). Think Wilt's 1960s vs Kobe's 2000s.*")
 
-    # Filter based on multiselect
-    filtered_era = df_era[df_era['Player'].isin(selected_players)]
-    
-    # Create 3 columns for our scatter plots!
-    z_col1, z_col2, z_col3 = st.columns(3)
-
-    # Create the scatter plots (MATLAB Analogy: scatter() with varying marker sizes)
-    def create_z_scatter(x_col, y_col, x_label, y_label, title):
-        fig = px.scatter(
-            filtered_era, x=x_col, y=y_col, text='Player', 
-            size='Pace_Bubble_Size', 
-            size_max=25, # Shrunk down by 1/3rd from 45!
-            color='Player', color_discrete_map=player_colors, title=title
-        )
-        fig.update_traces(textposition='top center', marker=dict(line=dict(width=1, color='Black')))
-        fig.add_hline(y=1.5, line_dash="dot", line_color="gray")
-        fig.add_vline(x=1.5, line_dash="dot", line_color="gray")
-        fig.update_layout(xaxis_title=x_label, yaxis_title=y_label, showlegend=False, height=500)
-        return fig
-
-    with z_col1:
-        fig_z1 = create_z_scatter('Scoring_Z', 'Rebound_Z', 'Scoring Dominance', 'Rebounding Dominance', 'Overall Dominance')
-        st.plotly_chart(fig_z1, use_container_width=True, config=PLOTLY_CONFIG)
-        
-    with z_col2:
-        fig_z2 = create_z_scatter('Scoring_Z', 'Assist_Z', 'Scoring Dominance', 'Playmaking Dominance', 'Offensive Dominance')
-        st.plotly_chart(fig_z2, use_container_width=True, config=PLOTLY_CONFIG)
-        
-    with z_col3:
-        fig_z3 = create_z_scatter('Rebound_Z', 'Defense_Z', 'Rebounding Dominance', 'STL+BLK Dominance', 'Defensive Dominance')
-        st.plotly_chart(fig_z3, use_container_width=True, config=PLOTLY_CONFIG)
-
-# --- TAB 2: Hardware & The Trophy Predictor ---
-with tab2:
-    st.header("The Hardware Algorithm")
-    st.markdown("""
-        Who is the GOAT based *purely* on resume? We have assigned objective weights to every major NBA accolade. 
-        * Weights: Rings (10), MVP/Finals MVP (8), DPOY (5), Scoring Title (4), ROTY (3), All-NBA/All-Defense/Clutch (2).
-    """)
-    
-    # Filter the datasets based on user sidebar selection
-    filtered_melted = df_hw_melted[df_hw_melted['Player'].isin(selected_players)]
-    filtered_scored = df_scored[df_scored['Player'].isin(selected_players)]
-    
-    # 1. The Stacked Bar Chart
-    # We order the X-axis by the players with the highest total score!
-    fig_hw = px.bar(
-        filtered_melted, 
-        x='Player', 
-        y='Weighted_Points', 
-        color='Award',
-        text='Count', # Shows the raw number of awards inside the colored blocks
-        title="Weighted Career Accolades",
-        category_orders={"Player": filtered_scored['Player'].tolist()} # Sorts X-axis highest to lowest
-    )
-    
-    fig_hw.update_traces(textposition='inside', textfont_color='white')
-    fig_hw.update_layout(yaxis_title="Total Hardware Score", xaxis_title="", barmode='stack', height=600)
-    st.plotly_chart(fig_hw, use_container_width=True, config=PLOTLY_CONFIG)
-    
-    # 2. Show the raw dataset below for transparency
-    st.divider()
-    st.subheader("The Raw Trophy Cabinet")
-    # Clean up the dataframe before showing it
-    display_cols = ['Player', 'Total_Hardware_Score', 'Rings', 'MVPs', 'Finals_MVPs', 'All_NBA', 'All_Defense', 'Scoring_Titles', 'DPOY', 'ROTY', 'Clutch_POY']
-    st.dataframe(filtered_scored[display_cols].set_index('Player'), use_container_width=True)
-
-# --- TAB 3: Consistency & Variance ---
-with tab3:
-    st.subheader("Smoothed Scoring Distributions (KDE)")
-    # Using Graph Objects (go.Figure) for fine-grained control over mathematical overlays
-    fig_dist = go.Figure()
-    x_range = np.linspace(0, 100, 300)
-    for p in selected_players:
-        pts = df_goat[df_goat['Player'] == p]['points'].dropna()
-        if len(pts) > 1:
-            # Kernel Density Estimation (MATLAB Analogy: ksdensity(pts))
-            kde = stats.gaussian_kde(pts)
-            # Add a smoothed line trace to the figure
-            fig_dist.add_trace(go.Scatter(x=x_range, y=kde(x_range), mode='lines', name=p, line=dict(color=player_colors[p], width=2.5)))
-    fig_dist.update_layout(xaxis_title="Points in a Single Game", yaxis_title="Probability Density", hovermode="x unified")
-    st.plotly_chart(fig_dist, use_container_width=True, config=PLOTLY_CONFIG)
-    
-    st.divider()
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        st.subheader("Scoring Segment Breakdown")
-        filtered_bin = bin_pct[bin_pct.index.isin(selected_players)]
-        df_melt_bins = filtered_bin.reset_index().melt(id_vars='Player', var_name='Points Range', value_name='Percentage')
-        
-        # We use a sequential palette (Plasma) here because the ranges are ordered (<10 to 50+)
-        fig_bins = px.bar(df_melt_bins, x='Player', y='Percentage', color='Points Range', color_discrete_sequence=px.colors.sequential.Plasma, text_auto='.1f')
-        fig_bins.update_layout(yaxis_title="Percentage of Career Games (%)", barmode='stack')
-        st.plotly_chart(fig_bins, use_container_width=True, config=PLOTLY_CONFIG)
-        
-    with col2:
-        st.subheader("🔬 Statistically Significant Discoveries")
-        st.markdown("*(Chi-Square with Bonferroni correction, p < 0.05)*")
-        
-        # Iterate through the top statistical discoveries generated by our backend model
-        for f in [x for x in sig_findings if x['Player'] in selected_players][:5]:
-            # Use st.success for visual highlight boxes
-            st.success(f"**{f['Player']}** had significantly **{f['Direction']}** games scoring {f['Bin']} pts. ({f['Player_%']:.1f}% vs {f['Rest_%']:.1f}%)")
-
-# --- TAB 4: Longevity vs Peak ---
-with tab4:
     st.subheader("Peak Dominance vs. Career Longevity (Dumbbell Plot)")
     st.markdown("""
         Does extreme peak performance sacrifice longevity? 
@@ -329,3 +218,162 @@ with tab4:
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
     st.plotly_chart(fig_dumb, use_container_width=True, config=PLOTLY_CONFIG)
+
+
+# --- TAB 2: Hardware & The Trophy Predictor ---
+with tab2:
+    st.header("The Hardware Algorithm")
+    st.markdown("""
+        Who is the GOAT based *purely* on resume? We have assigned objective weights to every major NBA accolade. 
+        * Weights: Rings (10), MVP/Finals MVP (8), DPOY (5), Scoring Title (4), ROTY (3), All-NBA/All-Defense/Clutch (2).
+    """)
+    
+    # Filter the datasets based on user sidebar selection
+    filtered_melted = df_hw_melted[df_hw_melted['Player'].isin(selected_players)]
+    filtered_scored = df_scored[df_scored['Player'].isin(selected_players)]
+    
+    # 1. The Stacked Bar Chart
+    # We order the X-axis by the players with the highest total score!
+    fig_hw = px.bar(
+        filtered_melted, 
+        x='Player', 
+        y='Weighted_Points', 
+        color='Award',
+        text='Count', # Shows the raw number of awards inside the colored blocks
+        title="Weighted Career Accolades",
+        category_orders={"Player": filtered_scored['Player'].tolist()} # Sorts X-axis highest to lowest
+    )
+    
+    fig_hw.update_traces(textposition='inside', textfont_color='white')
+    fig_hw.update_layout(yaxis_title="Total Hardware Score", xaxis_title="", barmode='stack', height=600)
+    st.plotly_chart(fig_hw, use_container_width=True, config=PLOTLY_CONFIG)
+    
+    # 2. Show the raw dataset below for transparency
+    st.divider()
+    st.subheader("The Raw Trophy Cabinet")
+    # Clean up the dataframe before showing it
+    display_cols = ['Player', 'Total_Hardware_Score', 'Rings', 'MVPs', 'Finals_MVPs', 'All_NBA', 'All_Defense', 'Scoring_Titles', 'DPOY', 'ROTY', 'Clutch_POY']
+    st.dataframe(filtered_scored[display_cols].set_index('Player'), use_container_width=True)
+
+# --- TAB 3: Consistency & Variance ---
+with tab3:
+
+    # ---------------------------------------------------------
+    # 1. ERA-ADJUSTED DOMINANCE (Moved from Tab 1)
+    # ---------------------------------------------------------
+    st.divider()
+    st.subheader("Era-Adjusted Dominance (Z-Scores vs Peers)")
+    st.markdown("Adjusted for era pacing.")    
+    st.markdown("*Pace is calculated by the average points scored per game across the entire NBA during that player's active years. Faster eras (like the 1960s) have higher averages, which naturally inflated raw stats compared to slower, defensive eras (like the 2000s). Think Wilt's 1960s vs Kobe's 2000s.*")
+
+    # Filter based on multiselect
+    filtered_era = df_era[df_era['Player'].isin(selected_players)]
+    
+    # Create 3 columns for our scatter plots!
+    z_col1, z_col2, z_col3 = st.columns(3)
+
+    # Create the scatter plots (MATLAB Analogy: scatter() with varying marker sizes)
+    def create_z_scatter(x_col, y_col, x_label, y_label, title):
+        fig = px.scatter(
+            filtered_era, x=x_col, y=y_col, text='Player', 
+            size='Pace_Bubble_Size', 
+            size_max=25, # Shrunk down by 1/3rd from 45!
+            color='Player', color_discrete_map=player_colors, title=title
+        )
+        fig.update_traces(textposition='top center', marker=dict(line=dict(width=1, color='Black')))
+        fig.add_hline(y=1.5, line_dash="dot", line_color="gray")
+        fig.add_vline(x=1.5, line_dash="dot", line_color="gray")
+        fig.update_layout(xaxis_title=x_label, yaxis_title=y_label, showlegend=False, height=500)
+        return fig
+
+    with z_col1:
+        fig_z1 = create_z_scatter('Scoring_Z', 'Rebound_Z', 'Scoring Dominance', 'Rebounding Dominance', 'Overall Dominance')
+        st.plotly_chart(fig_z1, use_container_width=True, config=PLOTLY_CONFIG)
+        
+    with z_col2:
+        fig_z2 = create_z_scatter('Scoring_Z', 'Assist_Z', 'Scoring Dominance', 'Playmaking Dominance', 'Offensive Dominance')
+        st.plotly_chart(fig_z2, use_container_width=True, config=PLOTLY_CONFIG)
+        
+    with z_col3:
+        fig_z3 = create_z_scatter('Rebound_Z', 'Defense_Z', 'Rebounding Dominance', 'STL+BLK Dominance', 'Defensive Dominance')
+        st.plotly_chart(fig_z3, use_container_width=True, config=PLOTLY_CONFIG)
+
+    # ---------------------------------------------------------
+    # 2. THE CLUTCH FACTOR (Playoff Elevation)
+    # ---------------------------------------------------------
+    st.divider()
+    st.subheader("2. The Clutch Factor (Playoff Elevation)")
+    st.markdown("Comparing Regular Season PPG to Playoff PPG. **Players above the diagonal dashed line elevate their game in the playoffs.** Players below the line shrink under pressure.")
+    
+    filtered_clutch = df_clutch[df_clutch['Player'].isin(selected_players)].copy()
+    
+    fig_clutch = px.scatter(
+        filtered_clutch, x='Reg_Season_PTS', y='Finals_PTS', text='Player',
+        color='Player', color_discrete_map=player_colors, size_max=15
+    )
+    
+    # Create the y=x Identity Line (The Experimental Baseline)
+    max_pts = max(filtered_clutch['Reg_Season_PTS'].max(), filtered_clutch['Finals_PTS'].max()) + 2
+    min_pts = min(filtered_clutch['Reg_Season_PTS'].min(), filtered_clutch['Finals_PTS'].min()) - 2
+    
+    fig_clutch.add_shape(type="line", x0=min_pts, y0=min_pts, x1=max_pts, y1=max_pts, line=dict(color="gray", dash="dash"))
+    
+    fig_clutch.update_traces(textposition='top center', marker=dict(size=12, line=dict(width=1, color='Black')))
+    fig_clutch.update_layout(xaxis_title="Regular Season Average (PTS)", yaxis_title="Playoff Average (PTS)", showlegend=False, height=500)
+    
+    # Force axes to be mathematically square so the 45-degree line is perfectly accurate
+    fig_clutch.update_yaxes(scaleanchor="x", scaleratio=1)
+    
+    st.plotly_chart(fig_clutch, use_container_width=True, config=PLOTLY_CONFIG)
+
+    # ---------------------------------------------------------
+    # 3. STATISTICAL DISTRIBUTIONS & ANOMALIES
+    # ---------------------------------------------------------
+    st.divider()
+    st.subheader("3. Scoring Distributions & Consistency (Violin Plots)")
+    st.markdown("Unlike a single average number, this shows the *shape* of a player's entire career. A wider bulge means they consistently scored in that range. A long, thin tail points to rare, explosive games.")
+    
+    filtered_goat = df_goat[df_goat['Player'].isin(selected_players)]
+    
+    # Plotly Violin plot serves as a beautiful, continuous KDE (Kernel Density Estimate)
+    fig_violin = px.violin(
+        filtered_goat, y="points", x="Player", color="Player", 
+        box=True, # Adds a mini box-plot inside the violin
+        points="all", # Shows all individual game dots softly in the background
+        color_discrete_map=player_colors
+    )
+    fig_violin.update_layout(yaxis_title="Points Scored in a Single Game", xaxis_title="", showlegend=False, height=600)
+    st.plotly_chart(fig_violin, use_container_width=True, config=PLOTLY_CONFIG)
+
+    # ---------------------------------------------------------
+    # 4. STATISTICAL ANOMALIES (Chi-Square Findings)
+    # ---------------------------------------------------------
+    st.divider()
+    st.subheader("4. Significant Statistical Anomalies")
+    st.markdown("""
+        *Using a Bonferroni-corrected Chi-Square analysis, we can mathematically prove if a player scores in a specific range at a statistically significant higher rate than their peers.*
+    """)
+    
+    # Filter the significant findings to only show players currently selected in the sidebar
+    relevant_findings = [f for f in sig_findings if f['Player'] in selected_players]
+    
+    if relevant_findings:
+        for finding in relevant_findings:
+            # Format the text so it reads like a clean, data science insight
+            player = finding['Player']
+            bin_range = finding['Bin']
+            p_val = finding['P_Val']
+            p_pct = finding['Player_%']
+            r_pct = finding['Rest_%']
+            
+            st.success(
+                f"**{player}** scores **{bin_range} points** in {p_pct:.1f}% of his games. "
+                f"The rest of the GOAT group only does this {r_pct:.1f}% of the time. "
+                f"*(p < {p_val:.5f})*"
+            )
+    else:
+        st.info("No statistically significant anomalies detected for the currently selected players in comparison to the broader group.")
+
+# --- TAB 4: Longevity vs Peak ---
+with tab4:
+    
