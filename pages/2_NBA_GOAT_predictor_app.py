@@ -125,18 +125,17 @@ def load_all_dashboard_data():
     return df_goat, df_career, df_clutch, df_awards, df_scored, df_hw_melted, df_longevity, bin_pct, significant_findings, 
         df_era, df_radar, df_dumbbell, df_google, df_mvp, df_trends, df_civic, df_phil, df_impact_score, colors
 
-# --- DATA LOADING SECTION ---
 with st.spinner("Crunching historical NBA game logs..."):
-    # Step 1: Load the bundle from the cache
-    data_bundle = load_all_dashboard_data()
-    
-    # Step 2: Unpack the bundle (Ensure this line aligns perfectly with the line above)
-    (df_goat, df_career, df_clutch, df_awards, df_scored, df_hw_melted, 
-     df_longevity, bin_pct, sig_findings, df_era, df_radar, df_dumbbell, 
-     df_google, df_mvp, df_trends, df_civic, df_phil, df_impact_score, 
-     player_colors) = data_bundle
+    # We unpack using parentheses to prevent IndentationErrors on multi-line lists
+    (
+        df_goat, df_career, df_clutch, df_awards, df_scored, df_hw_melted, 
+        df_longevity, bin_pct, sig_findings, df_era, df_radar, df_dumbbell, 
+        df_google, df_mvp, df_trends, df_civic, df_phil, df_impact_score, 
+        player_colors
+    ) = load_all_dashboard_data()
 
-# --- SIDEBAR CONTROLS (Starts here, outside the with block) ---
+# --- SIDEBAR CONTROLS ---
+# Ensure this 'st.sidebar' line is NOT indented at all (Flush to the left margin)
 st.sidebar.title("Dashboard Controls")
 
 DEFAULT_10 = [
@@ -145,7 +144,6 @@ DEFAULT_10 = [
     "Bill Russell", "Wilt Chamberlain", "Nikola Jokic"
 ]
 
-# Pull the player list from our newly unpacked df_goat
 all_available_players = sorted(df_goat['Player'].unique().tolist())
 
 selected_players = st.sidebar.multiselect(
