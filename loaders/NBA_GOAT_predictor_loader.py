@@ -486,7 +486,7 @@ def load_all_dashboard_data():
     # 2. Advanced Analysis (Tabs 1-3)
     df_clutch = run_clutch_analysis(df_goat) 
     df_awards = get_awards_hardware()
-    df_scored = run_scoring_segment_analysis(df_goat)
+    df_scored, df_melted = run_scoring_segment_analysis(df_goat)
     df_longevity, bin_pct, significant_findings = analyze_longevity_vs_peak(df_goat)
     df_dumbbell = get_dumbbell_longevity_peak(df_goat)
     
@@ -505,7 +505,7 @@ def load_all_dashboard_data():
     
     # The order here MUST match the unpacking order in your app.py!
     return (
-        df_goat, df_career, df_clutch, df_awards, df_scored, calculate_hardware_score(df_awards), # df_hw_melted
+        df_goat, df_career, df_clutch, df_awards, df_scored, df_melted, 
         df_longevity, bin_pct, significant_findings, 
         df_era, df_radar, df_dumbbell, 
         df_google, df_mvp, df_trends, df_civic, df_phil, 

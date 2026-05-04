@@ -108,7 +108,7 @@ def load_all_dashboard_data():
     df_goat = load_and_filter_raw_data()
     df_career, df_clutch = calculate_career_baselines(df_goat)
     df_awards = get_awards_hardware()
-    df_scored, df_hw_melted = calculate_hardware_score(df_awards)
+    df_scored, df_melted = calculate_hardware_score(df_awards)
     df_longevity = analyze_longevity_vs_peak(df_goat)
     bin_pct, significant_findings = run_scoring_segment_analysis(df_goat)
     df_era = get_era_adjusted_stats(df_goat)
@@ -122,13 +122,13 @@ def load_all_dashboard_data():
     df_impact_score = calculate_cultural_impact_score(df_goat, df_mvp, df_google, df_civic, df_phil)
 
     colors = get_player_colors()
-    return df_goat, df_career, df_clutch, df_awards, df_scored, df_hw_melted, df_longevity, bin_pct, significant_findings, 
+    return df_goat, df_career, df_clutch, df_awards, df_scored, df_melted, df_longevity, bin_pct, significant_findings, 
         df_era, df_radar, df_dumbbell, df_google, df_mvp, df_trends, df_civic, df_phil, df_impact_score, colors
 
 with st.spinner("Crunching historical NBA game logs..."):
     # We unpack using parentheses to prevent IndentationErrors on multi-line lists
     (
-        df_goat, df_career, df_clutch, df_awards, df_scored, df_hw_melted, 
+        df_goat, df_career, df_clutch, df_awards, df_scored, df_melted, 
         df_longevity, bin_pct, significant_findings, df_era, df_radar, df_dumbbell, 
         df_google, df_mvp, df_trends, df_civic, df_phil, df_impact_score, 
         colors
