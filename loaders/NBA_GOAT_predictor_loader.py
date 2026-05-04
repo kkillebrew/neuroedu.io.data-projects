@@ -389,6 +389,20 @@ def get_dumbbell_longevity_peak(df_goat):
     df_merged = df_merged.sort_values('Longevity_Score', ascending=True)
     return df_merged
 
+def get_google_trends():
+    """Loads the 5-year Relative Search Volume (RSV) data."""
+    try:
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        return pd.read_csv(os.path.join(base_dir, 'documents', 'real_google_trends.csv')).fillna(0)
+    except: return pd.DataFrame()
+
+def get_mvp_shares():
+    """Loads career-summed MVP voting shares from Basketball-Reference."""
+    try:
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        return pd.read_csv(os.path.join(base_dir, 'documents', 'real_mvp_shares.csv')).fillna(0)
+    except: return pd.DataFrame()
+
 def get_civic_awards():
     """
     Loads the Civic & Leadership awards matrix scraped from Wikipedia.

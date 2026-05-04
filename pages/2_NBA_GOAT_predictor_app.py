@@ -29,7 +29,7 @@ from loaders.NBA_GOAT_predictor_loader import (
     calculate_career_baselines, get_awards_hardware, 
     analyze_longevity_vs_peak, run_scoring_segment_analysis,
     get_era_adjusted_stats, get_radar_scaled_stats, get_dumbbell_longevity_peak,
-    calculate_hardware_score, get_google_trends, get_mvp_shares, get_league_trends, 
+    calculate_hardware_score, get_google_trends, get_mvp_shares, 
     get_civic_awards, get_philanthropy_data, calculate_cultural_impact_score
 )
 
