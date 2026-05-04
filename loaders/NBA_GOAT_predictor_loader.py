@@ -63,6 +63,9 @@ def load_and_filter_raw_data():
 
         df_all['Player'] = df_all['firstName'] + " " + df_all['lastName']
         df_all['Year'] = pd.to_datetime(df_all['gameDate']).dt.year
+
+        # >>> Create the stl_blk value using steals and blocks <<<
+        df_all['stl_blk'] = df_all['steals'].fillna(0) + df_all['blocks'].fillna(0)
         
         # MATLAB Analogy: groupsummary(df, 'Year', {'mean', 'std'})
         # We calculate the average and standard deviation of points and rebounds for EVERY year in history
