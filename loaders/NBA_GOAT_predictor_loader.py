@@ -147,21 +147,27 @@ def calculate_career_baselines(df_goat):
 
 def get_awards_hardware():
     """
-    Returns the extended hardcoded awards DataFrame.
-    Player Order: Jordan, LeBron, Magic, Curry, Shaq, Kareem, Kobe, Russell, Wilt, Jokic
+    Dynamically loads the hardware data from our player_awards.csv file.
+    This prevents crashes if the PLAYERS list changes.
     """
-    return pd.DataFrame({
-        "Player": PLAYERS,
-        "Rings": [6, 4, 5, 4, 4, 6, 5, 11, 2, 1],
-        "MVPs": [5, 4, 3, 2, 1, 6, 1, 5, 4, 3],
-        "Finals_MVPs": [6, 4, 3, 1, 3, 2, 2, 0, 1, 1], 
-        "DPOY": [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        "Scoring_Titles": [10, 1, 0, 2, 2, 2, 2, 0, 7, 0],
-        "ROTY": [1, 1, 0, 0, 1, 1, 0, 0, 1, 0],
-        "Clutch_POY": [0, 0, 0, 1, 0, 0, 0, 0, 0, 0], # Newer award, mostly Curry here!
-        "All_NBA": [11, 20, 10, 10, 14, 15, 15, 11, 10, 6],
-        "All_Defense": [9, 6, 0, 0, 3, 11, 12, 1, 2, 0]
-    })
+    try:
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        awards_path = os.path.join(base_dir, 'documents', 'player_awards.csv')
+        
+        # Load the CSV dynamically
+        df_awards = pd.read_csv(awards_path)
+        
+        # CRITICAL SAFEGUARD: If you left any cells blank in Excel, 
+        # this turns them into 0s so the math doesn't crash!
+        df_awards.fillna(0, inplace=True)
+        
+        # Filter the 50 awards down to just the active ones selected in the UI
+        df_awards = df_awards[df_awards['Player'].isin(PLAYERS)].copy()
+        
+        return df_awards
+        
+    except FileNotFoundError:
+        raise RuntimeError("Could not find player_awards.csv in the documents folder!")
 
 def calculate_hardware_score(df_awards):
     """
