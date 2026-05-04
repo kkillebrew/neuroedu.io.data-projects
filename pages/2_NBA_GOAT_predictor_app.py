@@ -186,8 +186,8 @@ with tab1:
     def create_z_scatter(x_col, y_col, x_label, y_label, title):
         fig = px.scatter(
             filtered_era, x=x_col, y=y_col, text='Player', 
-            size='Pace_Bubble_Size', size_max=45, # HUGE bubbles for the fast eras
-            size_max=30, # Shrunk down by 1/3rd from 45!
+            size='Pace_Bubble_Size', 
+            size_max=25, # Shrunk down by 1/3rd from 45!
             color='Player', color_discrete_map=player_colors, title=title
         )
         fig.update_traces(textposition='top center', marker=dict(line=dict(width=1, color='Black')))
@@ -242,7 +242,7 @@ with tab2:
     # Clean up the dataframe before showing it
     display_cols = ['Player', 'Total_Hardware_Score', 'Rings', 'MVPs', 'Finals_MVPs', 'All_NBA', 'All_Defense', 'Scoring_Titles', 'DPOY', 'ROTY', 'Clutch_POY']
     st.dataframe(filtered_scored[display_cols].set_index('Player'), use_container_width=True)
-    
+
 # --- TAB 3: Consistency & Variance ---
 with tab3:
     st.subheader("Smoothed Scoring Distributions (KDE)")
