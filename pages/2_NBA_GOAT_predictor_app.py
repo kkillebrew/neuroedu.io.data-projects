@@ -30,7 +30,8 @@ from loaders.NBA_GOAT_predictor_loader import (
     analyze_longevity_vs_peak, run_scoring_segment_analysis,
     get_era_adjusted_stats, get_radar_scaled_stats, get_dumbbell_longevity_peak,
     calculate_hardware_score, get_google_trends, get_mvp_shares, 
-    get_civic_awards, get_philanthropy_data, calculate_cultural_impact_score
+    get_civic_awards, get_philanthropy_data, calculate_cultural_impact_score,
+    train_subjective_model_from_surveys, predict_goat_ml
 )
 
 # --- GLOBAL PLOTLY CONFIG (Mobile Scroll Lock) ---
@@ -125,7 +126,7 @@ def load_all_dashboard_data():
         df_goat, df_career, df_clutch, df_awards, df_scored, df_melted, 
         df_longevity, bin_pct, significant_findings, df_era, df_radar, 
         df_dumbbell, df_google, df_mvp, df_civic, df_phil, 
-        df_impact_score, colors
+        df_impact_score, df_objective, colors
     )
 
 with st.spinner("Crunching historical NBA game logs..."):
@@ -133,9 +134,16 @@ with st.spinner("Crunching historical NBA game logs..."):
     (
         df_goat, df_career, df_clutch, df_awards, df_scored, df_melted, 
         df_longevity, bin_pct, significant_findings, df_era, df_radar, df_dumbbell, 
-        df_google, df_mvp, df_civic, df_phil, df_impact_score, 
+        df_google, df_mvp, df_civic, df_phil, df_impact_score, df_objective
         player_colors
     ) = load_all_dashboard_data()
+    
+@st.cache_resource
+def load_ml_model():
+    return train_subjective_model_from_surveys()
+
+# Call it immediately so the model is ready
+ml_model, encoder = load_ml_model()
 
 # -------------------------------------------------------------------
 # MAIN APP LAYOUT (Interactive Controls on Main Page)
