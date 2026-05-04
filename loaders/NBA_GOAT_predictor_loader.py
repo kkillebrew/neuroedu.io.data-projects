@@ -36,9 +36,14 @@ def get_player_colors():
     so visual identification remains consistent across figures.
     """
     import plotly.express as px
-    palette = px.colors.qualitative.Bold
-    # Creates a dictionary mapping player name to a specific hex color
-    return {player: palette[i % len(palette)] for i, player in enumerate(PLAYERS)}
+    # Get EVERY unique player from the dataset, not just the top 10
+    all_unique_players = sorted(df_goat['Player'].unique().tolist())
+    
+    # Use a large qualitative palette (like Alphabet or Light24) to avoid repeats
+    palette = px.colors.qualitative.Alphabet 
+    
+    # Map every player to a color using a dictionary comprehension
+    return {player: palette[i % len(palette)] for i, player in enumerate(all_unique_players)}
 
 # -------------------------------------------------------------------
 # DATA INGESTION (The "Model")
@@ -523,7 +528,7 @@ def load_all_dashboard_data():
     df_impact_score = calculate_cultural_impact_score(df_goat, df_mvp, df_google, df_civic, df_phil)
     
     # 5. UI Helpers
-    colors = get_player_colors()
+    colors = get_player_colors(df_goat)
     
     # The order here MUST match the unpacking order in your app.py!
     return (
