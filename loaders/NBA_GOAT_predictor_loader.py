@@ -18,6 +18,14 @@ import streamlit as st
 # -------------------------------------------------------------------
 # CONFIGURATION & CONSTANTS
 # -------------------------------------------------------------------
+
+# --- (Must be outside functions to be importable) ---
+PLAYERS = [
+    "Michael Jordan", "LeBron James", "Magic Johnson", "Stephen Curry", 
+    "Shaquille O'Neal", "Kareem Abdul-Jabbar", "Kobe Bryant", 
+    "Bill Russell", "Wilt Chamberlain", "Nikola Jokic"
+]
+
 def get_player_colors():
     """
     Maintains our strict color consistency rule for the UI layer.
