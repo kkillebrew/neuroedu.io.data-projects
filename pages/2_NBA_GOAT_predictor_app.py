@@ -120,7 +120,7 @@ def load_all_dashboard_data():
     df_phil = get_philanthropy_data()
     df_impact_score = calculate_cultural_impact_score(df_goat, df_mvp, df_google, df_civic, df_phil)
 
-    colors = get_player_colors()
+    colors = get_player_colors(df_goat)
     return (
         df_goat, df_career, df_clutch, df_awards, df_scored, df_melted, 
         df_longevity, bin_pct, significant_findings, df_era, df_radar, 
