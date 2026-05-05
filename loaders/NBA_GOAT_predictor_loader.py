@@ -555,21 +555,46 @@ def generate_and_train_fan_classifier(df_goat, df_mvp, df_as_shares, df_jerseys)
     
     # 3 & 4. PREP METADATA & FIX LEBRON "ACCUMULATOR" BIAS
     # ---------------------------------------------------------
-    
+    # We create a dictionary of player traits to score against the fans
     # NEW LOGIC: True Peak Years
     # Guaranteed accurate eras by taking their first All-Star appearance + 4 years
     true_peak_years = (df_as_shares.groupby('Player')['Year'].min() + 4).to_dict()
 
     # Z-Score Popularity setup
+    # All star votes
     as_stats = df_as_shares.groupby('Player')['Vote_Share'].mean()
-    as_mean = as_stats.mean()
-    as_std = as_stats.std()
-    as_share_map = ((as_stats - as_mean) / as_std).to_dict()
+    as_share_map = ((as_stats - as_stats.mean()) / as_stats.std()).to_dict()
 
-    # We create a dictionary of player traits to score against the fans
-    # Base Popularity proxy: We use their total MVP shares/All star votes/Jersey sales + a flat baseline so everyone has a chance
-    mvp_shares = df_mvp.groupby('Player')['Share'].sum().to_dict() if not df_mvp.empty else {}
-    jersey_totals = df_jerseys.set_index('Player')['Top_10_Seasons'].to_dict() if not df_jerseys.empty else {}
+    # MVP Share
+    mvp_raw = df_mvp.groupby('Player')['Share'].sum() if not df_mvp.empty else pd.Series(dtype=float)
+    mvp_zero_z = (0 - mvp_raw.mean()) / mvp_raw.std() if not mvp_raw.empty else 0
+    mvp_z_map = ((mvp_raw - mvp_raw.mean()) / mvp_raw.std()).to_dict() if not mvp_raw.empty else {}
+
+    # Jersey Sales (Num seasons player had jersey in the top 10 overall sales)
+    jersey_raw = df_jerseys.set_index('Player')['Top_10_Seasons'] if not df_jerseys.empty else pd.Series(dtype=float)
+    jersey_zero_z = (0 - jersey_raw.mean()) / jersey_raw.std() if not jersey_raw.empty else 0
+    jersey_z_map = ((jersey_raw - jersey_raw.mean()) / jersey_raw.std()).to_dict() if not jersey_raw.empty else {}
+    
+    # Dynamically find the player's primary franchise using their All-Star game logs
+    try:
+        score_path = os.path.join(base_dir, 'documents', 'Score.csv')
+        df_scores = pd.read_csv(score_path)
+        # Find the team abbreviation they appeared on the roster for the most times
+        primary_teams = df_scores.groupby('Player_name')['Team'].agg(lambda x: x.mode()[0] if not x.mode().empty else 'UNK').to_dict()
+    except Exception:
+        primary_teams = {}
+
+    # Comprehensive Historical NBA Franchise to US Census Region Map
+    team_to_region = {
+        # Northeast
+        'BOS': 'Northeast', 'NYK': 'Northeast', 'BKN': 'Northeast', 'NJN': 'Northeast', 'PHI': 'Northeast', 'TOR': 'Northeast', 'SYR': 'Northeast', 'PHW': 'Northeast',
+        # Midwest
+        'CHI': 'Midwest', 'DET': 'Midwest', 'MIL': 'Midwest', 'IND': 'Midwest', 'CLE': 'Midwest', 'MIN': 'Midwest', 'CIN': 'Midwest', 'STL': 'Midwest', 'FWP': 'Midwest', 'MNL': 'Midwest',
+        # South
+        'MIA': 'South', 'ORL': 'South', 'ATL': 'South', 'CHA': 'South', 'CHH': 'South', 'NOP': 'South', 'NOK': 'South', 'MEM': 'South', 'WAS': 'South', 'WSB': 'South', 'BAL': 'South', 'DAL': 'South', 'HOU': 'South', 'SAS': 'South',
+        # West
+        'LAL': 'West', 'GSW': 'West', 'SFW': 'West', 'PHX': 'West', 'SAC': 'West', 'KCK': 'West', 'POR': 'West', 'UTA': 'West', 'NOJ': 'South', 'DEN': 'West', 'LAC': 'West', 'SDC': 'West', 'SEA': 'West', 'OKC': 'West'
+    }
     
     players_meta = {}
     region_list = ['Northeast', 'Midwest', 'South', 'West']
@@ -580,28 +605,33 @@ def generate_and_train_fan_classifier(df_goat, df_mvp, df_as_shares, df_jerseys)
         # NO MORE 1990 FALLBACK! Era math is now 100% accurate.
         peak_year = true_peak_years.get(player, 1995)
 
-        # For simulation, we assign a random region if not hardcoded.
-        # Fetch the stats from the dictionaries we just built
-        pop_z = as_share_map.get(player, 0)
-        m_share = mvp_shares.get(player, 0)
-        j_val = jersey_totals.get(player, 0)
+        # 1. Fetch the Z-Scores for pure baseline math
+        pop_z = as_share_map.get(player, -1.0) # Give missing players a negative Z-score
+        m_share_z = mvp_z_map.get(player, mvp_zero_z)
+        j_val_z = jersey_z_map.get(player, jersey_zero_z)
 
-        # CAP THE BASE STATS AT 20
-        # Combines Vote Share (Fame), MVP (Hardware), and Jerseys (Aura) but enforces a hard ceiling
-        base_pop = np.clip((pop_z * 1.0) + (m_share * 1.5) + (j_val * 1.0), 0, 20)
+        # 2. Fetch the RAW scores to save for the demographic logic later
+        m_share_raw = mvp_raw.get(player, 0) if not mvp_raw.empty else 0
+        j_val_raw = jersey_raw.get(player, 0) if not jersey_raw.empty else 0
 
-        # PERFECT REGION DISTRIBUTION
-        # Uses the length of their name to evenly assign the players to the 4 regions
-        # Simple proxy: map Western conference teams to 'West', etc. 
-        # (In a real scenario, you'd map their exact franchise to a region)
-        p_region = region_list[len(player) % 4]
+        # 3. CAP THE BASE STATS AT 20
+        # Since Z-Scores are mostly between -2 and +3, we shift the average player to "10" points
+        # Then we add the perfectly weighted Z-scores!
+        composite_z = (pop_z * 1.0) + (m_share_z * 1.5) + (j_val_z * 1.0)
+        base_pop = np.clip(10 + composite_z, 0, 20)
+
+        # 4. AUTHENTIC REGION DISTRIBUTION
+        # Retrieve their primary team (e.g., 'BOS' for Bird) and map it to a region. 
+        # Safely fall back to a random choice if the player is somehow missing from Score.csv
+        player_team = primary_teams.get(player, 'UNK')
+        p_region = team_to_region.get(player_team, np.random.choice(['Northeast', 'Midwest', 'South', 'West']))
 
         players_meta[player] = {
             'Peak_Year': peak_year, 
             'Region': p_region, 
             'Base_Pop': base_pop, 
-            'MVP_Share': m_share,
-            'Jersey_Top_10s': j_val
+            'MVP_Share': m_share_raw,    # Save raw for Hardcore fans
+            'Jersey_Top_10s': j_val_raw  # Save raw for Casual fans
         }
 
     # 5. GENERATE TARGETS VIA AFFINITY SCORING + NOISE (50/50 BALANCE + NOISE)
@@ -636,11 +666,11 @@ def generate_and_train_fan_classifier(df_goat, df_mvp, df_as_shares, df_jerseys)
             # Socio-Economic / Fandom Logic
             # 'Hardcore' fans might weight MVP shares (Hardware) more heavily
             if fandom_level[i] == 'Hardcore':
-                score += (mvp_val * 2.0) 
+                score += (m_share_raw * 2.0) 
             
             # 'Casual' fans might weight Jersey Sales (Fame) more heavily
             if fandom_level[i] == 'Casual':
-                score += (j_val * 2.0)
+                score += (j_val_raw * 2.0)
                 
             # Recency Bias (Modern Era Nudge)
             # Applies if the fan is young (<30) OR if they are a casual fan
