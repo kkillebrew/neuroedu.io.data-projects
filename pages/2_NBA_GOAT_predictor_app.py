@@ -139,6 +139,20 @@ with st.spinner("Crunching historical NBA game logs..."):
         player_colors
     ) = load_all_dashboard_data()
 
+
+# Define paths to your new data (Make sure you have these CSVs formatted and saved!)
+# df_allstar needs columns: ['Player', 'Votes']
+# df_jerseys needs columns: ['Player', 'Top_10_Seasons']
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+try:
+    df_allstar = pd.read_csv(os.path.join(base_dir, 'documents', 'all_star_votes.csv'))
+    df_jerseys = pd.read_csv(os.path.join(base_dir, 'documents', 'jersey_sales.csv'))
+except FileNotFoundError:
+    # Safe fallback if you haven't created the CSVs yet
+    df_allstar = pd.DataFrame()
+    df_jerseys = pd.DataFrame()
+
+
 # Now that we have the data, train the Machine Learning model
 @st.cache_resource
 def load_ml_model(_df_g, _df_m, _df_as, _df_j):
