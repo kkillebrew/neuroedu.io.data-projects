@@ -30,7 +30,7 @@ st.markdown(
 st.title("⌨️ Keystroke Dynamics: Real-Time Typo Prediction")
 
 # --- INITIALIZE DATA & MODELS ---
-df_cmu, df_keyrecs, df_aalto = load_all_datasets()
+df_cmu, df_keyrecs, df_aalto, df_clarkson = load_all_datasets()
 ml_model = load_ml_pipeline()
 
 # --- THE 4-TAB ANALYTICAL PROGRESSION ---
