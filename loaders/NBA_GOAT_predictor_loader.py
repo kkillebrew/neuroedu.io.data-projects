@@ -502,53 +502,168 @@ def calculate_cultural_impact_score(df_goat, df_mvp, df_trends, df_civic, df_phi
     return df_master
 
 # -------------------------------------------------------------------
-# PHASE 5A: MACHINE LEARNING PREDICTORS
-# -------------------------------------------------------------------
-# -------------------------------------------------------------------
 # PHASE 5A: THE SUBJECTIVE PREDICTOR (Survey-Anchored ML)
 # -------------------------------------------------------------------
-def train_subjective_model_from_surveys():
+def generate_and_train_fan_classifier(df_goat, df_mvp):
     """
-    Trains a Random Forest based on Morning Consult / YouGov demographic distributions
-    to predict user preference without using synthetic randomness.
+    Simulates 10,000 fans using demographic probabilities, calculates an 
+    Affinity Score for ALL 50 players based on Era/Region/Base Popularity, 
+    injects randomness, and trains a Random Forest on the results.
     """
-    data_points = []
-    
-    # Survey Demographics Anchor Data
-    for _ in range(300): # Gen Z Sample
-        data_points.append([22, 3, 5, "LeBron James"]) 
-    for _ in range(400): # Gen X / Boomer Sample
-        data_points.append([55, 2, 2, "Michael Jordan"]) 
-    for _ in range(150): # Traditionalists
-        data_points.append([75, 1, 0, "Bill Russell"]) 
-    for _ in range(100): # High-Volume Modern Fans
-        data_points.append([28, 3, 4, "Stephen Curry"])
-    for _ in range(50):  # Analytic-Heavy Modern
-        data_points.append([30, 3, 5, "Nikola Jokic"])
 
-    df_train = pd.DataFrame(data_points, columns=['age', 'fandom_idx', 'era_idx', 'target'])
-    
-    le = LabelEncoder()
-    X = df_train[['age', 'fandom_idx', 'era_idx']]
-    y = le.fit_transform(df_train['target'])
-    
-    rf_model = RandomForestClassifier(n_estimators=150, random_state=42)
-    rf_model.fit(X, y)
-    
-    return rf_model, le
+    if df_goat.empty:
+        return None, None, None
 
-def predict_goat_ml(model, encoder, user_input):
-    """Translates UI dropdowns into the ML model's numeric format."""
-    era_map = {"1960s": 0, "1980s": 1, "1990s": 2, "2000s": 3, "2010s": 4, "Modern": 5}
-    style_map = {"Eye Test": 1, "Balanced": 2, "Analytic-Heavy": 3}
+    n_samples = 10000
+    np.random.seed(42)
+    current_year = 2024
     
-    features = [[user_input['age'], style_map[user_input['fandom']], era_map[user_input['fav_era']]]]
+    # 1. GENERATE REGIONS FIRST (US Census Distribution)
+    # ---------------------------------------------------------
+    regions = np.random.choice(['Northeast', 'Midwest', 'South', 'West'], size=n_samples, p=[0.18, 0.21, 0.38, 0.23])
     
-    pred_idx = model.predict(features)
-    probs = model.predict_proba(features)
-    confidence = np.max(probs) * 100
+    # 2. REGION-SPECIFIC DEMOGRAPHICS (NBA Adjusted)
+    # Order: ['Black', 'White', 'Hispanic', 'Asian']
+    race_probs = {
+        'Northeast': [0.25, 0.50, 0.15, 0.10], 
+        'Midwest':   [0.20, 0.65, 0.10, 0.05],
+        'South':     [0.35, 0.45, 0.15, 0.05],
+        'West':      [0.15, 0.40, 0.30, 0.15]
+    }
+    # Order: ['Low', 'Middle', 'High']
+    ses_probs = {
+        'Northeast': [0.30, 0.45, 0.25], 
+        'Midwest':   [0.35, 0.55, 0.10],
+        'South':     [0.40, 0.45, 0.15],
+        'West':      [0.25, 0.50, 0.25]
+    }
+
+    # Generate arrays based on the conditional regional probabilities
+    races = [np.random.choice(['Black', 'White', 'Hispanic', 'Asian'], p=race_probs[r]) for r in regions]
+    ses = [np.random.choice(['Low', 'Middle', 'High'], p=ses_probs[r]) for r in regions]
+
+    ages = np.random.normal(loc=37, scale=15, size=n_samples).astype(int)
+    ages = np.clip(ages, 15, 85)
     
-    return encoder.inverse_transform(pred_idx)[0], confidence
+    genders = np.random.choice(['Male', 'Female'], size=n_samples, p=[0.68, 0.32])
+    fandom_level = np.random.choice(['Casual', 'Balanced', 'Hardcore'], size=n_samples, p=[0.50, 0.35, 0.15])
+    
+    df_fans = pd.DataFrame({
+        'Age': ages, 'Gender': genders, 'Race': races, 
+        'SES': ses, 'Region': regions, 'Fandom': fandom_level
+    })
+    
+    # 3. PREP PLAYER METADATA FOR SCORING (All 50 Players)
+    # ---------------------------------------------------------
+    # We create a dictionary of player traits to score against the fans
+    # Base Popularity proxy: We use their total MVP shares/All star votes/Jersey sales + a flat baseline so everyone has a chance
+    mvp_totals = df_mvp.groupby('Player')['Share'].sum().to_dict() if not df_mvp.empty else {}
+    
+    # Safely extract All-Star and Jersey totals (Fallback to empty dict if CSVs aren't loaded properly)
+    allstar_totals = df_allstar.groupby('Player')['Votes'].sum().to_dict() if (df_allstar is not None and not df_allstar.empty) else {}
+    jersey_totals = df_jerseys.set_index('Player')['Top_10_Seasons'].to_dict() if (df_jerseys is not None and not df_jerseys.empty) else {}
+
+    players_meta = {}
+    for _, row in df_goat.iterrows():
+
+        player = row['Player']
+        # Estimate peak year (middle of career)
+        start_yr = int(str(row['Draft_Year'])[:4]) if pd.notna(row['Draft_Year']) else 1990
+        peak_year = start_yr + 5 
+        
+        # Simple proxy: map Western conference teams to 'West', etc. 
+        # (In a real scenario, you'd map their exact franchise to a region)
+        # For simulation, we assign a random region if not hardcoded.
+        region_map = ['Northeast', 'Midwest', 'South', 'West']
+        p_region = np.random.choice(region_map) 
+        
+        # Calculate the new compounded Base Popularity
+        # MVP Share (Subjective Dominance), All-Star Millions (Pure Popularity), Jersey Top 10s (Cultural Aura)
+        mvp_val = mvp_totals.get(player, 0)
+        as_val = allstar_totals.get(player, 0) / 1000000.0  # Converted to millions for scaling
+        j_val = jersey_totals.get(player, 0)
+        
+        # We weight them into a single Base Pop score (you can adjust these multipliers)
+        base_pop = (mvp_val * 1.5) + (as_val * 0.5) + (j_val * 1.0) + 1.0
+        
+        players_meta[player] = {'Peak_Year': peak_year, 'Region': p_region, 'Base_Pop': base_pop}
+
+    # 3. GENERATE TARGETS VIA AFFINITY SCORING + NOISE (50/50 BALANCE + NOISE)
+    # ------------------------------------------------------------------------
+    targets = []
+    
+    for i in range(n_samples):
+        fan_age = ages[i]
+        fan_region = regions[i]
+        fan_birth_year = current_year - fan_age
+        fan_formative_year = fan_birth_year + 14 # Age 14 is peak sports impression
+        
+        best_player = None
+        highest_score = -999
+        
+        # Score all 50 players for this specific fan
+        for player, meta in players_meta.items():
+            score = meta['Base_Pop'] * 5  # Weight the All-Star/MVP base
+            
+            # Era alignment boost
+            year_diff = abs(meta['Peak_Year'] - fan_formative_year)
+            if year_diff <= 6:
+                score += 20 # Massive boost if they grew up watching them
+            elif year_diff <= 12:
+                score += 10
+                
+            # Regional alignment boost
+            if meta['Region'] == fan_region:
+                score += 15
+                
+            # Recency Bias (Casual fans leaning toward modern dominance)
+            if fandom_level[i] == 'Casual' and meta['Peak_Year'] > 2010:
+                score += 8
+
+            # THE NOISE FACTOR: Randomness allows anyone to win
+            # Standard deviation of 12 means massive upsets can happen
+            score += np.random.normal(loc=0, scale=12)
+            
+            if score > highest_score:
+                highest_score = score
+                best_player = player
+                
+        targets.append(best_player)
+
+    df_fans['GOAT_Pick'] = targets
+    
+    # 4. ENCODE AND TRAIN
+    # ---------------------------------------------------------
+    le_dict = {}
+    for col in ['Gender', 'Race', 'SES', 'Region', 'Fandom']:
+        le_dict[col] = LabelEncoder()
+        df_fans[col] = le_dict[col].fit_transform(df_fans[col])
+        
+    target_encoder = LabelEncoder()
+    y = target_encoder.fit_transform(df_fans['GOAT_Pick'])
+    X = df_fans[['Age', 'Gender', 'Race', 'SES', 'Region', 'Fandom']]
+    
+    clf = RandomForestClassifier(n_estimators=150, max_depth=12, random_state=42)
+    clf.fit(X, y)
+    
+    return clf, le_dict, target_encoder
+
+def predict_goat_ml(model, le_dict, target_encoder, user_input):
+    """Transforms the Streamlit UI inputs and runs the prediction."""
+    features = [
+        user_input['Age'],
+        le_dict['Gender'].transform([user_input['Gender']])[0],
+        le_dict['Race'].transform([user_input['Race']])[0],
+        le_dict['SES'].transform([user_input['SES']])[0],
+        le_dict['Region'].transform([user_input['Region']])[0],
+        le_dict['Fandom'].transform([user_input['Fandom']])[0]
+    ]
+    
+    X_pred = np.array([features])
+    pred_idx = model.predict(X_pred)
+    confidence = np.max(model.predict_proba(X_pred)) * 100
+    
+    return target_encoder.inverse_transform(pred_idx)[0], confidence
 
 # -------------------------------------------------------------------
 # PHASE 5B: THE OBJECTIVE PREDICTOR (Ensemble Math)

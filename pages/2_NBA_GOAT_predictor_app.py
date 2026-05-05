@@ -31,7 +31,7 @@ from loaders.NBA_GOAT_predictor_loader import (
     get_era_adjusted_stats, get_radar_scaled_stats, get_dumbbell_longevity_peak,
     calculate_hardware_score, get_google_trends, get_mvp_shares, 
     get_civic_awards, get_philanthropy_data, calculate_cultural_impact_score,
-    train_subjective_model_from_surveys, predict_goat_ml, calculate_objective_goat_ranking
+    generate_and_train_fan_classifier, predict_goat_ml, calculate_objective_goat_ranking
 )
 
 # --- GLOBAL PLOTLY CONFIG (Mobile Scroll Lock) ---
@@ -138,13 +138,14 @@ with st.spinner("Crunching historical NBA game logs..."):
         df_google, df_mvp, df_civic, df_phil, df_impact_score, df_objective,
         player_colors
     ) = load_all_dashboard_data()
-    
-@st.cache_resource
-def load_ml_model():
-    return train_subjective_model_from_surveys()
 
-# Call it immediately so the model is ready
-ml_model, encoder = load_ml_model()
+# Now that we have the data, train the Machine Learning model
+@st.cache_resource
+def load_ml_model(_df_g, _df_m, _df_as, _df_j):
+    return generate_and_train_fan_classifier(_df_g, _df_m, _df_as, _df_j)
+
+with st.spinner("Training the Affinity Machine Learning Engine (10,000 Simulated Fans)..."):
+    ml_model, le_dict, target_encoder = load_ml_model(df_goat, df_mvp, df_allstar, df_jerseys)
 
 # -------------------------------------------------------------------
 # MAIN APP LAYOUT (Interactive Controls on Main Page)
@@ -172,7 +173,7 @@ selected_players = st.multiselect(
 st.divider()
 
 # Create layout tabs for clean MVC separation in the UI
-tab1, tab2, tab3, tab4 = st.tabs(["📊 Career Baselines", "🏆 Hardware & Clutch", "📈 Consistency & Variance", "⏳ Longevity vs Peak"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 Career Baselines", "🏆 Hardware & Clutch", "📈 Consistency & Variance", "⏳ Longevity vs Peak", "🔮 5. The Predictors"])
 
 # --- TAB 1: Baseline Stats ---
 with tab1:
@@ -634,44 +635,48 @@ with tab4:
 
 # --- TAB 5: Model Predictions ---
 with tab5:
-    st.header("Phase 5: The GOAT Predictors")
-    st.markdown("Comparing human psychological bias against pure mathematical dominance.")
-    st.divider()
-    
-    col_sub, col_obj = st.columns(2, gap="large")
-    
-    # --- 5A: The Subjective Predictor (ML Model) ---
-    with col_sub:
-        st.subheader("5A. The Subjective Predictor")
-        st.markdown("*A Random Forest Classifier trained on demographic survey data.*")
+    st.subheader("5A. The Subjective Predictor")
+        st.markdown("*A Random Forest Classifier trained on 10,000 simulated demographic fan profiles.*")
         
         with st.form("subjective_goat_form"):
-            user_age = st.slider("Your Age", 15, 85, 30)
-            fandom_style = st.select_slider("Fandom Style", options=["Eye Test", "Balanced", "Analytic-Heavy"])
-            fav_era = st.selectbox("Favorite NBA Era", ["1960s", "1980s", "1990s", "2000s", "2010s", "Modern"])
+            st.markdown("**Enter Your Demographic Profile:**")
+            
+            # The 6 specific ML Features
+            user_age = st.slider("Age", 15, 85, 30)
+            user_gender = st.selectbox("Gender", ["Male", "Female"])
+            user_race = st.selectbox("Race/Ethnicity", ["Black", "White", "Hispanic", "Asian"])
+            user_ses = st.selectbox("Socio-Economic Status", ["Low", "Middle", "High"])
+            user_region = st.selectbox("US Region", ["Northeast", "Midwest", "South", "West"])
+            user_fandom = st.select_slider("Fandom Level", options=["Casual", "Balanced", "Hardcore"])
             
             submit_btn = st.form_submit_button("Predict My Personal GOAT")
             
             if submit_btn:
-                user_features = {'age': user_age, 'fav_era': fav_era, 'fandom': fandom_style}
-                
-                # Execute the ML Model
-                prediction, confidence = predict_goat_ml(ml_model, encoder, user_features)
-                
-                st.success(f"### The Algorithm Predicts: **{prediction}**")
-                st.progress(confidence / 100)
-                st.caption(f"**Confidence Score:** {confidence:.1f}%")
-                
-                # Show Feature Importance
-                importances = ml_model.feature_importances_
-                fig_imp = px.bar(
-                    x=['Age', 'Fandom Style', 'Era Preference'], 
-                    y=importances, 
-                    title="What drove your prediction?",
-                    labels={'x': 'Demographic Feature', 'y': 'Model Weight'}
-                )
-                fig_imp.update_layout(height=300)
-                st.plotly_chart(fig_imp, use_container_width=True, config=PLOTLY_CONFIG)
+                if ml_model is not None:
+                    user_features = {
+                        'Age': user_age, 'Gender': user_gender, 'Race': user_race,
+                        'SES': user_ses, 'Region': user_region, 'Fandom': user_fandom
+                    }
+                    
+                    # Execute the ML Model
+                    prediction, confidence = predict_goat_ml(ml_model, le_dict, target_encoder, user_features)
+                    
+                    st.success(f"### The Algorithm Predicts: **{prediction}**")
+                    st.progress(confidence / 100)
+                    st.caption(f"**Confidence Score:** {confidence:.1f}%")
+                    
+                    # Show Feature Importance
+                    importances = ml_model.feature_importances_
+                    fig_imp = px.bar(
+                        x=['Age', 'Gender', 'Race', 'SES', 'Region', 'Fandom'], 
+                        y=importances, 
+                        title="What drove your prediction?",
+                        labels={'x': 'Demographic Feature', 'y': 'Model Weight'}
+                    )
+                    fig_imp.update_layout(height=300)
+                    st.plotly_chart(fig_imp, use_container_width=True, config=PLOTLY_CONFIG)
+                else:
+                    st.error("Model failed to train. Check data inputs.")
 
     # --- 5B: The Objective Algorithm ---
     with col_obj:
