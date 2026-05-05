@@ -9,15 +9,26 @@ DESCRIPTION:
     and fetches cached data from the nba_goat_loader backend.
 =============================================================================
 """
-
 import sys
 import os
+# 1. CORE WEB FRAMEWORK
+# (MATLAB Analogy: The underlying engine for App Designer)
 import streamlit as st
-import plotly.express as px
-import plotly.graph_objects as go
+
+# 2. DATA MANIPULATION LIBRARIES
+# We must explicitly import pandas here, even if the loader uses it!
+# (MATLAB Analogy: Loading the core matrix/table functions)
+import pandas as pd  
 import numpy as np
 import scipy.stats as stats
 
+# 3. VISUALIZATION LIBRARIES
+# (MATLAB Analogy: The plot() and scatter() engines)
+import plotly.express as px
+import plotly.graph_objects as go
+
+# 4. CUSTOM LOCAL IMPORTS
+# Pulling in our heavy-lifting functions from the backend loader
 # -------------------------------------------------------------------
 # SYSTEM PATH ROUTING
 # -------------------------------------------------------------------
