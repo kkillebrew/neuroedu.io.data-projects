@@ -542,8 +542,9 @@ def generate_and_train_fan_classifier(df_goat, df_mvp, df_as_shares, df_jerseys)
     races = [np.random.choice(['Black', 'White', 'Hispanic', 'Asian'], p=race_probs[r]) for r in regions]
     ses = [np.random.choice(['Low', 'Middle', 'High'], p=ses_probs[r]) for r in regions]
 
-    ages = np.random.normal(loc=37, scale=15, size=n_samples).astype(int)
-    ages = np.clip(ages, 15, 85)
+    # Instead of a bell curve, we guarantee an equal number of fans of EVERY age from 15 to 85.
+    # This forces the ML model to learn the "Nostalgia" rules for classic players perfectly.
+    ages = np.random.randint(15, 86, size=n_samples)
     
     genders = np.random.choice(['Male', 'Female'], size=n_samples, p=[0.68, 0.32])
     fandom_level = np.random.choice(['Casual', 'Balanced', 'Hardcore'], size=n_samples, p=[0.50, 0.35, 0.15])
@@ -595,7 +596,7 @@ def generate_and_train_fan_classifier(df_goat, df_mvp, df_as_shares, df_jerseys)
         # West
         'LAL': 'West', 'GSW': 'West', 'SFW': 'West', 'PHX': 'West', 'SAC': 'West', 'KCK': 'West', 'POR': 'West', 'UTA': 'West', 'NOJ': 'South', 'DEN': 'West', 'LAC': 'West', 'SDC': 'West', 'SEA': 'West', 'OKC': 'West'
     }
-    
+
     players_meta = {}
     region_list = ['Northeast', 'Midwest', 'South', 'West']
     
@@ -663,14 +664,22 @@ def generate_and_train_fan_classifier(df_goat, df_mvp, df_as_shares, df_jerseys)
             if meta['Region'] == fan_region:
                 score += 25
 
-            # Socio-Economic / Fandom Logic
-            # 'Hardcore' fans might weight MVP shares (Hardware) more heavily
+            # Fandom Logic
             if fandom_level[i] == 'Hardcore':
-                score += (m_share_raw * 2.0) 
+                # Cap the MVP hardware boost at 15 points max
+                hw_boost = np.clip(meta['MVP_Share'] * 3.0, 0, 15)
+                score += hw_boost
             
-            # 'Casual' fans might weight Jersey Sales (Fame) more heavily
-            if fandom_level[i] == 'Casual':
-                score += (j_val_raw * 2.0)
+            elif fandom_level[i] == 'Casual':
+                # Cap the Jersey fame boost at 15 points max
+                fame_boost = np.clip(meta['Jersey_Top_10s'] * 1.5, 0, 15)
+                score += fame_boost
+                
+            # Expand "Modern Hype" to include anyone whose peak was 2005 or later
+            if meta['Peak_Year'] > 2005:
+                score += 10
+
+            # Socio-Economic
                 
             # Recency Bias (Modern Era Nudge)
             # Applies if the fan is young (<30) OR if they are a casual fan
