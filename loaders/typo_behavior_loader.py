@@ -239,6 +239,30 @@ def load_clarkson(filepath="documents/clarkson_cognitive.parquet"):
     
     return df_merged[master_cols]
 
+# 5: Call and cache our four functions
+# ---------------------------------------------------------------------
+@st.cache_data(show_spinner="Loading optimized Parquet chunks into RAM...")
+def load_all_datasets():
+    """
+    Loads the highly compressed Parquet files generated in Colab.
+    MATLAB Analogy: Pre-allocating and loading data once at the start of 
+    a script so loops don't constantly hit the hard drive.
+    """
+    # Define paths to the 'documents/' folder
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'documents'))
+    
+    # Check if files exist (prevents crash if Colab step hasn't been completed for all files yet)
+    if not os.path.exists(os.path.join(base_dir, 'keyrecs_micro.parquet')):
+        st.error("Data files missing from documents/ directory. Please run Phase 0 in Colab first.")
+        return None, None, None, None
+        
+    df_keyrecs = load_keyrecs(base_dir)
+    df_aalto = load_aalto(base_dir)
+    df_cmu = load_cmu(base_dir)
+    df_clarkson = load_clarkson(base_dir)
+    
+    return df_cmu, df_keyrecs, df_aalto, df_clarkson
+
 # ---------------------------------------------------------------------
 # PHASE 1B: TYPO DETECTION ALGORITHMS
 # ---------------------------------------------------------------------
