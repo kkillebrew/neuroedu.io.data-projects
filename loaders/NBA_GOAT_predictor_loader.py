@@ -504,7 +504,7 @@ def calculate_cultural_impact_score(df_goat, df_mvp, df_trends, df_civic, df_phi
 # -------------------------------------------------------------------
 # PHASE 5A: THE SUBJECTIVE PREDICTOR (Survey-Anchored ML)
 # -------------------------------------------------------------------
-def generate_and_train_fan_classifier(df_goat, df_mvp):
+def generate_and_train_fan_classifier(df_goat, df_mvp, df_allstar, df_jerseys):
     """
     Simulates 10,000 fans using demographic probabilities, calculates an 
     Affinity Score for ALL 50 players based on Era/Region/Base Popularity, 
