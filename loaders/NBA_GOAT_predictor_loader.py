@@ -712,7 +712,10 @@ def calculate_objective_goat_ranking(df_career, df_scored, df_era, df_impact_sco
         (obj_master['Cultural_Impact_Score_Norm'] * 0.10)
     ) * 100
 
-    return obj_master[['Player', 'Objective_GOAT_Score']].sort_values(by='Objective_GOAT_Score', ascending=False).round(1)
+    return obj_master[['Player', 'Objective_GOAT_Score', 
+        'Total_Hardware_Score_Norm', 'Total_Z_Score_Norm', 
+        'Career_Output_Norm', 'Cultural_Impact_Score_Norm'
+        ]].sort_values(by='Objective_GOAT_Score', ascending=False).round(2)
 
 @st.cache_data
 def load_all_dashboard_data():

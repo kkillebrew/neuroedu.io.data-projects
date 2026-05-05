@@ -719,24 +719,56 @@ with tab5:
         df_obj_f = df_objective[df_objective['Player'].isin(selected_players)]
         
         if not df_obj_f.empty:
-            fig_obj = px.bar(
-                df_obj_f.sort_values('Objective_GOAT_Score', ascending=True), 
-                x='Objective_GOAT_Score', 
-                y='Player', 
-                orientation='h', 
-                color='Player', 
-                color_discrete_map=player_colors, 
-                text='Objective_GOAT_Score'
-            )
-            fig_obj.update_traces(texttemplate='%{text}', textposition='outside')
+            # Sort ascending so the highest score is at the top of the chart
+            df_obj_f = df_obj_f.sort_values('Objective_GOAT_Score', ascending=True)
+            
+            fig_obj = go.Figure()
+
+            # Add a subtle background grid line for every player (The "base")
+            for idx, row in df_obj_f.iterrows():
+                fig_obj.add_shape(
+                    type="line", x0=0, y0=row['Player'], x1=105, y1=row['Player'],
+                    line=dict(color="rgba(200, 200, 200, 0.3)", width=1, dash="dot")
+                )
+
+            # Add the 4 Sub-Component Dots (Multiply by 100 to map them to the 0-100 scale)
+            fig_obj.add_trace(go.Scatter(
+                x=df_obj_f['Total_Hardware_Score_Norm'] * 100, y=df_obj_f['Player'],
+                mode='markers', name='Hardware (40%)',
+                marker=dict(color='#FFD700', size=9, opacity=0.7) # Gold
+            ))
+            fig_obj.add_trace(go.Scatter(
+                x=df_obj_f['Total_Z_Score_Norm'] * 100, y=df_obj_f['Player'],
+                mode='markers', name='Era Stats (30%)',
+                marker=dict(color='#1f77b4', size=9, opacity=0.7) # Blue
+            ))
+            fig_obj.add_trace(go.Scatter(
+                x=df_obj_f['Career_Output_Norm'] * 100, y=df_obj_f['Player'],
+                mode='markers', name='Career Totals (20%)',
+                marker=dict(color='#2ca02c', size=9, opacity=0.7) # Green
+            ))
+            fig_obj.add_trace(go.Scatter(
+                x=df_obj_f['Cultural_Impact_Score_Norm'] * 100, y=df_obj_f['Player'],
+                mode='markers', name='Impact (10%)',
+                marker=dict(color='#9467bd', size=9, opacity=0.7) # Purple
+            ))
+
+            # Add the Final Objective Score as a massive, prominent Diamond
+            fig_obj.add_trace(go.Scatter(
+                x=df_obj_f['Objective_GOAT_Score'], y=df_obj_f['Player'],
+                mode='markers', name='FINAL GOAT SCORE',
+                marker=dict(color='white', symbol='diamond', size=14, line=dict(color='black', width=2))
+            ))
+
             fig_obj.update_layout(
-                xaxis_title="Ultimate Ensemble Score (0-100)", 
+                xaxis_title="Score (0-100)", 
                 yaxis_title="", 
-                height=550, 
-                showlegend=False,
-                xaxis=dict(range=[0, 105])
+                height=650, 
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
+                xaxis=dict(range=[-5, 105]),
+                margin=dict(l=0, r=0, t=50, b=0)
             )
-            st.plotly_chart(fig_obj, use_container_width=True, config=PLOTLY_CONFIG)
+            st.plotly_chart(fig_obj, use_container_width=True)
             
             # Crown the winner mathematically
             objective_winner = df_obj_f.iloc[0]['Player']
