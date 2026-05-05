@@ -33,7 +33,7 @@ st.set_page_config(
 # RENDER THE SIDEBAR FOR DATA-PROJECTS #
 ########################################
 from data_projects_sidebar import render_sidebar
-    render_sidebar()
+render_sidebar()
 
 # --- MAIN HUB LAYOUT ---
 # 1. TOP ROW: Profile Image, Bio, and Resume Downloads
