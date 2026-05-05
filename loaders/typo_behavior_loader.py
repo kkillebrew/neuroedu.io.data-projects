@@ -101,6 +101,14 @@ def load_all_datasets():
     # TODO: Schema Unification logic will go here
     return df_cmu, df_keyrecs, df_aalto
 
+# 3: CMU data loader
+# ---------------------------------------------------------------------
+
+
+# 4: Clarkson data loader
+# ---------------------------------------------------------------------
+
+
 # ---------------------------------------------------------------------
 # PHASE 1B: TYPO DETECTION ALGORITHMS
 # ---------------------------------------------------------------------
