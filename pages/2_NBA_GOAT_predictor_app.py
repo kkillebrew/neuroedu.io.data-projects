@@ -650,47 +650,47 @@ with tab4:
 # --- TAB 5: Model Predictions ---
 with tab5:
     st.subheader("5A. The Subjective Predictor")
-        st.markdown("*A Random Forest Classifier trained on 10,000 simulated demographic fan profiles.*")
+    st.markdown("*A Random Forest Classifier trained on 10,000 simulated demographic fan profiles.*")
+    
+    with st.form("subjective_goat_form"):
+        st.markdown("**Enter Your Demographic Profile:**")
         
-        with st.form("subjective_goat_form"):
-            st.markdown("**Enter Your Demographic Profile:**")
-            
-            # The 6 specific ML Features
-            user_age = st.slider("Age", 15, 85, 30)
-            user_gender = st.selectbox("Gender", ["Male", "Female"])
-            user_race = st.selectbox("Race/Ethnicity", ["Black", "White", "Hispanic", "Asian"])
-            user_ses = st.selectbox("Socio-Economic Status", ["Low", "Middle", "High"])
-            user_region = st.selectbox("US Region", ["Northeast", "Midwest", "South", "West"])
-            user_fandom = st.select_slider("Fandom Level", options=["Casual", "Balanced", "Hardcore"])
-            
-            submit_btn = st.form_submit_button("Predict My Personal GOAT")
-            
-            if submit_btn:
-                if ml_model is not None:
-                    user_features = {
-                        'Age': user_age, 'Gender': user_gender, 'Race': user_race,
-                        'SES': user_ses, 'Region': user_region, 'Fandom': user_fandom
-                    }
-                    
-                    # Execute the ML Model
-                    prediction, confidence = predict_goat_ml(ml_model, le_dict, target_encoder, user_features)
-                    
-                    st.success(f"### The Algorithm Predicts: **{prediction}**")
-                    st.progress(confidence / 100)
-                    st.caption(f"**Confidence Score:** {confidence:.1f}%")
-                    
-                    # Show Feature Importance
-                    importances = ml_model.feature_importances_
-                    fig_imp = px.bar(
-                        x=['Age', 'Gender', 'Race', 'SES', 'Region', 'Fandom'], 
-                        y=importances, 
-                        title="What drove your prediction?",
-                        labels={'x': 'Demographic Feature', 'y': 'Model Weight'}
-                    )
-                    fig_imp.update_layout(height=300)
-                    st.plotly_chart(fig_imp, use_container_width=True, config=PLOTLY_CONFIG)
-                else:
-                    st.error("Model failed to train. Check data inputs.")
+        # The 6 specific ML Features
+        user_age = st.slider("Age", 15, 85, 30)
+        user_gender = st.selectbox("Gender", ["Male", "Female"])
+        user_race = st.selectbox("Race/Ethnicity", ["Black", "White", "Hispanic", "Asian"])
+        user_ses = st.selectbox("Socio-Economic Status", ["Low", "Middle", "High"])
+        user_region = st.selectbox("US Region", ["Northeast", "Midwest", "South", "West"])
+        user_fandom = st.select_slider("Fandom Level", options=["Casual", "Balanced", "Hardcore"])
+        
+        submit_btn = st.form_submit_button("Predict My Personal GOAT")
+        
+        if submit_btn:
+            if ml_model is not None:
+                user_features = {
+                    'Age': user_age, 'Gender': user_gender, 'Race': user_race,
+                    'SES': user_ses, 'Region': user_region, 'Fandom': user_fandom
+                }
+                
+                # Execute the ML Model
+                prediction, confidence = predict_goat_ml(ml_model, le_dict, target_encoder, user_features)
+                
+                st.success(f"### The Algorithm Predicts: **{prediction}**")
+                st.progress(confidence / 100)
+                st.caption(f"**Confidence Score:** {confidence:.1f}%")
+                
+                # Show Feature Importance
+                importances = ml_model.feature_importances_
+                fig_imp = px.bar(
+                    x=['Age', 'Gender', 'Race', 'SES', 'Region', 'Fandom'], 
+                    y=importances, 
+                    title="What drove your prediction?",
+                    labels={'x': 'Demographic Feature', 'y': 'Model Weight'}
+                )
+                fig_imp.update_layout(height=300)
+                st.plotly_chart(fig_imp, use_container_width=True, config=PLOTLY_CONFIG)
+            else:
+                st.error("Model failed to train. Check data inputs.")
 
     # --- 5B: The Objective Algorithm ---
     with col_obj:
