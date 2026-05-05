@@ -559,7 +559,7 @@ def generate_and_train_fan_classifier(df_goat, df_mvp, df_as_shares, df_jerseys)
     # We create a dictionary of player traits to score against the fans
     # NEW LOGIC: True Peak Years
     # Guaranteed accurate eras by taking their first All-Star appearance + 4 years
-    true_peak_years = (df_as_shares.groupby('Player')['Year'].min() + 4).to_dict()
+    true_peak_years = (df_goat.groupby('Player')['Year'].min() + 4).to_dict()
 
     # Z-Score Popularity setup
     # All star votes
@@ -638,7 +638,6 @@ def generate_and_train_fan_classifier(df_goat, df_mvp, df_as_shares, df_jerseys)
     # 5. GENERATE TARGETS VIA AFFINITY SCORING + NOISE (50/50 BALANCE + NOISE)
     # ------------------------------------------------------------------------
     targets = []
-    
     for i in range(n_samples):
         fan_age = ages[i]
         fan_region = regions[i]
@@ -655,10 +654,10 @@ def generate_and_train_fan_classifier(df_goat, df_mvp, df_as_shares, df_jerseys)
             # Era alignment boost
             # BIGGER NOSTALGIA BOOST 
             year_diff = abs(meta['Peak_Year'] - fan_formative_year)
-            if year_diff <= 5:
-                score += 35  # Massive boost for players in your "prime" as a fan
-            elif year_diff <= 10:
-                score += 20
+            if year_diff <= 7:
+                score += 50  # Massive boost for players in your "prime" as a fan
+            elif year_diff <= 15:
+                score += 25
                 
             # Regional alignment boost
             if meta['Region'] == fan_region:
