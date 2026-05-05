@@ -575,7 +575,11 @@ def generate_and_train_fan_classifier(df_goat, df_mvp, df_as_shares, df_jerseys)
     # Safely extract All-Star and Jersey totals (Fallback to empty dict if CSVs aren't loaded properly)
     # Calculate the 'Mean Vote Share' for every player
     # This represents what % of the league's total votes they captured on average
-    as_share_map = df_as_shares.groupby('Player')['Vote_Share'].mean().to_dict()
+    # Standardize Popularity (Z-Score approach)
+    as_stats = df_as_shares.groupby('Player')['Vote_Share'].mean()
+    as_mean = as_stats.mean()
+    as_std = as_stats.std()
+    as_share_map = ((as_stats - as_mean) / as_std).to_dict()
     jersey_totals = df_jerseys.set_index('Player')['Top_10_Seasons'].to_dict() if (df_jerseys is not None and not df_jerseys.empty) else {}
 
     players_meta = {}
@@ -604,7 +608,9 @@ def generate_and_train_fan_classifier(df_goat, df_mvp, df_as_shares, df_jerseys)
         
         # Calculate Base Pop with the new normalized Vote Share
         # We give the Vote Share index a high weight because it's our best 'fame' metric
-        base_pop = (mvp_val * 3.0) + (as_index * 2.0) + (j_val * 1.5)
+        # Scale it so the "Best" players are around 20-30 points base
+        # This prevents anyone from starting with a 100-point lead
+        base_pop = np.clip(pop_z * 8.0, 0, 40)
         
         players_meta[player] = {'Peak_Year': peak_year, 'Region': p_region, 'Base_Pop': base_pop}
 
@@ -626,23 +632,58 @@ def generate_and_train_fan_classifier(df_goat, df_mvp, df_as_shares, df_jerseys)
             score = meta['Base_Pop'] * 5  # Weight the All-Star/MVP base
             
             # Era alignment boost
+            # BIGGER NOSTALGIA BOOST 
             year_diff = abs(meta['Peak_Year'] - fan_formative_year)
-            if year_diff <= 6:
-                score += 20 # Massive boost if they grew up watching them
-            elif year_diff <= 12:
-                score += 10
+            if year_diff <= 5:
+                score += 45  # Massive boost for players in your "prime" as a fan
+            elif year_diff <= 10:
+                score += 20
                 
             # Regional alignment boost
             if meta['Region'] == fan_region:
+                score += 25
+
+            # Socio-Economic / Fandom Logic
+            # 'Hardcore' fans might weight MVP shares (Hardware) more heavily
+            if fandom_level[i] == 'Hardcore':
+                score += (mvp_val * 2.0) 
+            
+            # 'Casual' fans might weight Jersey Sales (Fame) more heavily
+            if fandom_level[i] == 'Casual':
+                score += (j_val * 2.0)
+
+            # --- RACE/SES CONTEXTUAL BOOSTS ---
+            if user_race == 'White' and 'Bird' in player:
+                score += 15
+            if user_race == 'Black' and 'Russell' in player:
                 score += 15
                 
-            # Recency Bias (Casual fans leaning toward modern dominance)
-            if fandom_level[i] == 'Casual' and meta['Peak_Year'] > 2010:
-                score += 8
+            # Recency Bias (Modern Era Nudge)
+            # Applies if the fan is young (<30) OR if they are a casual fan
+            if meta['Peak_Year'] > 2010:
+                if ages[i] < 30:
+                    score += np.random.uniform(2, 7) # Younger fans naturally lean modern
+                if fandom_level[i] == 'Casual':
+                    score += 8 # Casual fans are more influenced by current highlights
+
+            # Legacy Bias (Classic Era Nudge)
+            # Applies to older fans who value the "Golden Era" fundamentals
+            elif ages[i] > 55 and meta['Peak_Year'] < 1995:
+                score += np.random.uniform(3, 8)
 
             # THE NOISE FACTOR: Randomness allows anyone to win
             # Standard deviation of 12 means massive upsets can happen
-            score += np.random.normal(loc=0, scale=12)
+            # Hardcore fans have a 'logic scale' of 5 (very consistent)
+            # Casual fans have a 'logic scale' of 20 (highly unpredictable)
+            if fandom_level[i] == 'Hardcore':
+                noise_scale = 5
+            elif fandom_level[i] == 'Balanced':
+                noise_scale = 10
+            else: # Casual
+                noise_scale = 15
+            
+            # Apply the specific noise level for this fan profile
+            score += np.random.normal(loc=0, scale=noise_scale)
             
             if score > highest_score:
                 highest_score = score
