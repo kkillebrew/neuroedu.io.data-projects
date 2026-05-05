@@ -607,6 +607,9 @@ def generate_and_train_fan_classifier(df_goat, df_mvp, df_as_shares, df_jerseys)
         as_index = as_share_map.get(player, 0) * 100
         
         # Calculate Base Pop with the new normalized Vote Share
+        # We look up the player's normalized popularity from our share map
+        pop_z = as_share_map.get(player, 0)
+        
         # We give the Vote Share index a high weight because it's our best 'fame' metric
         # Scale it so the "Best" players are around 20-30 points base
         # This prevents anyone from starting with a 100-point lead
