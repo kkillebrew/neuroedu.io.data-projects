@@ -733,32 +733,36 @@ with tab5:
                 )
 
             # Add the 4 Sub-Component Dots (Multiply by 100 to map them to the 0-100 scale)
+            # Hardware (40%) - Max size: 16 (2x baseline)
             fig_obj.add_trace(go.Scatter(
                 x=df_obj_f['Total_Hardware_Score_Norm'] * 100, y=df_obj_f['Player'],
                 mode='markers', name='Hardware (40%)',
-                marker=dict(color='#FFD700', size=9, opacity=0.7) # Gold
+                marker=dict(color='#FFD700', size=16, opacity=0.7) 
             ))
+            # Era Stats (30%) - Size: 13
             fig_obj.add_trace(go.Scatter(
                 x=df_obj_f['Total_Z_Score_Norm'] * 100, y=df_obj_f['Player'],
                 mode='markers', name='Era Stats (30%)',
-                marker=dict(color='#1f77b4', size=9, opacity=0.7) # Blue
+                marker=dict(color='#1f77b4', size=13, opacity=0.7) 
             ))
+            # Career Totals (20%) - Size: 11
             fig_obj.add_trace(go.Scatter(
                 x=df_obj_f['Career_Output_Norm'] * 100, y=df_obj_f['Player'],
                 mode='markers', name='Career Totals (20%)',
-                marker=dict(color='#2ca02c', size=9, opacity=0.7) # Green
+                marker=dict(color='#2ca02c', size=11, opacity=0.7) 
             ))
+            # Impact (10%) - Baseline size: 8
             fig_obj.add_trace(go.Scatter(
                 x=df_obj_f['Cultural_Impact_Score_Norm'] * 100, y=df_obj_f['Player'],
                 mode='markers', name='Impact (10%)',
-                marker=dict(color='#9467bd', size=9, opacity=0.7) # Purple
+                marker=dict(color='#9467bd', size=8, opacity=0.7) 
             ))
 
             # Add the Final Objective Score as a massive, prominent Diamond
             fig_obj.add_trace(go.Scatter(
                 x=df_obj_f['Objective_GOAT_Score'], y=df_obj_f['Player'],
                 mode='markers', name='FINAL GOAT SCORE',
-                marker=dict(color='white', symbol='diamond', size=14, line=dict(color='black', width=2))
+                marker=dict(color='white', symbol='diamond', size=20, line=dict(color='black', width=2))
             ))
 
             fig_obj.update_layout(
@@ -772,5 +776,5 @@ with tab5:
             st.plotly_chart(fig_obj, use_container_width=True)
             
             # Crown the winner mathematically
-            objective_winner = df_obj_f.iloc[0]['Player']
+            objective_winner = df_obj_f.iloc[-1]['Player']
             st.info(f"🏆 According to the weighted metrics, **{objective_winner}** is the objective Greatest of All Time among your selected players.")
