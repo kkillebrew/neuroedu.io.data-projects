@@ -12,6 +12,63 @@ import os
 # ---------------------------------------------------------------------
 # PHASE 1: DATA INGESTION & SCHEMA UNIFICATION
 # ---------------------------------------------------------------------
+
+# 1: aalto data loader
+# ---------------------------------------------------------------------
+@st.cache_data(show_spinner=False)
+def load_aalto(filepath="documents/aalto_macro.parquet"):
+    """ Loads and maps Aalto dataset to the Master Schema. """
+    if not os.path.exists(filepath):
+        return pd.DataFrame()
+
+    df = pd.read_parquet(filepath)
+
+    # 1. Map to Master Schema Columns
+    df = df.rename(columns={
+        'PARTICIPANT_ID': 'User_ID'
+        # Timestamp, Key_Code, Key_Char, Device_Type are already correct from Phase 0
+    })
+
+    # Aalto tracks Press time as 'Timestamp'
+    df['Timestamp_Press'] = df['Timestamp']
+
+    # 2. Fill Missing/Static Categorical Data
+    df['Dataset'] = 'Aalto'
+    df['Task_Type'] = 'transcription' # Aalto was mostly copying sentences
+    df['User_ID'] = df['User_ID'].fillna('Unknown_User').astype(str)
+    df['Session_ID'] = df['Dataset'] + '_' + df['User_ID']
+    df['Device_Type'] = df['Device_Type'].fillna('unknown')
+
+    # 3. Dynamic Calculations (Aalto lacks Release timestamps)
+    # We must defensively impute Dwell Time. ~100ms is standard human baseline.
+    df['Dwell_Time'] = 100.0 
+    df['Timestamp_Release'] = df['Timestamp_Press'] + df['Dwell_Time']
+    
+    # Sort & Calculate Flight Time
+    df = df.sort_values(by=['User_ID', 'Timestamp_Press'])
+    df['Flight_Time'] = df.groupby('User_ID')['Timestamp_Press'].diff().fillna(0)
+
+    # 4. Normalize Timestamps
+    session_starts = df.groupby('User_ID')['Timestamp_Press'].transform('min')
+    df['Delta_Milliseconds'] = df['Timestamp_Press'] - session_starts
+
+    # 5. Initialize Phase 2 Placeholder Columns
+    df['Intended_Char'] = np.nan
+    df['Typed_Char'] = np.nan
+    df['Is_Typo'] = False
+
+    # 6. Final Master Schema Alignment
+    master_cols = [
+        'Dataset', 'Session_ID', 'User_ID', 'Device_Type', 'Task_Type', 
+        'Key_Code', 'Key_Char', 'Timestamp_Press', 'Timestamp_Release', 
+        'Delta_Milliseconds', 'Dwell_Time', 'Flight_Time', 
+        'Intended_Char', 'Typed_Char', 'Is_Typo'
+    ]
+    
+    return df[master_cols]
+
+# 2: keyrecs data loader
+# ---------------------------------------------------------------------
 @st.cache_data(show_spinner="Loading optimized Parquet chunks into RAM...")
 def load_all_datasets():
     """
