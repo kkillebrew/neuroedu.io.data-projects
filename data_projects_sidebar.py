@@ -116,14 +116,14 @@ def render_sidebar():
         st.divider()
 
         # --- 3. DIRECTORY LINKS (Isolated Scope) ---
-        # Note: We must ensure these file names exactly match what you have saved in your /pages/ directory.
-        try:
-            st.page_link("data_projects_app.py", label="Data Projects Hub (Home)", icon=None)
-            st.page_link("pages/1_oil_predictor_app.py", label="Macro Oil Predictor", icon=None)
-            st.page_link("pages/2_nba_goat_predictor_app.py", label="NBA GOAT Predictor", icon=None)
-            st.page_link("pages/3_tech_education_app.py", label="Tech in Education", icon=None)
-        except Exception:
-            pass
+        # Replacing st.page_link with explicit HTML links to ensure they always render
+        st.markdown("""
+            <a href="data_projects_app.py" target="_self" class="sidebar-link">Data Projects Hub (Home)</a>
+            <a href="pages/1_oil_predictor_app.py" target="_self" class="sidebar-link">What affects gas prices?</a>
+            <a href="pages/2_nba_goat_predictor_app.py" target="_self" class="sidebar-link">Who is the real NBA GOAT?</a>
+           ## <a href="pages/3_typo_behavior_app.py" target="_self" class="sidebar-link">Why do we make typos?</a>#
+        """, unsafe_allow_html=True)
+        
 
         st.divider()
 
