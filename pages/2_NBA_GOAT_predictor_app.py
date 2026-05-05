@@ -156,11 +156,12 @@ with st.spinner("Crunching historical NBA game logs..."):
 # df_jerseys needs columns: ['Player', 'Top_10_Seasons']
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 try:
-    df_allstar = pd.read_csv(os.path.join(base_dir, 'documents', 'all_star_votes.csv'))
+    df_as_shares = pd.read_csv(os.path.join(base_dir, 'documents', 'all_star_vote_shares.csv'))
     df_jerseys = pd.read_csv(os.path.join(base_dir, 'documents', 'jersey_sales.csv'))
 except FileNotFoundError:
     # Safe fallback if you haven't created the CSVs yet
-    df_allstar = pd.DataFrame()
+    st.error("Missing all_star_vote_shares.csv in the documents folder!")
+    df_as_shares = pd.DataFrame()
     df_jerseys = pd.DataFrame()
 
 
@@ -170,7 +171,7 @@ def load_ml_model(_df_g, _df_m, _df_as, _df_j):
     return generate_and_train_fan_classifier(_df_g, _df_m, _df_as, _df_j)
 
 with st.spinner("Training the Affinity Machine Learning Engine (10,000 Simulated Fans)..."):
-    ml_model, le_dict, target_encoder = load_ml_model(df_goat, df_mvp, df_allstar, df_jerseys)
+    ml_model, le_dict, target_encoder = load_ml_model(df_goat, df_mvp, df_as_shares, df_jerseys)
 
 # -------------------------------------------------------------------
 # MAIN APP LAYOUT (Interactive Controls on Main Page)

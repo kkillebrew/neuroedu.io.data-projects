@@ -573,7 +573,9 @@ def generate_and_train_fan_classifier(df_goat, df_mvp, df_allstar, df_jerseys):
     mvp_totals = df_mvp.groupby('Player')['Share'].sum().to_dict() if not df_mvp.empty else {}
     
     # Safely extract All-Star and Jersey totals (Fallback to empty dict if CSVs aren't loaded properly)
-    allstar_totals = df_allstar.groupby('Player')['Votes'].sum().to_dict() if (df_allstar is not None and not df_allstar.empty) else {}
+    # Calculate the 'Mean Vote Share' for every player
+    # This represents what % of the league's total votes they captured on average
+    as_share_map = df_as_shares.groupby('Player')['Vote_Share'].mean().to_dict()
     jersey_totals = df_jerseys.set_index('Player')['Top_10_Seasons'].to_dict() if (df_jerseys is not None and not df_jerseys.empty) else {}
 
     players_meta = {}
@@ -594,11 +596,15 @@ def generate_and_train_fan_classifier(df_goat, df_mvp, df_allstar, df_jerseys):
         # Calculate the new compounded Base Popularity
         # MVP Share (Subjective Dominance), All-Star Millions (Pure Popularity), Jersey Top 10s (Cultural Aura)
         mvp_val = mvp_totals.get(player, 0)
-        as_val = allstar_totals.get(player, 0) / 1000000.0  # Converted to millions for scaling
         j_val = jersey_totals.get(player, 0)
+
+        # --- THE ERA-ADJUSTED SHARE ---
+        # We multiply by 100 to turn it into a 'Popularity Score' (e.g., 0.15 share becomes 15 points)
+        as_index = as_share_map.get(player, 0) * 100
         
-        # We weight them into a single Base Pop score (you can adjust these multipliers)
-        base_pop = (mvp_val * 1.5) + (as_val * 0.5) + (j_val * 1.0) + 1.0
+        # Calculate Base Pop with the new normalized Vote Share
+        # We give the Vote Share index a high weight because it's our best 'fame' metric
+        base_pop = (mvp_val * 3.0) + (as_index * 2.0) + (j_val * 1.5)
         
         players_meta[player] = {'Peak_Year': peak_year, 'Region': p_region, 'Base_Pop': base_pop}
 
