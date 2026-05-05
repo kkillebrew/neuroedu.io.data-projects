@@ -609,7 +609,7 @@ def generate_and_train_fan_classifier(df_goat, df_mvp, df_as_shares, df_jerseys)
         # Calculate Base Pop with the new normalized Vote Share
         # We look up the player's normalized popularity from our share map
         pop_z = as_share_map.get(player, 0)
-        
+
         # We give the Vote Share index a high weight because it's our best 'fame' metric
         # Scale it so the "Best" players are around 20-30 points base
         # This prevents anyone from starting with a 100-point lead
@@ -638,7 +638,7 @@ def generate_and_train_fan_classifier(df_goat, df_mvp, df_as_shares, df_jerseys)
             # BIGGER NOSTALGIA BOOST 
             year_diff = abs(meta['Peak_Year'] - fan_formative_year)
             if year_diff <= 5:
-                score += 45  # Massive boost for players in your "prime" as a fan
+                score += 35  # Massive boost for players in your "prime" as a fan
             elif year_diff <= 10:
                 score += 20
                 
@@ -654,12 +654,6 @@ def generate_and_train_fan_classifier(df_goat, df_mvp, df_as_shares, df_jerseys)
             # 'Casual' fans might weight Jersey Sales (Fame) more heavily
             if fandom_level[i] == 'Casual':
                 score += (j_val * 2.0)
-
-            # --- RACE/SES CONTEXTUAL BOOSTS ---
-            if user_race == 'White' and 'Bird' in player:
-                score += 15
-            if user_race == 'Black' and 'Russell' in player:
-                score += 15
                 
             # Recency Bias (Modern Era Nudge)
             # Applies if the fan is young (<30) OR if they are a casual fan
