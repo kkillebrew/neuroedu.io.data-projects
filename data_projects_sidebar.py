@@ -116,10 +116,9 @@ def render_sidebar():
         st.divider()
 
         # --- 3. DIRECTORY LINKS (Isolated Scope) ---
-        # NO links back to the main Career Hub here. 
-        st.page_link("data_projects_app.py", label="Data Projects Hub (Home)", icon=None)
-        
+        # Note: We must ensure these file names exactly match what you have saved in your /pages/ directory.
         try:
+            st.page_link("data_projects_app.py", label="Data Projects Hub (Home)", icon=None)
             st.page_link("pages/1_oil_predictor_app.py", label="Macro Oil Predictor", icon=None)
             st.page_link("pages/2_nba_goat_predictor_app.py", label="NBA GOAT Predictor", icon=None)
             st.page_link("pages/3_tech_education_app.py", label="Tech in Education", icon=None)
@@ -129,16 +128,16 @@ def render_sidebar():
         st.divider()
 
         # --- 4. PRESENCE / SOCIAL BAR (Data-Science Specific) ---
-        # Removed Twitter, Wyzant, LinkedIn. Kept GitHub, ORCID, and Kaggle.
+        # Kept GitHub, ORCID, and Kaggle.
         presence_html = """
         <div class="presence-bar">
-            <a href="https://github.com/" target="_blank" class="presence-icon" title="GitHub">
+            <a href="https://github.com/yourprofile" target="_blank" class="presence-icon" title="GitHub">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.332-5.467-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
             </a>
-            <a href="https://kaggle.com/" target="_blank" class="presence-icon" title="Kaggle">
+            <a href="https://kaggle.com/yourprofile" target="_blank" class="presence-icon" title="Kaggle">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M18.825 23.859c-.022.092-.117.141-.281.141h-3.139c-.187 0-.351-.082-.492-.248l-5.178-6.589-1.448 1.374v5.111c0 .235-.117.352-.351.352H5.505c-.236 0-.354-.117-.354-.352V.353c0-.233.118-.353.354-.353h2.431c.234 0 .351.12.351.353v14.343l6.203-6.272c.165-.165.34-.246.526-.246h3.256c.141 0 .235.035.281.106.046.07.035.152-.035.246L11.88 15.006l6.91 8.502c.07.094.081.188.035.351z"/></svg>
             </a>
-            <a href="https://orcid.org/" target="_blank" class="presence-icon" title="ORCID">
+            <a href="https://orcid.org/your-orcid" target="_blank" class="presence-icon" title="ORCID">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.372 0 0 5.372 0 12s5.372 12 12 12 12-5.372 12-12S18.628 0 12 0zM7.369 4.378c.525 0 .947.431.947.947s-.422.949-.947.949a.95.95 0 0 1-.949-.949c0-.516.424-.947.949-.947zm-.722 3.038h1.444v10.041H6.647V7.416zm3.562 0h3.9c3.712 0 5.344 2.653 5.344 5.025 0 2.578-2.016 5.025-5.325 5.025h-3.919V7.416zm1.444 1.303v7.444h2.297c3.272 0 4.022-2.484 4.022-3.722 0-2.016-1.284-3.722-4.097-3.722h-2.222z"/></svg>
             </a>
         </div>
