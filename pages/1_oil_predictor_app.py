@@ -26,26 +26,6 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from loaders.oil_predictor_loader import fetch_real_oil_data, fetch_ripple_data
 
 # ------------------------------------------------------------------------------
-# PAGE CONFIG & ECOSYSTEM NAVIGATION
-# ------------------------------------------------------------------------------
-st.set_page_config(page_title="Macro Oil Explorer | Neuro-Edu", layout="wide")
-
-# Hub & Spoke Navigation Link
-st.markdown("""
-<a href="https://data-projects.neuro-edu.io" style="text-decoration: none; color: #1f77b4; font-weight: bold;">
-    &larr; Return to Data-Projects Hub
-</a>
-<br><br>
-""", unsafe_allow_html=True)
-
-st.title("🛢️ 100 Years of Macro Oil Trends")
-st.markdown("""
-Welcome to the interactive Macro Oil Explorer. This dashboard uses live API data from 
-the **Federal Reserve Economic Data (FRED)** to model relationships between 
-geopolitics, extraction costs, and crude prices.
-""")
-
-# ------------------------------------------------------------------------------
 # DATA INGESTION & CACHING
 # ------------------------------------------------------------------------------
 @st.cache_data(ttl=3600) 
@@ -76,62 +56,30 @@ if df.empty:
     st.warning(f"**Details:** {api_error}")
     st.stop()
 
+
 # ------------------------------------------------------------------------------
-# SIDEBAR CONTROLS
+# PAGE CONFIG & ECOSYSTEM NAVIGATION
 # ------------------------------------------------------------------------------
-# --- CUSTOM CSS FOR SIDEBAR BUTTON ---
-st.markdown("""
-    <style>
-    .return-gate {
-        background-color: #0f172a; color: white !important; padding: 12px;
-        border-radius: 8px; text-align: center; font-weight: bold; 
-        text-decoration: none; display: block; font-size: 1rem;
-        transition: background-color 0.3s ease; border: 1px solid #334155;
-    }
-    .return-gate:hover { background-color: #1e293b; }
-    </style>
-""", unsafe_allow_html=True)
+st.set_page_config(page_title="Macro Oil Explorer | Neuro-Edu", layout="wide")
 
-# --- UNIFIED SIDEBAR ---
-with st.sidebar:
-    # 1. Hide default Streamlit navigation
-    st.markdown("""
-        <style>
-            [data-testid="stSidebarNav"] {display: none !important;}
-        </style>
-    """, unsafe_allow_html=True)
-
-    # 2. Return to Career Hub
-    st.markdown("""
-        <div style="padding-bottom: 1rem;">
-            <a href="https://career-hub.neuro-edu.io" target="_blank" class="return-gate">
-                &larr; Return to Career Hub
-            </a>
-        </div>
-    """, unsafe_allow_html=True)
-
-    # 3. Data Projects Navigation
-    st.divider()
-    st.subheader("🧭 Data Projects")
-    st.page_link("data_projects_app.py", label="Data Hub Home", icon="🏠")
-    st.page_link("pages/1_oil_predictor_app.py", label="Macro Oil Predictor", icon="🛢️")
-    st.page_link("pages/2_NBA_GOAT_predictor_app.py", label="NBA GOAT Predictor", icon="🏀")
-    st.markdown("💻 Tech in Education *(Coming Soon)*")
-    
-    # 4. Professional Presence
-    st.divider()
-    st.subheader("🌐 Presence")
-    st.markdown("🔬 [ORCID Profile](https://orcid.org/0000-0002-9662-9844)")
-    st.markdown("📈 [Google Scholar](https://scholar.google.com/citations?user=y-2G-voAAAAJ&hl=en)")
-    st.markdown("💼 [LinkedIn Profile](https://www.linkedin.com/in/kylewkillebrew/)")
-    st.markdown("💻 [GitHub Profile](https://github.com/kkillebrew)")
-
-    st.divider()
-    st.caption("Data Science Portfolio | 2026")
+########################################
+# RENDER THE SIDEBAR FOR DATA-PROJECTS #
+########################################
+# Point Python to the root directory so it can find the sidebar file
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from data_projects_sidebar import render_sidebar
+render_sidebar()
 
 # ------------------------------------------------------------------------------
 # DASHBOARD CONTROLS: MAIN PAGE
 # ------------------------------------------------------------------------------
+st.title("🛢️ 100 Years of Macro Oil Trends")
+st.markdown("""
+Welcome to the interactive Macro Oil Explorer. This dashboard uses live API data from 
+the **Federal Reserve Economic Data (FRED)** to model relationships between 
+geopolitics, extraction costs, and crude prices.
+""")
+
 st.markdown("### 🎛️ Analysis Controls")
 
 # Set up columns so the slider and checkbox sit nicely next to each other

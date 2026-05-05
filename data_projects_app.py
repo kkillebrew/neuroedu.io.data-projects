@@ -29,71 +29,11 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- AESTHETIC STYLING (High-Contrast Professional) ---
-st.markdown("""
-    <style>
-    .stApp { background-color: #fdfdfd; }
-    html, body, [class*="st-"] { font-size: 1.15rem; color: #1e293b; font-family: 'Inter', sans-serif; }
-    h1, h2, h3 { color: #0f172a !important; font-weight: 800 !important; }
-
-    /* Sidebar: Deep Navy contrast */
-    section[data-testid="stSidebar"] { background-color: #0f172a; color: #f8fafc; border-right: 1px solid #334155; }
-    section[data-testid="stSidebar"] .stText, section[data-testid="stSidebar"] p, 
-    section[data-testid="stSidebar"] h1, section[data-testid="stSidebar"] h2 { color: #f8fafc !important; }
-
-    /* Reference/Project Cards - Modern minimalist */
-    .ref-card {
-        background-color: #ffffff; padding: 24px; border-radius: 12px;
-        border-left: 5px solid #2563eb; margin-bottom: 20px; height: 100%;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid #f1f5f9;
-    }
-    .ref-name { font-weight: 800; color: #1e3a8a; font-size: 1.2rem; margin-bottom: 8px; }
-    .ref-desc { font-size: 0.95rem; color: #475569; display: block; margin-bottom: 15px; }
-
-    /* Main Hub Return Button */
-    .return-gate {
-        background-color: #0f172a; color: white !important; padding: 12px;
-        border-radius: 8px; text-align: center; font-weight: bold; 
-        text-decoration: none; display: block; font-size: 1rem;
-        transition: background-color 0.3s ease; border: 1px solid #334155;
-    }
-    .return-gate:hover { background-color: #1e293b; }
-    </style>
-    """, unsafe_allow_html=True)
-
-# --- SIDEBAR ---
-with st.sidebar:
-
-    # --- 1. HIDE DEFAULT NAVIGATION ---
-    st.markdown("""
-        <style>
-            [data-testid="stSidebarNav"] {display: none !important;}
-        </style>
-    """, unsafe_allow_html=True)
-
-    # --- 2. RETURN TO MAIN HUB ---
-    st.markdown("""
-        <div style="padding-bottom: 1rem;">
-            <a href="https://data-projects.neuro-edu.io" style="text-decoration: none; color: #1f77b4; font-weight: bold;">
-                &larr; Return to Data-Projects Hub
-            </a>
-        </div>
-    """, unsafe_allow_html=True)
-
-    # --- 3. CUSTOM DIRECTORY MENU ---
-    st.divider()
-    st.subheader("🧭 Data Projects")
-    
-    # Internal Pages (Make sure filenames match your pages/ directory)
-    st.page_link("data_projects_app.py", label="Data Hub Home", icon="🏠")
-    st.page_link("pages/1_oil_predictor_app.py", label="Macro Oil Predictor", icon="🛢️")
-    st.page_link("pages/2_NBA_GOAT_predictor_app.py", label="NBA GOAT Predictor", icon="🏀")
-
-    # Placeholders for future projects
-    st.markdown("💻 Tech in Education *(Coming Soon)*")
-    
-    st.divider()
-    st.caption("Data Science Portfolio | 2026")
+########################################
+# RENDER THE SIDEBAR FOR DATA-PROJECTS #
+########################################
+from data_projects_sidebar import render_sidebar
+    render_sidebar()
 
 # --- MAIN HUB LAYOUT ---
 # 1. TOP ROW: Profile Image, Bio, and Resume Downloads

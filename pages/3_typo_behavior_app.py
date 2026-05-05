@@ -15,17 +15,13 @@ from loaders.typo_behavior_loader import load_all_datasets, load_ml_pipeline
 # --- PAGE CONFIGURATION & CROSS-LINKING ---
 st.set_page_config(page_title="Keystroke Dynamics", page_icon="⌨️", layout="wide")
 
-st.markdown(
-    """
-    <div style='background-color: #f0f2f6; padding: 10px; border-radius: 5px; margin-bottom: 20px;'>
-        <a href='https://career-hub.neuro-edu.io' style='text-decoration: none; color: #007bff; font-weight: bold;'>
-            🔙 Return to Main Career Hub
-        </a>
-        <span style='color: #6c757d; font-size: 0.9em; float: right;'>Data Projects Environment</span>
-    </div>
-    """, 
-    unsafe_allow_html=True
-)
+########################################
+# RENDER THE SIDEBAR FOR DATA-PROJECTS #
+########################################
+# Point Python to the root directory so it can find the sidebar file
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from data_projects_sidebar import render_sidebar
+render_sidebar()
 
 st.title("⌨️ Keystroke Dynamics: Real-Time Typo Prediction")
 
