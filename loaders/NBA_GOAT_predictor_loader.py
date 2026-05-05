@@ -553,7 +553,20 @@ def generate_and_train_fan_classifier(df_goat, df_mvp, df_allstar, df_jerseys):
         'SES': ses, 'Region': regions, 'Fandom': fandom_level
     })
     
-    # 3. PREP PLAYER METADATA FOR SCORING (All 50 Players)
+    # 3. DYNAMICALLY EXTRACT ROOKIE YEARS FROM GOAT_DATA_EXTENDED.CSV
+    # ---------------------------------------------------------
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    raw_data_path = os.path.join(base_dir, 'documents', 'goat_data_extended.csv')
+    
+    try:
+        # We only read the two columns we need so it loads instantly!
+        df_raw = pd.read_csv(raw_data_path, usecols=['Player', 'gameDate'])
+        df_raw['gameDate'] = pd.to_datetime(df_raw['gameDate'])
+        rookie_years = df_raw.groupby('Player')['gameDate'].min().dt.year.to_dict()
+    except Exception as e:
+        rookie_years = {} # Safe fallback if file moves
+
+    # 4. PREP PLAYER METADATA FOR SCORING (All 50 Players)
     # ---------------------------------------------------------
     # We create a dictionary of player traits to score against the fans
     # Base Popularity proxy: We use their total MVP shares/All star votes/Jersey sales + a flat baseline so everyone has a chance
@@ -568,7 +581,8 @@ def generate_and_train_fan_classifier(df_goat, df_mvp, df_allstar, df_jerseys):
 
         player = row['Player']
         # Estimate peak year (middle of career)
-        start_yr = int(str(row['Draft_Year'])[:4]) if pd.notna(row['Draft_Year']) else 1990
+        # Pull their exact Rookie Year from the raw CSV data we just read
+        start_yr = rookie_years.get(player, 1990)
         peak_year = start_yr + 5 
         
         # Simple proxy: map Western conference teams to 'West', etc. 
@@ -588,7 +602,7 @@ def generate_and_train_fan_classifier(df_goat, df_mvp, df_allstar, df_jerseys):
         
         players_meta[player] = {'Peak_Year': peak_year, 'Region': p_region, 'Base_Pop': base_pop}
 
-    # 3. GENERATE TARGETS VIA AFFINITY SCORING + NOISE (50/50 BALANCE + NOISE)
+    # 5. GENERATE TARGETS VIA AFFINITY SCORING + NOISE (50/50 BALANCE + NOISE)
     # ------------------------------------------------------------------------
     targets = []
     
@@ -632,7 +646,7 @@ def generate_and_train_fan_classifier(df_goat, df_mvp, df_allstar, df_jerseys):
 
     df_fans['GOAT_Pick'] = targets
     
-    # 4. ENCODE AND TRAIN
+    # 6. ENCODE AND TRAIN
     # ---------------------------------------------------------
     le_dict = {}
     for col in ['Gender', 'Race', 'SES', 'Region', 'Fandom']:
