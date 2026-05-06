@@ -1,0 +1,36 @@
+name: Automated ETL Data Pipeline
+
+on:
+  push:
+    branches: [ main ]
+    # Also allows you to trigger it manually from the GitHub website
+  workflow_dispatch: 
+
+jobs:
+  crunch-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Data Science Libraries
+        run: |
+          pip install pandas pyarrow fastparquet scipy
+
+      - name: Run ETL Script
+        env:
+          PYTHONPATH: .
+        run: python scripts/run_etl.py
+
+      - name: Commit Processed Data Back to Repo
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action ETL"
+          git add documents/*.parquet
+          git commit -m "Automated ETL processing" || echo "No changes to commit"
+          git push
