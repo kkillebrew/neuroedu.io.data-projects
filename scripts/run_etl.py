@@ -77,19 +77,19 @@ def ingest_clarkson_I(tar_path):
 # ==========================================
 if os.path.exists(aalto_path):
     print("Loading raw Aalto dataset...")
-    df = pd.read_parquet(aalto_path)
+    df_aalto = pd.read_parquet(aalto_path)
 
     print("Running Phase 1 Pipeline Calculations...")
-    df = apply_typo_taxonomy(df)
-    df = build_word_boundaries(df)
-    df = apply_historical_consistency_filter(df)
+    df_aalto = apply_typo_taxonomy(df)
+    df_aalto = build_word_boundaries(df)
+    df_aalto = apply_historical_consistency_filter(df)
 
-    print("Exporting full processed UI array...")
-    # OVERWRITE the raw file with the fully processed mathematical version
+    # Apply to Aalto before saving
+    df_aalto = optimize_memory(df_aalto)
     output_path = os.path.join(base_dir, 'aalto_processed.parquet')
-    df.to_parquet(output_path, index=False)
+    df_aalto.to_parquet(output_path, index=False)
 
-    print(f"✅ Saved Aalto: {len(df)} rows to {output_path}")
+    print(f"✅ Saved Aalto: {len(df_aalto)} rows to {output_path}")
 else:
     print("Raw Aalto file not found.")
 
