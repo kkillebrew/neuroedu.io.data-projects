@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import difflib
 import streamlit as st
 import os
 
@@ -256,25 +257,192 @@ def load_all_datasets():
         st.error("Data files missing from documents/ directory. Please run Phase 0 in Colab first.")
         return None, None, None, None
         
+    # Apply Phase 1A Loading the Data
     df_keyrecs = load_keyrecs(base_dir)
     df_aalto = load_aalto(base_dir)
     df_cmu = load_cmu(base_dir)
     df_clarkson = load_clarkson(base_dir)
+
+    # Apply Phase 1B Typo Detection (Backspace Footprints) 
+    df_keyrecs = apply_typo_taxonomy(df_keyrecs)
+    df_clarkson = apply_typo_taxonomy(df_clarkson)
+
+    # Apply Phase 1C Word Boundaries
+    df_keyrecs = build_word_boundaries(df_keyrecs)
+    df_clarkson = build_word_boundaries(df_clarkson)
+    df_aalto = build_word_boundaries(df_aalto)
+
+    # Apply Phase 1C Levenshtein Anomaly Detection
+    df_keyrecs = flag_levenshtein_anomalies(df_keyrecs)
+    df_clarkson = flag_levenshtein_anomalies(df_clarkson)
+
+    # Apply Phase 1C Historical Consistency Filter
+    df_keyrecs = apply_historical_consistency_filter(df_keyrecs)
+    df_clarkson = apply_historical_consistency_filter(df_clarkson)
     
     return df_cmu, df_keyrecs, df_aalto, df_clarkson
 
 # ---------------------------------------------------------------------
 # PHASE 1B: TYPO DETECTION ALGORITHMS
 # ---------------------------------------------------------------------
-def extract_backspace_footprints(df):
-    """ Finds self-corrected typos by tracing the [BACKSPACE] keycode. """
-    # TODO: Implement vectorized Pandas shift() logic here
-    pass
+def apply_typo_taxonomy(df):
+    """
+    Scans the DataFrame for Backspace Footprints (Immediate Self-Corrections).
+    Tags the error, the intention, and categorizes it via qwerty_mapper.
+    """
+    if df is None or df.empty:
+        return df
 
-def calculate_levenshtein_alignments(prompt, typed):
-    """ Uses NLTK/Edit Distance to find uncorrected typos. """
-    # TODO: Implement Sequence Alignment logic here
-    pass
+    # 1. Create shifted columns to look ahead/behind in time
+    # Grouping by Session_ID ensures we don't accidentally link keystrokes from two different users
+    df['Next_Key'] = df.groupby('Session_ID')['Key_Code'].shift(-1)
+    df['Next_Next_Char'] = df.groupby('Session_ID')['Key_Char'].shift(-2)
+
+    # 2. Define the Backspace Footprint Mask
+    # An error occurred if the CURRENT keystroke is immediately followed by a Backspace (Key_Code 8)
+    error_mask = (df['Next_Key'] == 8)
+
+    # 3. Apply the tags
+    df.loc[error_mask, 'Is_Typo'] = True
+    df.loc[error_mask, 'Typed_Char'] = df.loc[error_mask, 'Key_Char']
+    df.loc[error_mask, 'Intended_Char'] = df.loc[error_mask, 'Next_Next_Char']
+
+    # 4. Apply the Taxonomy Classification (Category A vs B vs C)
+    def categorize_row(row):
+        if row['Is_Typo'] and pd.notna(row['Intended_Char']) and pd.notna(row['Typed_Char']):
+            return classify_typo(row['Intended_Char'], row['Typed_Char'])
+        return 'None'
+
+    # Create the new column for the taxonomy label
+    df['Typo_Category'] = df.apply(categorize_row, axis=1)
+
+    # 5. Cleanup temporary columns to save memory
+    df = df.drop(columns=['Next_Key', 'Next_Next_Char'])
+    
+    return df
+
+# ---------------------------------------------------------------------
+# PHASE 1C: WORD RECONSTRUCTION & HISTORICAL CONSISTENCY
+# ---------------------------------------------------------------------
+
+def build_word_boundaries(df):
+    """
+    Groups individual keystrokes into discrete word blocks.
+    Triggers a new Word_ID every time [Space] or [Enter] is pressed.
+    """
+    if df is None or df.empty:
+        return df
+
+    # Create a boolean mask for delimiters (Space = 32, Enter = 13)
+    delimiters = df['Key_Code'].isin([32, 13])
+    
+    # cumsum() adds 1 to the Word_ID every time it hits a True value in the delimiter mask.
+    # Grouping by Session_ID ensures Word 1 for User A doesn't bleed into User B.
+    df['Word_ID'] = df.groupby('Session_ID')[delimiters].cumsum().ffill().fillna(0).astype(int)
+
+    return df
+
+def flag_levenshtein_anomalies(df, dictionary_fallback=None):
+    """
+    Reconstructs keystrokes into words and uses Sequence Alignment 
+    to find Uncorrected Typos (Category A, B, C) that lack a Backspace footprint.
+    """
+    if df is None or df.empty or 'Word_ID' not in df.columns:
+        return df
+
+    # 1. Reconstruct the Typed Word for each Word_ID block
+    # We drop NaNs (like Shift keys) and join the characters into a single string
+    reconstructed = df.dropna(subset=['Key_Char']).groupby(['Session_ID', 'Word_ID'])['Key_Char'].apply(lambda x: ''.join(x.astype(str))).reset_index()
+    reconstructed = reconstructed.rename(columns={'Key_Char': 'Submitted_Word'})
+
+    # 2. Identify the Expected Word
+    # Note: For Transcription tasks, you will map the prompt text here.
+    # For Free Text, we assume 'dictionary_fallback' is a spellcheck lookup.
+    # For now, we will create a placeholder 'Expected_Word' column to build the architecture.
+    reconstructed['Expected_Word'] = reconstructed['Submitted_Word'] # Placeholder: replace with actual expected text logic later
+
+    # 3. Calculate Sequence Alignment for mismatches
+    mismatch_mask = reconstructed['Expected_Word'] != reconstructed['Submitted_Word']
+    mismatches = reconstructed[mismatch_mask].copy()
+
+    # 4. Find the exact character index of the typo using difflib
+    error_records = []
+    for _, row in mismatches.iterrows():
+        expected = row['Expected_Word']
+        submitted = row['Submitted_Word']
+        
+        # SequenceMatcher finds the exact diff operations
+        matcher = difflib.SequenceMatcher(None, expected, submitted)
+        for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+            if tag in ('replace', 'insert', 'delete'):
+                error_records.append({
+                    'Session_ID': row['Session_ID'],
+                    'Word_ID': row['Word_ID'],
+                    'Typo_Index': j1, # The index in the submitted string
+                    'Intended_Char': expected[i1:i2] if tag != 'insert' else '',
+                    'Typed_Char': submitted[j1:j2] if tag != 'delete' else ''
+                })
+
+    # 5. Map the errors back to the original microscopic keystroke DataFrame
+    if error_records:
+        error_df = pd.DataFrame(error_records)
+        
+        # We merge based on Session, Word_ID, and use cumcount to match the character index
+        df['Char_Index'] = df.groupby(['Session_ID', 'Word_ID']).cumcount()
+        
+        df = pd.merge(df, error_df, left_on=['Session_ID', 'Word_ID', 'Char_Index'], right_on=['Session_ID', 'Word_ID', 'Typo_Index'], how='left')
+        
+        # Update the master columns
+        new_errors = df['Typo_Index'].notna()
+        df.loc[new_errors, 'Is_Typo'] = True
+        # Coalesce the intended/typed chars so we don't overwrite Backspace footprints
+        df['Intended_Char'] = df['Intended_Char_y'].combine_first(df['Intended_Char_x'])
+        df['Typed_Char'] = df['Typed_Char_y'].combine_first(df['Typed_Char_x'])
+        
+        # Drop temporary merge columns
+        df = df.drop(columns=['Char_Index', 'Typo_Index', 'Intended_Char_x', 'Intended_Char_y', 'Typed_Char_x', 'Typed_Char_y'])
+
+    return df
+
+def apply_historical_consistency_filter(df, consistency_threshold=0.8):
+    """
+    Identifies 'Recall Errors' (Misspellings) vs 'Motor Errors' (Typos).
+    If a user makes the exact same error for a specific word > 80% of the time,
+    it is flagged as a competence error so the ML model can ignore it.
+    """
+    if df is None or df.empty or 'Word_ID' not in df.columns:
+        return df
+
+    # 1. Reconstruct words to evaluate consistency
+    words_df = df.dropna(subset=['Key_Char']).groupby(['User_ID', 'Session_ID', 'Word_ID'])['Key_Char'].apply(lambda x: ''.join(x.astype(str))).reset_index()
+    words_df = words_df.rename(columns={'Key_Char': 'Submitted_Word'})
+    
+    # Placeholder for the prompt text (Expected_Word)
+    words_df['Expected_Word'] = words_df['Submitted_Word'] 
+
+    # 2. Count how many times the user made a specific exact error
+    error_counts = words_df.groupby(['User_ID', 'Expected_Word', 'Submitted_Word']).size().reset_index(name='Specific_Error_Count')
+
+    # 3. Count total times the user attempted the intended word
+    total_attempts = words_df.groupby(['User_ID', 'Expected_Word']).size().reset_index(name='Total_Attempts')
+
+    # 4. Merge to calculate the ratio
+    consistency_df = pd.merge(error_counts, total_attempts, on=['User_ID', 'Expected_Word'])
+    consistency_df['Error_Ratio'] = consistency_df['Specific_Error_Count'] / consistency_df['Total_Attempts']
+
+    # 5. Create the filter mask (True = Consistent Misspelling/Recall Error)
+    # We only care if it's actually a mismatch. If Expected == Submitted, it's not an error.
+    consistency_df['Is_Recall_Error'] = (consistency_df['Expected_Word'] != consistency_df['Submitted_Word']) & (consistency_df['Error_Ratio'] >= consistency_threshold)
+    
+    # 6. Merge the flag back into the word dataframe, then back to the microscopic keystrokes
+    words_df = pd.merge(words_df, consistency_df[['User_ID', 'Expected_Word', 'Submitted_Word', 'Is_Recall_Error']], on=['User_ID', 'Expected_Word', 'Submitted_Word'], how='left')
+    
+    df = pd.merge(df, words_df[['Session_ID', 'Word_ID', 'Is_Recall_Error']], on=['Session_ID', 'Word_ID'], how='left')
+    
+    # Clean up NaNs
+    df['Is_Recall_Error'] = df['Is_Recall_Error'].fillna(False)
+
+    return df
 
 # ---------------------------------------------------------------------
 # PHASE 2: MACRO-LEVEL BENCHMARKING
