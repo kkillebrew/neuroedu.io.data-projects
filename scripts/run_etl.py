@@ -3,7 +3,6 @@ import pandas as pd
 import os
 import sys
 
-# Ensure Python can find your loaders folder
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from loaders.typo_behavior_loader import (
     apply_typo_taxonomy, build_word_boundaries, apply_historical_consistency_filter
@@ -21,15 +20,11 @@ if os.path.exists(aalto_path):
     df = build_word_boundaries(df)
     df = apply_historical_consistency_filter(df)
 
-    print("Exporting production-ready UI arrays...")
-    # 1. Export just the typos for Tab 1 and Tab 3
-    df_typos = df[df['Is_Typo'] == True]
-    df_typos.to_parquet(os.path.join(base_dir, 'aalto_typos_only.parquet'), index=False)
-
-    # 2. Export the baseline metrics for Tab 2
-    df_base = df[['Flight_Time', 'Dwell_Time']].dropna()
-    df_base.to_parquet(os.path.join(base_dir, 'aalto_baseline_arrays.parquet'), index=False)
+    print("Exporting full processed UI array...")
+    # OVERWRITE the raw file with the fully processed mathematical version
+    output_path = os.path.join(base_dir, 'aalto_processed.parquet')
+    df.to_parquet(output_path, index=False)
     
-    print("ETL Pipeline Complete!")
+    print(f"ETL Pipeline Complete! Saved {len(df)} rows to {output_path}")
 else:
     print("Raw Aalto file not found.")
