@@ -170,79 +170,15 @@ def load_cmu(filepath="documents/cmu_baseline.parquet"):
 # 4: Clarkson data loader
 # ---------------------------------------------------------------------
 @st.cache_data(show_spinner=False)
-def load_clarkson(filepath="documents/clarkson_cognitive.parquet"):
-    """ Loads Clarkson Dataset. Pairs separate Press/Release rows. """
-    if not os.path.exists(filepath):
-        return pd.DataFrame()
+def load_clarkson(base_dir):
+""" Loads the pre-merged, mathematically finalized Clarkson Dataset. """
+filepath = os.path.join(base_dir, 'clarkson_processed.parquet')
 
-    df = pd.read_parquet(filepath)
-
-    # 1. Separate Presses and Releases
-    presses = df[df['Action'] == 0].copy()
-    releases = df[df['Action'] == 1].copy()
-    
-    # 2. Rename for clarity
-    presses = presses.rename(columns={'Timestamp': 'Timestamp_Press'})
-    releases = releases.rename(columns={'Timestamp': 'Timestamp_Release'})
-    
-    # Sort them to allow pairing
-    presses = presses.sort_values(by=['PARTICIPANT_ID', 'Key_Code', 'Timestamp_Press'])
-    releases = releases.sort_values(by=['PARTICIPANT_ID', 'Key_Code', 'Timestamp_Release'])
-
-    # 3. Pair Presses with the nearest Release (using merge_asof to find the closest time)
-    # This matches the release of 'Key A' with the exact press of 'Key A'
-    df_merged = pd.merge_asof(
-        presses, 
-        releases[['PARTICIPANT_ID', 'Key_Code', 'Timestamp_Release']], 
-        left_on='Timestamp_Press', 
-        right_on='Timestamp_Release', 
-        by=['PARTICIPANT_ID', 'Key_Code'],
-        direction='forward'
-    )
-
-    # 4. Map to Master Schema Columns
-    df_merged = df_merged.rename(columns={'PARTICIPANT_ID': 'User_ID'})
-
-    # 5. Fill Missing/Static Categorical Data
-    df_merged['Dataset'] = 'Clarkson'
-    df_merged['Device_Type'] = 'desktop' 
-    df_merged['User_ID'] = df_merged['User_ID'].fillna('Unknown_User').astype(str)
-    df_merged['Session_ID'] = df_merged['Dataset'] + '_' + df_merged['User_ID']
-    df_merged['Key_Char'] = np.nan
-    
-    if 'Task' in df_merged.columns:
-        df_merged['Task_Type'] = df_merged['Task'].fillna('free_text')
-    else:
-        df_merged['Task_Type'] = 'free_text'
-
-    # 6. Dynamic Calculations
-    df_merged['Dwell_Time'] = df_merged['Timestamp_Release'] - df_merged['Timestamp_Press']
-    
-    # Resort strictly by time for Flight calculation
-    df_merged = df_merged.sort_values(by=['User_ID', 'Timestamp_Press'])
-    df_merged['Flight_Time'] = df_merged.groupby('User_ID')['Timestamp_Press'].diff().fillna(0)
-
-    # 7. Normalize Timestamps
-    session_starts = df_merged.groupby('User_ID')['Timestamp_Press'].transform('min')
-    df_merged['Delta_Milliseconds'] = df_merged['Timestamp_Press'] - session_starts
-
-    # 8. Missing Value Imputation
-    df_merged['Dwell_Time'] = df_merged['Dwell_Time'].fillna(100.0)
-
-    # 9. Initialize Phase 2 Placeholder Columns
-    df_merged['Intended_Char'] = np.nan
-    df_merged['Typed_Char'] = np.nan
-    df_merged['Is_Typo'] = False
-
-    # 10. Final Master Schema Alignment
-    master_cols = [
-        'Dataset', 'Session_ID', 'User_ID', 'Device_Type', 'Task_Type', 
-        'Key_Code', 'Key_Char', 'Timestamp_Press', 'Timestamp_Release', 
-        'Delta_Milliseconds', 'Dwell_Time', 'Flight_Time', 
-        'Intended_Char', 'Typed_Char', 'Is_Typo'
-    ]
-    
-    return df_merged[master_cols]
+if os.path.exists(filepath):
+    return pd.read_parquet(filepath)
+else:
+    # Failsafe
+    return pd.DataFrame()
 
 # 5: Call and cache our four functions
 # ---------------------------------------------------------------------
