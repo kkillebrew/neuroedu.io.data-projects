@@ -116,14 +116,11 @@ def render_sidebar():
         st.divider()
 
         # --- 3. DIRECTORY LINKS (Isolated Scope) ---
-        # Replacing st.page_link with explicit HTML links to ensure they always render
-        st.markdown("""
-            <a href="data_projects_app.py" target="_self" class="sidebar-link">Data Projects Hub (Home)</a>
-            <a href="pages/1_oil_predictor_app.py" target="_self" class="sidebar-link">What affects gas prices?</a>
-            <a href="pages/2_nba_goat_predictor_app.py" target="_self" class="sidebar-link">Who is the real NBA GOAT?</a>
-           ## <a href="pages/3_typo_behavior_app.py" target="_self" class="sidebar-link">Why do we make typos?</a>#
-        """, unsafe_allow_html=True)
-        
+        # Using native st.page_link for Streamlit's internal router
+        st.page_link("data_projects_app.py", label="Data Projects Hub (Home)", icon=None)
+        st.page_link("pages/1_oil_predictor_app.py", label="What affects gas prices?", icon=None)
+        st.page_link("pages/2_nba_goat_predictor_app.py", label="Who is the real NBA GOAT?", icon=None)
+        st.page_link("pages/3_typo_behavior_app.py", label="Why do we make typos?", icon=None)        
 
         st.divider()
 
