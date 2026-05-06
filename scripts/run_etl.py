@@ -2,6 +2,8 @@
 import pandas as pd
 import os
 import sys
+import tarfile
+import io
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from loaders.typo_behavior_loader import (
