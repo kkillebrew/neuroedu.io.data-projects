@@ -10,6 +10,7 @@ DESCRIPTION:
 """
 
 import streamlit as st
+import os
 
 def render_sidebar():
     """
@@ -85,33 +86,26 @@ def render_sidebar():
         </style>
     """, unsafe_allow_html=True)
 
-    with st.sidebar:
-        # --- 2. MASTHEAD (Brain Logo + DS Blurb) ---
-        brain_svg = """
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="55" height="55" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M50 85 C30 85, 15 70, 15 50 C15 35, 25 20, 40 15 C45 13, 55 13, 60 15 C75 20, 85 35, 85 50 C85 70, 70 85, 50 85 Z" />
-          <path d="M30 35 L45 25 L60 30 L70 45 L65 65 L50 75 L35 60 Z" />
-          <circle cx="30" cy="35" r="3" fill="#38BDF8"/>
-          <circle cx="45" cy="25" r="3" fill="#38BDF8"/>
-          <circle cx="60" cy="30" r="3" fill="#38BDF8"/>
-          <circle cx="70" cy="45" r="3" fill="#38BDF8"/>
-          <circle cx="65" cy="65" r="3" fill="#38BDF8"/>
-          <circle cx="50" cy="75" r="3" fill="#38BDF8"/>
-          <circle cx="35" cy="60" r="3" fill="#38BDF8"/>
-          <circle cx="50" cy="50" r="4" fill="#38BDF8"/>
-          <path d="M50 50 L30 35 M50 50 L45 25 M50 50 L60 30 M50 50 L70 45 M50 50 L65 65 M50 50 L50 75 M50 50 L35 60" opacity="0.5"/>
-        </svg>
-        """
+    # Create a two-column layout for the logo and the text
+        col1, col2 = st.columns([1, 2.5], gap="small")
         
-        st.markdown(f"""
-            <div class="masthead-container">
-                <div>{brain_svg}</div>
+        with col1:
+            # Dynamically locate the image to prevent pathing errors
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            logo_path = os.path.join(base_dir, "documents", "Neuro-Edu_Logo.png")
+            
+            if os.path.exists(logo_path):
+                st.image(logo_path, use_container_width=True)
+            else:
+                st.write("🧠") # Failsafe if the image isn't found
+            
+        with col2:
+             st.markdown("""
                 <div class="masthead-text">
-                    <div class="masthead-title">Data Projects Hub</div>
-                    <div class="masthead-blurb">Passion-driven, exploratory data science & interactive modeling.</div>
+                    <div class="masthead-name">Data Projects Hub</div>
+                    <div class="masthead-title">Passion-driven, exploratory data science & interactive modeling.</div>
                 </div>
-            </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
 
         st.divider()
 
