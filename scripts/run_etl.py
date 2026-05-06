@@ -13,6 +13,19 @@ from loaders.typo_behavior_loader import (
 base_dir = os.path.join(os.path.dirname(__file__), '..', 'documents')
 aalto_path = os.path.join(base_dir, 'aalto_macro.parquet')
 
+def optimize_memory(df):
+    """ Downcasts 64-bit arrays to 32-bit and converts strings to categories to slash RAM usage by 75%. """
+    for col in df.columns:
+        if df[col].dtype == 'float64':
+            df[col] = df[col].astype('float32')
+        elif df[col].dtype == 'int64':
+            # Use nullable integer type in case of NaNs
+            df[col] = df[col].astype('Int32')
+        elif df[col].dtype == 'object':
+            # Convert repetitive strings (like 'Clarkson', 'Spatial', 'desktop') into lightweight categories
+            df[col] = df[col].astype('category')
+    return df
+
 def ingest_clarkson_II(folder_path):
     """ Parses the raw tab-separated Clarkson II files. """
     dfs = []
