@@ -142,9 +142,11 @@ if not df_clarkson_raw.empty:
     df_merged = build_word_boundaries(df_merged)
     df_merged = apply_historical_consistency_filter(df_merged)
 
-    # Export the finalized Parquet
+    # Apply to Clarkson before saving
+    df_merged = optimize_memory(df_merged)
     clarkson_output = os.path.join(base_dir, 'clarkson_processed.parquet')
     df_merged.to_parquet(clarkson_output, index=False)
+    
     print(f"✅ Saved Clarkson: {len(df_merged)} rows.")
 
 print("ETL Pipeline Complete!")
