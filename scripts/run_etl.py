@@ -58,8 +58,8 @@ if os.path.exists(aalto_path):
     # OVERWRITE the raw file with the fully processed mathematical version
     output_path = os.path.join(base_dir, 'aalto_processed.parquet')
     df.to_parquet(output_path, index=False)
-    
-    print(f"ETL Pipeline Complete! Saved {len(df)} rows to {output_path}")
+
+    print(f"✅ Saved Aalto: {len(df)} rows to {output_path}")
 else:
     print("Raw Aalto file not found.")
 
