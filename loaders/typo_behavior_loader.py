@@ -101,7 +101,7 @@ def load_keyrecs(base_dir):
 # 3: CMU data loader
 # ---------------------------------------------------------------------
 @st.cache_data(show_spinner=False)
-def load_cmu(filepath="documents/cmu_baseline.parquet"):
+def load_cmu(base_dir):
     """ Loads CMU Benchmark. Melts password repetitions into single keystrokes. """
     # Explicitly target the file itself
     filepath = os.path.join(base_dir, 'cmu_baseline.parquet')
