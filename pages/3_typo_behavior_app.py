@@ -12,7 +12,7 @@ import pandas as pd
 # This tells the script to look one folder up to find the 'loaders' directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from loaders.typo_behavior_loader import load_all_datasets, load_ml_pipeline
+from loaders.typo_behavior_loader import load_all_datasets, load_ml_pipeline, calculate_muscle_memory_decay
 
 from data_projects_sidebar import apply_global_settings, render_sidebar
 
@@ -103,6 +103,8 @@ tab1, tab2, tab3, tab4 = st.tabs([
 # TAB 1: PHASE 1 (Dataset Overview)
 # ---------------------------------------------------------------------
 with tab1:
+    
+
     st.header("Phase 1: Cloud Pre-Processing & Ingestion")
     st.write("Overview of the massive datasets downsampled via Colab and ingested as Parquet files.")
     # TODO: Display head() of dataframes to show schema unification
@@ -111,6 +113,9 @@ with tab1:
 # TAB 2: PHASE 2 (Macro-Level Benchmarks)
 # ---------------------------------------------------------------------
 with tab2:
+    # 1. Run the backend calculation (Now safely cached!)
+    decay_df = calculate_muscle_memory_decay(df_cmu)
+    
     st.header("Phase 2: Muscle Memory vs. Cognitive Load")
     st.write("Establishing the statistical boundaries of 'normal' typing.")
     # TODO: Plotly graphs of CMU decay curve and Aalto t-tests

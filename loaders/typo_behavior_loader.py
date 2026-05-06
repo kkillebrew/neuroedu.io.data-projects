@@ -312,6 +312,8 @@ def load_all_datasets():
     df_clarkson = apply_historical_consistency_filter(df_clarkson)
     df_aalto = apply_historical_consistency_filter(df_aalto)
 
+    df_cmu = calculate_muscle_memory_decay(df_cmu)
+
     return df_cmu, df_keyrecs, df_aalto, df_clarkson
 
 # ---------------------------------------------------------------------
@@ -479,10 +481,37 @@ def apply_historical_consistency_filter(df, consistency_threshold=0.8):
 # ---------------------------------------------------------------------
 # PHASE 2: MACRO-LEVEL BENCHMARKING
 # ---------------------------------------------------------------------
-def calculate_muscle_memory_asymptote(df_cmu):
-    """ Calculates steady-state latency from the last 50 CMU reps. """
-    # TODO: Phase 2 logic here
-    pass
+@st.cache_data(show_spinner=False)
+def calculate_muscle_memory_decay(df_cmu):
+    """ 
+    Calculates the universal muscle memory decay curve from the CMU dataset.
+    Averages flight times across all users to find the steady-state latency.
+    """
+    if df_cmu is None or df_cmu.empty:
+        return pd.DataFrame()
+
+    # 1. Isolate the Flight Time columns
+    dd_cols = [col for col in df_cmu.columns if col.startswith('DD.')]
+    
+    if not dd_cols:
+        return pd.DataFrame()
+
+    # 2. Calculate the average flight time for the entire password attempt
+    # MATLAB Analogy: mean(matrix, 2) to get the row-wise average
+    df_cmu['Avg_Flight_Time'] = df_cmu[dd_cols].mean(axis=1)
+
+    # 3. Create a continuous X-Axis (Attempt Number 1 through 400)
+    # CMU users did 8 sessions of 50 reps. 
+    if 'sessionIndex' in df_cmu.columns and 'rep' in df_cmu.columns:
+        df_cmu['Attempt_Number'] = ((df_cmu['sessionIndex'] - 1) * 50) + df_cmu['rep']
+    else:
+        # Fallback just in case the column names vary slightly
+        df_cmu['Attempt_Number'] = df_cmu.groupby('subject').cumcount() + 1
+
+    # 4. Collapse the 51 users into a single, universal average line
+    decay_curve = df_cmu.groupby('Attempt_Number')['Avg_Flight_Time'].mean().reset_index()
+
+    return decay_curve
 
 # ---------------------------------------------------------------------
 # PHASE 3 & 4: TAXONOMY & FEATURE ENGINEERING
