@@ -119,7 +119,7 @@ def render_sidebar():
         # Using native st.page_link for Streamlit's internal router
         st.page_link("data_projects_app.py", label="Data Projects Hub (Home)", icon=None)
         st.page_link("pages/1_oil_predictor_app.py", label="What affects gas prices?", icon=None)
-        st.page_link("pages/2_nba_goat_predictor_app.py", label="Who is the real NBA GOAT?", icon=None)
+        st.page_link("pages/2_NBA_GOAT_predictor_app.py", label="Who is the real NBA GOAT?", icon=None)
         st.page_link("pages/3_typo_behavior_app.py", label="Why do we make typos?", icon=None)        
 
         st.divider()
