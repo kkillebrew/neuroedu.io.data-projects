@@ -4,6 +4,7 @@
 # =====================================================================
 import streamlit as st
 import plotly.express as px
+import scipy.stats as stats
 import sys
 import os
 import pandas as pd
@@ -226,12 +227,104 @@ with tab1:
 # TAB 2: PHASE 2 (Macro-Level Benchmarks)
 # ---------------------------------------------------------------------
 with tab2:
-    # 1. Run the backend calculation (Now safely cached!)
-    decay_df = calculate_muscle_memory_decay(df_cmu)
-
     st.header("Phase 2: Muscle Memory vs. Cognitive Load")
     st.write("Establishing the statistical boundaries of 'normal' typing.")
-    # TODO: Plotly graphs of CMU decay curve and Aalto t-tests
+    
+    # --- SECTION A: MUSCLE MEMORY DECAY ---
+    st.subheader("1. Muscle Memory Decay (CMU Dataset)")
+    st.markdown("This curve tracks 51 subjects typing the same complex password 400 times. Notice the exponential drop in cognitive load before hitting a physical motor-control asymptote.")
+    
+    # 1. Run the cached backend calculation
+    decay_df = calculate_muscle_memory_decay(df_cmu)
+    
+    # 2. Render the interactive Plotly line chart
+    if not decay_df.empty:
+        fig_decay = px.line(
+            decay_df, 
+            x='Attempt_Number', 
+            y='Avg_Flight_Time',
+            title="Universal Flight Time vs. Repetition",
+            labels={'Attempt_Number': 'Password Attempt #', 'Avg_Flight_Time': 'Average Flight Time (ms)'},
+            color_discrete_sequence=['#00e676'] # Neuro-Edu green
+        )
+        
+        fig_decay.update_traces(line=dict(width=3))
+        fig_decay.update_layout(plot_bgcolor='rgba(0,0,0,0)', xaxis_showgrid=True, yaxis_showgrid=True)
+        st.plotly_chart(fig_decay, use_container_width=True)
+    else:
+        st.warning("CMU dataset is required to generate the Muscle Memory baseline.")
+
+    st.divider()
+
+    # --- SECTION B: INTERFACE & BASELINE VARIANCE ---
+    st.subheader("2. Universal Baseline Variance")
+    st.markdown("Comparing average typing speeds across different datasets to establish macro-baselines. Notice how free-text typing (Aalto) differs from rigid password entry (CMU).")
+    
+    # 1. Calculate macro averages on the fly for the bar chart
+    macro_stats = []
+    for df, name in [(df_cmu, "CMU (Passwords)"), (df_aalto, "Aalto (Free Text)"), (df_keyrecs, "KeyRecs (Digraphs)")]:
+        if df is not None and not df.empty and 'Flight_Time' in df.columns and 'Dwell_Time' in df.columns:
+            
+            # Filter out wild outliers to get true averages
+            clean_df = df[(df['Flight_Time'] > 0) & (df['Flight_Time'] < 1500) & 
+                          (df['Dwell_Time'] > 0) & (df['Dwell_Time'] < 500)]
+            
+            avg_flight = clean_df['Flight_Time'].mean()
+            avg_dwell = clean_df['Dwell_Time'].mean()
+            
+            macro_stats.append({"Dataset": name, "Metric": "Avg Flight Time", "Value (ms)": avg_flight})
+            macro_stats.append({"Dataset": name, "Metric": "Avg Dwell Time", "Value (ms)": avg_dwell})
+            
+    # 2. Render the Grouped Bar Chart
+    if macro_stats:
+        df_macro = pd.DataFrame(macro_stats)
+        fig_bar = px.bar(
+            df_macro,
+            x="Dataset",
+            y="Value (ms)",
+            color="Metric",
+            barmode="group",
+            title="Average Keystroke Latencies by Context",
+            color_discrete_sequence=['#29b6f6', '#ab47bc'] # Light Blue and Purple
+        )
+        fig_bar.update_layout(plot_bgcolor='rgba(0,0,0,0)')
+        st.plotly_chart(fig_bar, use_container_width=True)
+
+    # --- SECTION C: STATISTICAL BOUNDARIES (T-TEST) ---
+    st.divider()
+    st.subheader("3. Statistical Boundaries (Welch's T-Test)")
+    st.markdown("Mathematically proving the boundary between Muscle Memory (CMU) and Cognitive Load (Aalto). An independent t-test confirms if the latency difference between password recall and free-text generation is statistically significant.")
+    
+    if df_cmu is not None and df_aalto is not None and not df_cmu.empty and not df_aalto.empty:
+        # 1. Isolate clean flight time arrays (removing pauses > 1000ms)
+        cmu_array = df_cmu[(df_cmu['Flight_Time'] > 0) & (df_cmu['Flight_Time'] < 1000)]['Flight_Time'].dropna()
+        aalto_array = df_aalto[(df_aalto['Flight_Time'] > 0) & (df_aalto['Flight_Time'] < 1000)]['Flight_Time'].dropna()
+        
+        # 2. Run Welch's T-Test (equal_var=False handles the massive sample size difference)
+        if not cmu_array.empty and not aalto_array.empty:
+            t_stat, p_val = stats.ttest_ind(aalto_array, cmu_array, equal_var=False)
+            
+            # 3. Render the statistical readout
+            t_col1, t_col2, t_col3, t_col4 = st.columns(4)
+            t_col1.metric("CMU Mean (Muscle)", f"{cmu_array.mean():.1f} ms")
+            t_col2.metric("Aalto Mean (Cognitive)", f"{aalto_array.mean():.1f} ms")
+            t_col3.metric("T-Statistic", f"{t_stat:.2f}")
+            
+            # Format p-value output
+            if p_val < 0.0001:
+                p_display = "< 0.0001"
+                significance = "Significant Boundary"
+            else:
+                p_display = f"{p_val:.4f}"
+                significance = "Not Significant" if p_val >= 0.05 else "Significant"
+                
+            t_col4.metric("P-Value", p_display, delta=significance, delta_color="normal" if p_val < 0.05 else "inverse")
+            
+            # 4. State the finding
+            if p_val < 0.05:
+                st.success(f"**Conclusion:** The data proves a statistically significant boundary between motor execution and cognitive generation. Free-text typing requires significantly more mental overhead, resulting in an average latency penalty of **{aalto_array.mean() - cmu_array.mean():.1f} ms** per keystroke.")
+            else:
+                st.warning("**Conclusion:** No statistically significant difference found. Ensure sample sizes are large enough.")
 
 # ---------------------------------------------------------------------
 # TAB 3: PHASES 3 & 4 (Taxonomy & Feature Engineering)
