@@ -13,28 +13,27 @@ import streamlit as st
 import os
 import sys
 
-# Ensure local imports work correctly
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# --- PATH CONFIGURATION ---
+# This tells the script to look one folder up to find the 'loaders' directory
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from data_projects_loader import get_data_bio_metadata, get_project_descriptions
 
-# --- DATA HYDRATION ---
-bio = get_data_bio_metadata()
-projects = get_project_descriptions()
+from career_hub_sidebar import apply_global_settings, render_sidebar
 
-# --- UI CONFIGURATION ---
-st.set_page_config(
-    page_title=f"{bio['name']} | Data Projects",
-    page_icon="📊",
-    layout="wide",
-    initial_sidebar_state="expanded" # Add this line!
-)
+########################################
+#        APPLY GLOBAL SETTINGS         #
+########################################
+apply_global_settings("Neuro-Edu | Data Projects Hub")
 
 ########################################
 # RENDER THE SIDEBAR FOR DATA-PROJECTS #
 ########################################
-from data_projects_sidebar import render_sidebar
 render_sidebar()
+
+# --- DATA HYDRATION ---
+bio = get_data_bio_metadata()
+projects = get_project_descriptions()
 
 # --- MAIN HUB LAYOUT ---
 # 1. TOP ROW: Profile Image, Bio, and Resume Downloads

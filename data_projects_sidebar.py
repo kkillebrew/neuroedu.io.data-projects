@@ -11,6 +11,33 @@ DESCRIPTION:
 
 import streamlit as st
 import os
+from PIL import Image
+
+def apply_global_settings(hub_title):
+    """
+    Sets the favicon and page title across the hub.
+    MATLAB Analogy: This is your 'set(fig, 'Name', hub_title)' equivalent.
+    """
+
+    # --- ICON LOADING LOGIC ---
+    # We define the path to our newly created transparent favicon
+    favicon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "documents", "Neuro-Edu_favicon_Transparent.ico")
+
+    # We attempt to load the icon; if it's missing, we use a neuro-themed emoji as a fallback
+    try:
+        favicon = Image.open(favicon_path)
+    except Exception:
+        favicon = "🧠" 
+
+    # --- THE PAGE CONFIGURATION ---
+    # MATLAB Analogy: This is like setting the 'Name' and 'Icon' properties 
+    # of your uifigure during initialization.
+    st.set_page_config(
+        page_title=hub_title, # Or "Data Projects Hub"
+        page_icon=favicon, # This is what puts the Monet Brain in the browser tab!
+        layout="wide",
+        initial_sidebar_state="expanded"
+    )
 
 def render_sidebar():
     """

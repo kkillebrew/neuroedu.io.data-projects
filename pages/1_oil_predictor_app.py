@@ -18,12 +18,23 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
-# Ensure local modules (like data_loader) are discoverable in the container
 # --- PATH CONFIGURATION ---
 # This tells the script to look one folder up to find the 'loaders' directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from loaders.oil_predictor_loader import fetch_real_oil_data, fetch_ripple_data
+
+from career_hub_sidebar import apply_global_settings, render_sidebar
+
+########################################
+#        APPLY GLOBAL SETTINGS         #
+########################################
+apply_global_settings("Neuro-Edu | What affects gas prices?")
+
+########################################
+# RENDER THE SIDEBAR FOR DATA-PROJECTS #
+########################################
+render_sidebar()
 
 # ------------------------------------------------------------------------------
 # DATA INGESTION & CACHING
@@ -55,20 +66,6 @@ if df.empty:
     st.error("🚨 **Error:** Failed to load data from the FRED API.")
     st.warning(f"**Details:** {api_error}")
     st.stop()
-
-
-# ------------------------------------------------------------------------------
-# PAGE CONFIG & ECOSYSTEM NAVIGATION
-# ------------------------------------------------------------------------------
-st.set_page_config(page_title="Macro Oil Explorer | Neuro-Edu", layout="wide")
-
-########################################
-# RENDER THE SIDEBAR FOR DATA-PROJECTS #
-########################################
-# Point Python to the root directory so it can find the sidebar file
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from data_projects_sidebar import render_sidebar
-render_sidebar()
 
 # ------------------------------------------------------------------------------
 # DASHBOARD CONTROLS: MAIN PAGE

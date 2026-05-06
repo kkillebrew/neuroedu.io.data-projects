@@ -29,12 +29,11 @@ import plotly.graph_objects as go
 
 # 4. CUSTOM LOCAL IMPORTS
 # Pulling in our heavy-lifting functions from the backend loader
-# -------------------------------------------------------------------
-# SYSTEM PATH ROUTING
-# -------------------------------------------------------------------
-# This allows the 'pages' directory to see and import from the 'loaders' directory.
-# MATLAB Analogy: Equivalent to `addpath('../loaders')` to make backend functions accessible.
+
+# --- PATH CONFIGURATION ---
+# This tells the script to look one folder up to find the 'loaders' directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from loaders.NBA_GOAT_predictor_loader import (
     PLAYERS, get_player_colors, load_and_filter_raw_data, 
     calculate_career_baselines, get_awards_hardware, 
@@ -45,17 +44,24 @@ from loaders.NBA_GOAT_predictor_loader import (
     generate_and_train_fan_classifier, predict_goat_ml, calculate_objective_goat_ranking
 )
 
+from career_hub_sidebar import apply_global_settings, render_sidebar
+
+########################################
+#        APPLY GLOBAL SETTINGS         #
+########################################
+apply_global_settings("Neuro-Edu | What affects gas prices?")
+
+########################################
+# RENDER THE SIDEBAR FOR DATA-PROJECTS #
+########################################
+render_sidebar()
+
 # --- GLOBAL PLOTLY CONFIG (Mobile Scroll Lock) ---
 PLOTLY_CONFIG = {
     'scrollZoom': False, 
     'displayModeBar': False, # Hides the messy floating toolbar
     'staticPlot': False
 }
-
-# Point Python to the root directory so it can find the sidebar file
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from data_projects_sidebar import render_sidebar
-render_sidebar()
 
 # -------------------------------------------------------------------
 # DATA CACHING & INITIALIZATION

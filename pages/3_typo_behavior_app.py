@@ -1,33 +1,35 @@
+# =====================================================================
+# STREAMLIT APP: 3_typo_behavior_app.py (The View)
+# Strict Decoupling: Only UI and Plotly visualizations live here.
+# =====================================================================
 import streamlit as st
 import plotly.express as px
 import sys
 import os
 
-# =====================================================================
-# STREAMLIT APP: 3_typo_behavior_app.py (The View)
-# Strict Decoupling: Only UI and Plotly visualizations live here.
-# =====================================================================
+# --- PATH CONFIGURATION ---
+# This tells the script to look one folder up to find the 'loaders' directory
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Path management to import loaders
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from loaders.typo_behavior_loader import load_all_datasets, load_ml_pipeline
 
-# --- PAGE CONFIGURATION & CROSS-LINKING ---
-st.set_page_config(page_title="Keystroke Dynamics", page_icon="⌨️", layout="wide")
+from career_hub_sidebar import apply_global_settings, render_sidebar
+
+########################################
+#        APPLY GLOBAL SETTINGS         #
+########################################
+apply_global_settings("Neuro-Edu | What affects gas prices?")
 
 ########################################
 # RENDER THE SIDEBAR FOR DATA-PROJECTS #
 ########################################
-# Point Python to the root directory so it can find the sidebar file
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from data_projects_sidebar import render_sidebar
 render_sidebar()
-
-st.title("⌨️ Keystroke Dynamics: Real-Time Typo Prediction")
 
 # --- INITIALIZE DATA & MODELS ---
 df_cmu, df_keyrecs, df_aalto, df_clarkson = load_all_datasets()
 ml_model = load_ml_pipeline()
+
+st.title("⌨️ Keystroke Dynamics: Real-Time Typo Prediction")
 
 # --- THE 4-TAB ANALYTICAL PROGRESSION ---
 tab1, tab2, tab3, tab4 = st.tabs([
