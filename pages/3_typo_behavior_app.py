@@ -34,21 +34,25 @@ ml_model = load_ml_pipeline()
 st.title("Typo Behavior & Cognitive Load Dashboard")
 st.markdown("Analyze microscopic keystroke events, backspace footprints, and cognitive misfires.")
 
-# Local Dataset Controller
-dataset_choice = st.selectbox(
-    "Select Dataset to Analyze:",
-    ("KeyRecs (Micro-Typos)", "Clarkson (Cognitive)", "Aalto (Macro-Baseline)", "CMU (Muscle Memory)")
-)
+# --- UNIFIED BIG DATA LOADER ---
+base_dir = os.path.join(os.path.dirname(__file__), '..', 'documents')
 
-# Route the selected dataframe to our active variable
-if dataset_choice == "KeyRecs (Micro-Typos)":
-    active_df = df_keyrecs
-elif dataset_choice == "Clarkson (Cognitive)":
-    active_df = df_clarkson
-elif dataset_choice == "Aalto (Macro-Baseline)":
-    active_df = df_aalto
-else:
-    active_df = df_cmu
+with st.spinner("Loading unified Master Dataset into memory..."):
+    df_cmu = load_cmu(base_dir) 
+    df_keyrecs = load_keyrecs(base_dir)
+    df_aalto = load_aalto(base_dir)
+    df_clarkson = load_clarkson(base_dir)
+    
+    # Gather all successfully loaded datasets
+    all_dfs = [df for df in [df_cmu, df_keyrecs, df_aalto, df_clarkson] if not df.empty]
+    
+    # Concatenate into one massive matrix. 
+    # Pandas will automatically align the matching Master Schema columns.
+    if all_dfs:
+        active_df = pd.concat(all_dfs, ignore_index=True)
+    else:
+        active_df = pd.DataFrame()
+        st.error("No datasets found. Please check the documents folder.")
 
 
 if active_df is not None and not active_df.empty:
@@ -299,38 +303,43 @@ with tab2:
     # --- SECTION C: STATISTICAL BOUNDARIES (T-TEST) ---
     st.divider()
     st.subheader("3. Statistical Boundaries (Welch's T-Test)")
-    st.markdown("Mathematically proving the boundary between Muscle Memory (CMU) and Cognitive Load (Aalto). An independent t-test confirms if the latency difference between password recall and free-text generation is statistically significant.")
+    st.markdown("Mathematically proving the boundary between Muscle Memory (CMU) and Cognitive Load (Aalto).")
     
-    if df_cmu is not None and df_aalto is not None and not df_cmu.empty and not df_aalto.empty:
-        # 1. Isolate clean flight time arrays (removing pauses > 1000ms)
+    if not df_cmu.empty and not active_df.empty and 'Flight_Time' in active_df.columns:
+        # 1. Isolate clean flight time array for CMU
         cmu_array = df_cmu[(df_cmu['Flight_Time'] > 0) & (df_cmu['Flight_Time'] < 1000)]['Flight_Time'].dropna()
-        aalto_array = df_aalto[(df_aalto['Flight_Time'] > 0) & (df_aalto['Flight_Time'] < 1000)]['Flight_Time'].dropna()
         
-        # 2. Run Welch's T-Test (equal_var=False handles the massive sample size difference)
-        if not cmu_array.empty and not aalto_array.empty:
-            t_stat, p_val = stats.ttest_ind(aalto_array, cmu_array, equal_var=False)
+        # 2. Extract ONLY Aalto from the unified Master Dataset
+        aalto_subset = active_df[active_df['Dataset'] == 'Aalto']
+        
+        if not aalto_subset.empty:
+            aalto_array = aalto_subset[(aalto_subset['Flight_Time'] > 0) & (aalto_subset['Flight_Time'] < 1000)]['Flight_Time'].dropna()
             
-            # 3. Render the statistical readout
-            t_col1, t_col2, t_col3, t_col4 = st.columns(4)
-            t_col1.metric("CMU Mean (Muscle)", f"{cmu_array.mean():.1f} ms")
-            t_col2.metric("Aalto Mean (Cognitive)", f"{aalto_array.mean():.1f} ms")
-            t_col3.metric("T-Statistic", f"{t_stat:.2f}")
-            
-            # Format p-value output
-            if p_val < 0.0001:
-                p_display = "< 0.0001"
-                significance = "Significant Boundary"
-            else:
-                p_display = f"{p_val:.4f}"
-                significance = "Not Significant" if p_val >= 0.05 else "Significant"
+            # 3. Run Welch's T-Test (equal_var=False handles the massive sample size difference)
+            if not cmu_array.empty and not aalto_array.empty:
+                t_stat, p_val = stats.ttest_ind(aalto_array, cmu_array, equal_var=False)
                 
-            t_col4.metric("P-Value", p_display, delta=significance, delta_color="normal" if p_val < 0.05 else "inverse")
-            
-            # 4. State the finding
-            if p_val < 0.05:
-                st.success(f"**Conclusion:** The data proves a statistically significant boundary between motor execution and cognitive generation. Free-text typing requires significantly more mental overhead, resulting in an average latency penalty of **{aalto_array.mean() - cmu_array.mean():.1f} ms** per keystroke.")
-            else:
-                st.warning("**Conclusion:** No statistically significant difference found. Ensure sample sizes are large enough.")
+                # 4. Render the statistical readout
+                t_col1, t_col2, t_col3, t_col4 = st.columns(4)
+                t_col1.metric("CMU Mean (Muscle)", f"{cmu_array.mean():.1f} ms")
+                t_col2.metric("Aalto Mean (Cognitive)", f"{aalto_array.mean():.1f} ms")
+                t_col3.metric("T-Statistic", f"{t_stat:.2f}")
+                
+                # Format p-value output
+                if p_val < 0.0001:
+                    p_display = "< 0.0001"
+                    significance = "Significant Boundary"
+                else:
+                    p_display = f"{p_val:.4f}"
+                    significance = "Not Significant" if p_val >= 0.05 else "Significant"
+                    
+                t_col4.metric("P-Value", p_display, delta=significance, delta_color="normal" if p_val < 0.05 else "inverse")
+                
+                # 5. State the finding
+                if p_val < 0.05:
+                    st.success(f"**Conclusion:** The data proves a statistically significant boundary between motor execution and cognitive generation. Free-text typing requires significantly more mental overhead, resulting in an average latency penalty of **{aalto_array.mean() - cmu_array.mean():.1f} ms** per keystroke.")
+                else:
+                    st.warning("**Conclusion:** No statistically significant difference found. Ensure sample sizes are large enough.")
 
 # ---------------------------------------------------------------------
 # TAB 3: PHASES 3 & 4 (Taxonomy & Feature Engineering)
