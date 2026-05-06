@@ -259,27 +259,23 @@ def load_all_datasets():
         return None, None, None, None
         
     # --- Apply Phase 1A Loading the Data ---
-    df_keyrecs = load_keyrecs(base_dir)
-    df_aalto = load_aalto(base_dir)
     df_cmu = load_cmu(base_dir)
+    df_keyrecs = load_keyrecs(base_dir)
     df_clarkson = load_clarkson(base_dir)
+    df_aalto = load_aalto(base_dir)
 
     # --- Apply Phase 1B Typo Detection (Backspace Footprints) ---
     # KeyRecs remains excluded as it is a macro-digraph dataset.
     df_clarkson = apply_typo_taxonomy(df_clarkson)
-    # df_aalto = apply_typo_taxonomy(df_aalto)
     
     # --- Apply Phase 1C Word Boundaries ---
     df_clarkson = build_word_boundaries(df_clarkson)
-    # df_aalto = build_word_boundaries(df_aalto)
     
     # --- Apply Phase 1C Levenshtein Anomaly Detection ---
     df_clarkson = flag_levenshtein_anomalies(df_clarkson)
-    # df_aalto = flag_levenshtein_anomalies(df_aalto)
     
     # --- Apply Phase 1C Historical Consistency Filter ---
     df_clarkson = apply_historical_consistency_filter(df_clarkson)
-    # df_aalto = apply_historical_consistency_filter(df_aalto)
 
     df_cmu = calculate_muscle_memory_decay(df_cmu)
 
