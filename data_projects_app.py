@@ -26,7 +26,8 @@ projects = get_project_descriptions()
 st.set_page_config(
     page_title=f"{bio['name']} | Data Projects",
     page_icon="📊",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded" # Add this line!
 )
 
 ########################################
