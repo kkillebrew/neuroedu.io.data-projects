@@ -103,9 +103,17 @@ def load_keyrecs(base_dir):
 @st.cache_data(show_spinner=False)
 def load_cmu(filepath="documents/cmu_baseline.parquet"):
     """ Loads CMU Benchmark. Melts password repetitions into single keystrokes. """
-    if not os.path.exists(filepath):
+    # Explicitly target the file itself
+    filepath = os.path.join(base_dir, 'cmu_baseline.parquet')
+    
+    if os.path.exists(filepath):
+        df = pd.read_parquet(filepath)
+        return df
+    else:
         return pd.DataFrame()
 
+    # INCORRECT: This tells PyArrow to read the entire documents folder
+    filepath = base_dir 
     df = pd.read_parquet(filepath)
     
     # 1. Define the password sequence used in the CMU dataset
