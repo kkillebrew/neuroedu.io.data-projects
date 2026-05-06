@@ -6,6 +6,7 @@ import streamlit as st
 import plotly.express as px
 import sys
 import os
+import pandas as pd
 
 # --- PATH CONFIGURATION ---
 # This tells the script to look one folder up to find the 'loaders' directory
@@ -18,7 +19,7 @@ from data_projects_sidebar import apply_global_settings, render_sidebar
 ########################################
 #        APPLY GLOBAL SETTINGS         #
 ########################################
-apply_global_settings("Neuro-Edu | What affects gas prices?")
+apply_global_settings("Neuro-Edu | Why do we make typos?")
 
 ########################################
 # RENDER THE SIDEBAR FOR DATA-PROJECTS #
@@ -29,7 +30,66 @@ render_sidebar()
 df_cmu, df_keyrecs, df_aalto, df_clarkson = load_all_datasets()
 ml_model = load_ml_pipeline()
 
-st.title("⌨️ Keystroke Dynamics: Real-Time Typo Prediction")
+st.title("Typo Behavior & Cognitive Load Dashboard")
+st.markdown("Analyze microscopic keystroke events, backspace footprints, and cognitive misfires.")
+
+# Local Dataset Controller
+dataset_choice = st.selectbox(
+    "Select Dataset to Analyze:",
+    ("KeyRecs (Micro-Typos)", "Clarkson (Cognitive)", "Aalto (Macro-Baseline)", "CMU (Muscle Memory)")
+)
+
+# Route the selected dataframe to our active variable
+if dataset_choice == "KeyRecs (Micro-Typos)":
+    active_df = df_keyrecs
+elif dataset_choice == "Clarkson (Cognitive)":
+    active_df = df_clarkson
+elif dataset_choice == "Aalto (Macro-Baseline)":
+    active_df = df_aalto
+else:
+    active_df = df_cmu
+
+
+if active_df is not None and not active_df.empty:
+    
+    # Calculate high-level metrics safely
+    total_events = len(active_df)
+    
+    if 'Is_Typo' in active_df.columns:
+        total_typos = active_df['Is_Typo'].sum()
+        typo_rate = (total_typos / total_events) * 100 if total_events > 0 else 0
+    else:
+        total_typos = 0
+        typo_rate = 0.0
+
+    avg_flight = active_df['Flight_Time'].mean()
+
+    # Display Metrics in a 3-column layout
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Total Keystroke Events", f"{total_events:,}")
+    col2.metric("Detected Typos", f"{total_typos:,} ({typo_rate:.2f}%)")
+    col3.metric("Avg Flight Time", f"{avg_flight:.1f} ms")
+
+    # Show the Microscopic Event Log
+    st.divider()
+    
+    # Header and toggle switch aligned horizontally
+    head_col, toggle_col = st.columns([3, 1])
+    with head_col:
+        st.subheader(f"Microscopic Event Log: {dataset_choice.split(' ')[0]}")
+    with toggle_col:
+        show_only_typos = st.checkbox("Show only flagged typos")
+    
+    if show_only_typos and 'Is_Typo' in active_df.columns:
+        display_df = active_df[active_df['Is_Typo'] == True]
+    else:
+        display_df = active_df
+        
+    # Render the interactive dataframe
+    st.dataframe(display_df, use_container_width=True, height=500)
+
+else:
+    st.warning("Data not loaded. Please verify the Parquet files are in the 'documents/' folder.")
 
 # --- THE 4-TAB ANALYTICAL PROGRESSION ---
 tab1, tab2, tab3, tab4 = st.tabs([
