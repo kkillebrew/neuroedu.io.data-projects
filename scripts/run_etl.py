@@ -36,10 +36,27 @@ def ingest_clarkson_I(tar_path):
                 user_id = f"C1_{member.name.split('/')[1]}" # Extract user ID from the path
                 f = tar.extractfile(member)
                 if f:
-                    content = f.read().decode('utf-8')
-                    # Standard parsing logic goes here depending on the exact comma/colon delimiter pattern
-                    # For now, we will create a placeholder dataframe structure to merge
-                    pass
+                    content = f.read().decode('utf-8').strip()
+                    
+                    # 1. Split the massive string into individual comma-separated events
+                    events = content.split(',')
+                    parsed_data = []
+                    
+                    # 2. Iterate and split each event by its colon delimiter
+                    for event in events:
+                        parts = event.split(':')
+                        # Ensure it is a valid 4-part event block before parsing
+                        if len(parts) >= 3 and parts[0].isdigit():
+                            action = int(parts[0])
+                            key_code = parts[1]
+                            timestamp = float(parts[2]) # Unix timestamp in ms
+                            parsed_data.append([timestamp, action, key_code])
+                    
+                    # 3. Convert the user's parsed array into a dataframe
+                    if parsed_data:
+                        df_user = pd.DataFrame(parsed_data, columns=['Timestamp', 'Action', 'Key_Code'])
+                        df_user['PARTICIPANT_ID'] = user_id
+                        dfs.append(df_user)
     return pd.DataFrame() # Replace with actual concat once internal structure is fully mapped
 
 # ==========================================
