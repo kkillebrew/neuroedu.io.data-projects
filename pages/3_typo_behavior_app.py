@@ -13,7 +13,10 @@ import pandas as pd
 # This tells the script to look one folder up to find the 'loaders' directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from loaders.typo_behavior_loader import load_all_datasets, load_ml_pipeline, calculate_muscle_memory_decay
+# from loaders.typo_behavior_loader import load_all_datasets, load_ml_pipeline, calculate_muscle_memory_decay
+from loaders.typo_behavior_loader import (
+    load_cmu, load_keyrecs, load_aalto, load_clarkson, calculate_muscle_memory_decay
+)
 
 from data_projects_sidebar import apply_global_settings, render_sidebar
 
