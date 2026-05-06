@@ -103,11 +103,124 @@ tab1, tab2, tab3, tab4 = st.tabs([
 # TAB 1: PHASE 1 (Dataset Overview)
 # ---------------------------------------------------------------------
 with tab1:
-    
-
     st.header("Phase 1: Cloud Pre-Processing & Ingestion")
     st.write("Overview of the massive datasets downsampled via Colab and ingested as Parquet files.")
-    # TODO: Display head() of dataframes to show schema unification
+    
+    # --- SCHEMA UNIFICATION PROOF (Check off the TODO!) ---
+    with st.expander("🔍 Verify Schema Unification"):
+        st.markdown("Proof that disparate datasets were successfully normalized into the Master Data Schema:")
+        
+        schema_col1, schema_col2 = st.columns(2)
+        with schema_col1:
+            st.caption("Clarkson Dataset (Raw Keystrokes)")
+            if not df_clarkson.empty:
+                st.dataframe(df_clarkson.head(3), use_container_width=True)
+        with schema_col2:
+            st.caption("Aalto Dataset (Macro Baseline)")
+            if not df_aalto.empty:
+                st.dataframe(df_aalto.head(3), use_container_width=True)
+
+    # --- TAB 1: DATASET OVERVIEW & PHASE 1 ANALYTICS ---
+    with tab1:
+        st.subheader(f"Microscopic Event Log: {dataset_choice.split(' ')[0]}")
+        st.markdown("Analyze raw chronologies, backspace footprints, and behavioral error classifications.")
+        
+        # --- SMALL MULTIPLES (TRELLIS) CORRELATION CHART ---
+        st.markdown("### Cross-Dataset Biometric Correlations")
+        st.markdown("This Small Multiples chart plots **Dwell Time vs. Flight Time**. By standardizing the axes across different datasets, we can visually compare the fundamental shape of human typing behavior regardless of the data's origin.")
+        
+        # Gather a random sample from each dataset to keep the browser lightning fast
+        multiples_data = []
+        
+        # We loop through the 3 datasets that utilize the Dwell/Flight master schema
+        for df, name in [(df_clarkson, "Clarkson (Cognitive)"), (df_aalto, "Aalto (Macro)"), (df_keyrecs, "KeyRecs (Digraph)")]:
+            if df is not None and not df.empty and 'Flight_Time' in df.columns and 'Dwell_Time' in df.columns:
+                
+                # Filter out extreme outliers (e.g., getting up for a coffee) to see the true cluster
+                clean_df = df[(df['Flight_Time'] > 0) & (df['Flight_Time'] < 800) & 
+                              (df['Dwell_Time'] > 0) & (df['Dwell_Time'] < 300)].copy()
+                
+                if not clean_df.empty:
+                    # Sample exactly 2,000 points per dataset so the plot is perfectly balanced
+                    sample_size = min(len(clean_df), 2000)
+                    sampled = clean_df.sample(n=sample_size, random_state=42)
+                    sampled['Source_Dataset'] = name
+                    multiples_data.append(sampled)
+        
+        # Render the Plotly Facet Grid
+        if multiples_data:
+            combined_multiples = pd.concat(multiples_data, ignore_index=True)
+            
+            # facet_col is the magic Plotly parameter that creates Small Multiples
+            fig_trellis = px.scatter(
+                combined_multiples, 
+                x="Dwell_Time", 
+                y="Flight_Time", 
+                color="Source_Dataset",
+                facet_col="Source_Dataset",  # <-- CREATES THE GRID
+                opacity=0.4,                 # Transparency shows density
+                title="Universal Keystroke Signatures (Dwell vs. Flight)",
+                labels={"Dwell_Time": "Dwell Time (ms)", "Flight_Time": "Flight Time (ms)"},
+                trendline="ols"              # Draws the linear correlation line
+            )
+            
+            # Hide the legend since the column titles already explain which dataset is which
+            fig_trellis.update_layout(showlegend=False, plot_bgcolor='rgba(0,0,0,0)')
+            fig_trellis.update_xaxes(showgrid=True, gridcolor='rgba(128,128,128,0.2)')
+            fig_trellis.update_yaxes(showgrid=True, gridcolor='rgba(128,128,128,0.2)')
+            
+            st.plotly_chart(fig_trellis, use_container_width=True)
+            st.divider()
+
+        # Phase 1 Visual Analytics
+        if 'Is_Typo' in active_df.columns and active_df['Is_Typo'].any():
+            col_chart1, col_chart2 = st.columns(2)
+            
+            with col_chart1:
+                # Chart 1: Typo Taxonomy Pie Chart
+                if 'Typo_Category' in active_df.columns:
+                    category_df = active_df[active_df['Typo_Category'] != 'None']
+                    if not category_df.empty:
+                        cat_counts = category_df['Typo_Category'].value_counts().reset_index()
+                        cat_counts.columns = ['Category', 'Count']
+                        fig_cat = px.pie(
+                            cat_counts, names='Category', values='Count', 
+                            title="Typo Behavioral Taxonomy Distribution", 
+                            hole=0.4, color_discrete_sequence=px.colors.sequential.Teal
+                        )
+                        st.plotly_chart(fig_cat, use_container_width=True)
+                    else:
+                        st.info("No spatial/cognitive categorizations found in this dataset.")
+                        
+            with col_chart2:
+                # Chart 2: Latency Cost of Typos (Box Plot)
+                # We cap at 1500ms to filter out pauses/getting up from the desk
+                flight_df = active_df[active_df['Flight_Time'] < 1500].copy()
+                # Map booleans to readable strings for the chart legend
+                flight_df['Event_Type'] = flight_df['Is_Typo'].map({True: 'Typo / Backspace Trigger', False: 'Valid Keystroke'})
+                
+                fig_flight = px.box(
+                    flight_df, x='Event_Type', y='Flight_Time', 
+                    title="Flight Time Latency: Valid vs. Typos", 
+                    color='Event_Type', color_discrete_sequence=['#00e676', '#ff5252']
+                )
+                st.plotly_chart(fig_flight, use_container_width=True)
+                
+        st.divider()
+        
+        # 2. Interactive Raw Dataframe
+        head_col, toggle_col = st.columns([3, 1])
+        with head_col:
+            st.markdown("### Raw Event Log")
+        with toggle_col:
+            show_only_typos = st.checkbox("Show only flagged typos", value=True)
+        
+        if show_only_typos and 'Is_Typo' in active_df.columns:
+            display_df = active_df[active_df['Is_Typo'] == True]
+        else:
+            display_df = active_df
+            
+        st.dataframe(display_df, use_container_width=True, height=400)
 
 # ---------------------------------------------------------------------
 # TAB 2: PHASE 2 (Macro-Level Benchmarks)
@@ -115,7 +228,7 @@ with tab1:
 with tab2:
     # 1. Run the backend calculation (Now safely cached!)
     decay_df = calculate_muscle_memory_decay(df_cmu)
-    
+
     st.header("Phase 2: Muscle Memory vs. Cognitive Load")
     st.write("Establishing the statistical boundaries of 'normal' typing.")
     # TODO: Plotly graphs of CMU decay curve and Aalto t-tests
