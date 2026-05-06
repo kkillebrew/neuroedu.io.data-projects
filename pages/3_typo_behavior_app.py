@@ -221,6 +221,12 @@ with tab1:
         else:
             display_df = active_df
             
+        # Safely render the first 1000 rows to prevent Arrow serialization OOM crashes
+        if show_only_typos and 'Is_Typo' in active_df.columns:
+            display_df = active_df[active_df['Is_Typo'] == True].head(1000)
+        else:
+            display_df = active_df.head(1000)
+            
         st.dataframe(display_df, use_container_width=True, height=400)
 
 # ---------------------------------------------------------------------
