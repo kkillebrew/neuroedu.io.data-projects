@@ -150,3 +150,38 @@ if not df_clarkson_raw.empty:
     print(f"✅ Saved Clarkson: {len(df_merged)} rows.")
 
 print("ETL Pipeline Complete!")
+
+# ==========================================
+# 3. BUILD THE UNIFIED MASTER DATASET
+# ==========================================
+print("Combining all datasets into Master Matrix...")
+
+# Load all processed files
+cmu_path = os.path.join(base_dir, 'cmu_baseline.parquet')
+keyrecs_path = os.path.join(base_dir, 'keyrecs_micro.parquet')
+aalto_path = os.path.join(base_dir, 'aalto_processed.parquet')
+clarkson_path = os.path.join(base_dir, 'clarkson_processed.parquet')
+
+master_dfs = []
+
+for path, name in [(cmu_path, 'CMU'), (keyrecs_path, 'KeyRecs'), (aalto_path, 'Aalto'), (clarkson_path, 'Clarkson')]:
+    if os.path.exists(path):
+        df_temp = pd.read_parquet(path)
+        master_dfs.append(df_temp)
+        print(f"Loaded {name} for Master Merge.")
+
+if master_dfs:
+    # Concatenate on GitHub's 7GB RAM runner
+    df_master = pd.concat(master_dfs, ignore_index=True)
+    
+    # Apply the memory downcasting (shrinks float64 to float32, strings to categories)
+    for col in df_master.columns:
+        if df_master[col].dtype == 'float64':
+            df_master[col] = df_master[col].astype('float32')
+        elif df_master[col].dtype == 'object':
+            df_master[col] = df_master[col].astype('category')
+            
+    # Export the single, unified UI matrix
+    master_output = os.path.join(base_dir, 'master_dataset.parquet')
+    df_master.to_parquet(master_output, index=False)
+    print(f"✅ Master Dataset Exported! Total rows: {len(df_master)}")
