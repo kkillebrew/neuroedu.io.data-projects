@@ -44,7 +44,7 @@ from loaders.NBA_GOAT_predictor_loader import (
     generate_and_train_fan_classifier, predict_goat_ml, calculate_objective_goat_ranking
 )
 
-from career_hub_sidebar import apply_global_settings, render_sidebar
+from data_projects_sidebar import apply_global_settings, render_sidebar
 
 ########################################
 #        APPLY GLOBAL SETTINGS         #

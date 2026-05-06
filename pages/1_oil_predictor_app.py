@@ -24,7 +24,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from loaders.oil_predictor_loader import fetch_real_oil_data, fetch_ripple_data
 
-from career_hub_sidebar import apply_global_settings, render_sidebar
+from data_projects_sidebar import apply_global_settings, render_sidebar
 
 ########################################
 #        APPLY GLOBAL SETTINGS         #

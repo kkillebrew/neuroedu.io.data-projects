@@ -13,7 +13,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from loaders.typo_behavior_loader import load_all_datasets, load_ml_pipeline
 
-from career_hub_sidebar import apply_global_settings, render_sidebar
+from data_projects_sidebar import apply_global_settings, render_sidebar
 
 ########################################
 #        APPLY GLOBAL SETTINGS         #
