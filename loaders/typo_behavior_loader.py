@@ -72,18 +72,27 @@ def load_aalto(filepath="documents/aalto_macro.parquet"):
 # ---------------------------------------------------------------------
 @st.cache_data(show_spinner=False)
 def load_keyrecs(base_dir):
+    """ Loads KeyRecs Digraph data. Cannot be used for word reconstruction. """
     filepath = os.path.join(base_dir, 'keyrecs_micro.parquet')
+    
     if not os.path.exists(filepath):
         return pd.DataFrame()
 
-    df = pd.read_parquet(filepath)
+    try:
+        df = pd.read_parquet(filepath)
+    except Exception as e:
+        st.error(f"⚠️ KeyRecs Parquet Corrupted. Please re-download from Colab.")
+        return pd.DataFrame()
+
+    # Rename to match Master Schema where possible
+    # In this dataset, DU.key1.key1 = Dwell Time, DD.key1.key2 = Flight Time
     df = df.rename(columns={
-        'participant_id': 'User_ID',
-        'keycode': 'Key_Code',
-        'press_time': 'Timestamp_Press',
-        'release_time': 'Timestamp_Release'
+        'participant': 'User_ID',
+        'key1': 'Key_Char',
+        'DU.key1.key1': 'Dwell_Time',
+        'DD.key1.key2': 'Flight_Time'
     })
-    
+
     df['Dataset'] = 'KeyRecs'
     df['Device_Type'] = 'desktop' 
     df['Task_Type'] = 'free_text'
@@ -92,20 +101,38 @@ def load_keyrecs(base_dir):
     if 'Key_Char' not in df.columns:
         df['Key_Char'] = np.nan
 
-    df['Dwell_Time'] = df['Timestamp_Release'] - df['Timestamp_Press']
-    df = df.sort_values(by=['User_ID', 'Timestamp_Press'])
-    df['Flight_Time'] = df.groupby('User_ID')['Timestamp_Press'].diff().fillna(0)
+    # Convert seconds to milliseconds for our standard
+    if 'Dwell_Time' in df.columns:
+        df['Dwell_Time'] = df['Dwell_Time'] * 1000
+    if 'Flight_Time' in df.columns:
+        df['Flight_Time'] = df['Flight_Time'] * 1000
 
-    session_starts = df.groupby('User_ID')['Timestamp_Press'].transform('min')
-    df['Delta_Milliseconds'] = df['Timestamp_Press'] - session_starts
+    # Fill Missing/Static Categorical Data
+    df['Dataset'] = 'KeyRecs'
+    df['Device_Type'] = 'desktop' 
+    df['Task_Type'] = 'free_text'
+    df['User_ID'] = df['User_ID'].fillna('Unknown_User').astype(str)
+    df['Session_ID'] = df['Dataset'] + '_' + df['User_ID']
+    df['Key_Code'] = -1
+    df['Timestamp_Press'] = 0.0
+    df['Timestamp_Release'] = df['Dwell_Time']
+    df['Delta_Milliseconds'] = 0.0
 
-    user_median_dwell = df.groupby('User_ID')['Dwell_Time'].transform('median')
-    df['Dwell_Time'] = df['Dwell_Time'].fillna(user_median_dwell).fillna(100.0)
+    # Initialize Phase 2 Placeholder Columns (Will remain empty)
+    df['Intended_Char'] = np.nan
+    df['Typed_Char'] = np.nan
+    df['Is_Typo'] = False
 
-    df['Intended_Char'], df['Typed_Char'], df['Is_Typo'] = np.nan, np.nan, False
-
-    master_cols = ['Dataset', 'Session_ID', 'User_ID', 'Device_Type', 'Task_Type', 'Key_Code', 'Key_Char', 'Timestamp_Press', 'Timestamp_Release', 'Delta_Milliseconds', 'Dwell_Time', 'Flight_Time', 'Intended_Char', 'Typed_Char', 'Is_Typo']
-    return df[master_cols]
+    master_cols = [
+        'Dataset', 'Session_ID', 'User_ID', 'Device_Type', 'Task_Type', 
+        'Key_Code', 'Key_Char', 'Timestamp_Press', 'Timestamp_Release', 
+        'Delta_Milliseconds', 'Dwell_Time', 'Flight_Time', 
+        'Intended_Char', 'Typed_Char', 'Is_Typo'
+    ]
+    
+    # Only return columns that successfully mapped
+    available_cols = [col for col in master_cols if col in df.columns]
+    return df[available_cols]
 
 # 3: CMU data loader
 # ---------------------------------------------------------------------
@@ -262,29 +289,29 @@ def load_all_datasets():
         st.error("Data files missing from documents/ directory. Please run Phase 0 in Colab first.")
         return None, None, None, None
         
-    # Apply Phase 1A Loading the Data
+    # --- Apply Phase 1A Loading the Data ---
     df_keyrecs = load_keyrecs(base_dir)
     df_aalto = load_aalto(base_dir)
     df_cmu = load_cmu(base_dir)
     df_clarkson = load_clarkson(base_dir)
 
-    # Apply Phase 1B Typo Detection (Backspace Footprints) 
-    df_keyrecs = apply_typo_taxonomy(df_keyrecs)
+    # --- Apply Phase 1B Typo Detection (Backspace Footprints) ---
+    # KeyRecs remains excluded as it is a macro-digraph dataset.
     df_clarkson = apply_typo_taxonomy(df_clarkson)
-
-    # Apply Phase 1C Word Boundaries
-    df_keyrecs = build_word_boundaries(df_keyrecs)
+    df_aalto = apply_typo_taxonomy(df_aalto)
+    
+    # --- Apply Phase 1C Word Boundaries ---
     df_clarkson = build_word_boundaries(df_clarkson)
     df_aalto = build_word_boundaries(df_aalto)
-
-    # Apply Phase 1C Levenshtein Anomaly Detection
-    df_keyrecs = flag_levenshtein_anomalies(df_keyrecs)
-    df_clarkson = flag_levenshtein_anomalies(df_clarkson)
-
-    # Apply Phase 1C Historical Consistency Filter
-    df_keyrecs = apply_historical_consistency_filter(df_keyrecs)
-    df_clarkson = apply_historical_consistency_filter(df_clarkson)
     
+    # --- Apply Phase 1C Levenshtein Anomaly Detection ---
+    df_clarkson = flag_levenshtein_anomalies(df_clarkson)
+    df_aalto = flag_levenshtein_anomalies(df_aalto)
+    
+    # --- Apply Phase 1C Historical Consistency Filter ---
+    df_clarkson = apply_historical_consistency_filter(df_clarkson)
+    df_aalto = apply_historical_consistency_filter(df_aalto)
+
     return df_cmu, df_keyrecs, df_aalto, df_clarkson
 
 # ---------------------------------------------------------------------
