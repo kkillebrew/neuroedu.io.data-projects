@@ -70,37 +70,42 @@ def load_aalto(filepath="documents/aalto_macro.parquet"):
 
 # 2: keyrecs data loader
 # ---------------------------------------------------------------------
-@st.cache_data(show_spinner="Loading optimized Parquet chunks into RAM...")
-def load_all_datasets():
-    """
-    Loads the highly compressed Parquet files generated in Colab.
-    MATLAB Analogy: Pre-allocating and loading data once at the start of 
-    a script so loops don't constantly hit the hard drive.
-    """
-    # Define paths to the 'documents/' folder
-    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'documents'))
+@st.cache_data(show_spinner=False)
+def load_keyrecs(base_dir):
+    filepath = os.path.join(base_dir, 'keyrecs_micro.parquet')
+    if not os.path.exists(filepath):
+        return pd.DataFrame()
+
+    df = pd.read_parquet(filepath)
+    df = df.rename(columns={
+        'participant_id': 'User_ID',
+        'keycode': 'Key_Code',
+        'press_time': 'Timestamp_Press',
+        'release_time': 'Timestamp_Release'
+    })
     
-    # Placeholder paths for our compressed datasets
-    cmu_path = os.path.join(base_dir, 'cmu_baseline.parquet')
-    keyrecs_path = os.path.join(base_dir, 'keyrecs_micro.parquet')
-    aalto_path = os.path.join(base_dir, 'aalto_macro.parquet')
-    
-    try:
-        # df_cmu = pd.read_parquet(cmu_path)
-        # df_keyrecs = pd.read_parquet(keyrecs_path)
-        # df_aalto = pd.read_parquet(aalto_path)
-        
-        # For barebones testing before files are uploaded:
-        df_cmu = pd.DataFrame({"Subject": [], "Rep": [], "H.period": []})
-        df_keyrecs = pd.DataFrame({"Timestamp": [], "Key_Char": []})
-        df_aalto = pd.DataFrame({"Device": [], "WPM": []})
-        
-    except FileNotFoundError:
-        st.error("Data files missing from documents/ directory. Please run Phase 0 in Colab first.")
-        return None, None, None
-        
-    # TODO: Schema Unification logic will go here
-    return df_cmu, df_keyrecs, df_aalto
+    df['Dataset'] = 'KeyRecs'
+    df['Device_Type'] = 'desktop' 
+    df['Task_Type'] = 'free_text'
+    df['User_ID'] = df['User_ID'].fillna('Unknown_User').astype(str)
+    df['Session_ID'] = df['Dataset'] + '_' + df['User_ID']
+    if 'Key_Char' not in df.columns:
+        df['Key_Char'] = np.nan
+
+    df['Dwell_Time'] = df['Timestamp_Release'] - df['Timestamp_Press']
+    df = df.sort_values(by=['User_ID', 'Timestamp_Press'])
+    df['Flight_Time'] = df.groupby('User_ID')['Timestamp_Press'].diff().fillna(0)
+
+    session_starts = df.groupby('User_ID')['Timestamp_Press'].transform('min')
+    df['Delta_Milliseconds'] = df['Timestamp_Press'] - session_starts
+
+    user_median_dwell = df.groupby('User_ID')['Dwell_Time'].transform('median')
+    df['Dwell_Time'] = df['Dwell_Time'].fillna(user_median_dwell).fillna(100.0)
+
+    df['Intended_Char'], df['Typed_Char'], df['Is_Typo'] = np.nan, np.nan, False
+
+    master_cols = ['Dataset', 'Session_ID', 'User_ID', 'Device_Type', 'Task_Type', 'Key_Code', 'Key_Char', 'Timestamp_Press', 'Timestamp_Release', 'Delta_Milliseconds', 'Dwell_Time', 'Flight_Time', 'Intended_Char', 'Typed_Char', 'Is_Typo']
+    return df[master_cols]
 
 # 3: CMU data loader
 # ---------------------------------------------------------------------
