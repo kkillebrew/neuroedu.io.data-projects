@@ -171,14 +171,14 @@ def load_cmu(filepath="documents/cmu_baseline.parquet"):
 # ---------------------------------------------------------------------
 @st.cache_data(show_spinner=False)
 def load_clarkson(base_dir):
-""" Loads the pre-merged, mathematically finalized Clarkson Dataset. """
-filepath = os.path.join(base_dir, 'clarkson_processed.parquet')
-
-if os.path.exists(filepath):
-    return pd.read_parquet(filepath)
-else:
-    # Failsafe
-    return pd.DataFrame()
+    """ Loads the pre-merged, mathematically finalized Clarkson Dataset. """
+    filepath = os.path.join(base_dir, 'clarkson_processed.parquet')
+    
+    if os.path.exists(filepath):
+        return pd.read_parquet(filepath)
+    else:
+        # Failsafe
+        return pd.DataFrame()
 
 # 5: Call and cache our four functions
 # ---------------------------------------------------------------------
