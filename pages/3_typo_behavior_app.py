@@ -36,23 +36,18 @@ st.markdown("Analyze microscopic keystroke events, backspace footprints, and cog
 
 # --- UNIFIED BIG DATA LOADER ---
 base_dir = os.path.join(os.path.dirname(__file__), '..', 'documents')
+master_path = os.path.join(base_dir, 'master_dataset.parquet')
 
 with st.spinner("Loading unified Master Dataset into memory..."):
-    df_cmu = load_cmu(base_dir) 
-    df_keyrecs = load_keyrecs(base_dir)
-    df_aalto = load_aalto(base_dir)
-    df_clarkson = load_clarkson(base_dir)
-    
-    # Gather all successfully loaded datasets
-    all_dfs = [df for df in [df_cmu, df_keyrecs, df_aalto, df_clarkson] if not df.empty]
-    
-    # Concatenate into one massive matrix. 
-    # Pandas will automatically align the matching Master Schema columns.
-    if all_dfs:
-        active_df = pd.concat(all_dfs, ignore_index=True)
+    if os.path.exists(master_path):
+        active_df = pd.read_parquet(master_path)
+        
+        # Since CMU is now inside the master matrix, we isolate it for the Tab 2 baseline tests
+        df_cmu = active_df[active_df['Dataset'] == 'CMU']
     else:
         active_df = pd.DataFrame()
-        st.error("No datasets found. Please check the documents folder.")
+        df_cmu = pd.DataFrame()
+        st.error("Master Dataset not found. Waiting for GitHub ETL pipeline to finish...")
 
 
 if active_df is not None and not active_df.empty:
@@ -225,7 +220,7 @@ with tab1:
         else:
             display_df = active_df
             
-        # Safely render the first 1000 rows to prevent Arrow serialization OOM crashes
+        # Safely render only the first 1000 rows to prevent serialization crashes
         if show_only_typos and 'Is_Typo' in active_df.columns:
             display_df = active_df[active_df['Is_Typo'] == True].head(1000)
         else:
