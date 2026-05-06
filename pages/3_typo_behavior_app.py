@@ -340,6 +340,61 @@ with tab3:
     st.write("Categorizing errors (Spatial vs. Cognitive) and mapping Fatigue U-Curves.")
     # TODO: Plotly correlation matrices and Rolling Variance (Burstiness) plots
 
+    st.header("Taxonomy Exemplars: Spatial vs. Cognitive Errors")
+    st.markdown("Visualizing the behavioral signatures of motor-execution slips versus top-down processing misfires.")
+    
+    # Ensure the taxonomy columns actually exist in the currently selected dataset
+    if 'Is_Typo' in active_df.columns and 'Typo_Category' in active_df.columns:
+        
+        # 1. Isolate the two error streams using boolean masking
+        df_spatial = active_df[active_df['Typo_Category'] == 'Spatial']
+        df_cognitive = active_df[active_df['Typo_Category'] == 'Cognitive']
+        
+        # 2. Build the side-by-side metric comparison
+        col_spat, col_cog = st.columns(2)
+        
+        with col_spat:
+            st.success("### Category A: Spatial Error")
+            st.markdown("**The Motor Slip:** The brain knew the correct sequence, but the motor execution missed the target by millimeters. Characterized by extremely fast realization and immediate correction.")
+            if not df_spatial.empty:
+                st.metric("Avg Reaction Time (Flight)", f"{df_spatial['Flight_Time'].mean():.1f} ms")
+                st.metric("Avg Hesitation (Dwell)", f"{df_spatial['Dwell_Time'].mean():.1f} ms")
+        
+        with col_cog:
+            st.error("### Category B: Cognitive Error")
+            st.markdown("**The Mental Misfire:** The brain temporarily lost the syntactic or spelling thread. Characterized by a massive latency spike as the brain recalculates, often resulting in multiple backspaces.")
+            if not df_cognitive.empty:
+                st.metric("Avg Reaction Time (Flight)", f"{df_cognitive['Flight_Time'].mean():.1f} ms")
+                st.metric("Avg Hesitation (Dwell)", f"{df_cognitive['Dwell_Time'].mean():.1f} ms")
+        
+        st.divider()
+        
+        # 3. Render the Latency Distribution Comparison
+        st.subheader("Latency Signatures: Reaction Time Variance")
+        st.markdown("Notice the tighter, faster clustering of Spatial errors compared to the wide, delayed spread of Cognitive errors.")
+        
+        valid_typos = active_df[active_df['Typo_Category'].isin(['Spatial', 'Cognitive'])]
+        
+        if not valid_typos.empty:
+            # Filter massive outliers (pauses > 2 seconds) for a clean visual distribution
+            plot_df = valid_typos[valid_typos['Flight_Time'] < 2000]
+            
+            fig_box = px.box(
+                plot_df, 
+                x="Typo_Category", 
+                y="Flight_Time",
+                color="Typo_Category",
+                title="Reaction Time Disparity Between Error Streams",
+                labels={"Typo_Category": "Error Origin", "Flight_Time": "Flight Time (ms)"},
+                color_discrete_map={"Spatial": "#00e676", "Cognitive": "#ff5252"}
+            )
+            
+            fig_box.update_layout(plot_bgcolor='rgba(0,0,0,0)', xaxis_showgrid=False)
+            st.plotly_chart(fig_box, use_container_width=True)
+            
+    else:
+        st.info("Run the Phase 1 Taxonomy pipeline to categorize errors before viewing exemplars.")
+
 # ---------------------------------------------------------------------
 # TAB 4: PHASE 5 (Predictive ML Modeling - Latency Mitigated)
 # ---------------------------------------------------------------------
