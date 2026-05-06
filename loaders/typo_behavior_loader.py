@@ -22,7 +22,10 @@ def load_aalto(filepath="documents/aalto_macro.parquet"):
     if not os.path.exists(filepath):
         return pd.DataFrame()
 
-    df = pd.read_parquet(filepath)
+    ### TEMPORARY TO TEST RAM bottleneck ###
+    # df = pd.read_parquet(filepath)
+    # Force pandas to only load a single column to test RAM limits
+    df = pd.read_parquet(filepath, columns=['Flight_Time'])
 
     # 1. Map to Master Schema Columns
     df = df.rename(columns={
