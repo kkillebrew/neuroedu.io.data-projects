@@ -113,13 +113,15 @@ def render_sidebar():
         </style>
     """, unsafe_allow_html=True)
 
-    # Create a two-column layout for the logo and the text
+    with st.sidebar:
+        # --- 2. MASTHEAD (Monet Brain PNG + Welcome) ---        
+        # Create a two-column layout for the logo and the text
         col1, col2 = st.columns([1, 2.5], gap="small")
         
         with col1:
             # Dynamically locate the image to prevent pathing errors
             base_dir = os.path.dirname(os.path.abspath(__file__))
-            logo_path = os.path.join(base_dir, "documents", "Neuro-Edu_Logo.png")
+            logo_path = os.path.join(base_dir, "documents", "Neuro-Edu_Logo_Transparent.png")
             
             if os.path.exists(logo_path):
                 st.image(logo_path, use_container_width=True)
