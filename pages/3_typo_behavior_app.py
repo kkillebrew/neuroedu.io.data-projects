@@ -127,7 +127,7 @@ with tab1:
 
     # --- TAB 1: DATASET OVERVIEW & PHASE 1 ANALYTICS ---
     with tab1:
-        st.subheader(f"Microscopic Event Log: {dataset_choice.split(' ')[0]}")
+        st.subheader("Microscopic Event Log: Master Matrix")
         st.markdown("Analyze raw chronologies, backspace footprints, and behavioral error classifications.")
         
         # --- SMALL MULTIPLES (TRELLIS) CORRELATION CHART ---
@@ -265,8 +265,8 @@ with tab2:
 
 
     # 1. Isolate CMU data from the Master Matrix to calculate the curve
-    df_cmu_only = df[df['Source_Dataset'] == 'CMU']
-    
+    df_cmu_only = active_df[active_df['Source_Dataset'] == 'CMU']
+        
     if not df_cmu_only.empty:
         # Calculate the decay using our standardized subset
         decay_df = calculate_muscle_memory_decay(df_cmu_only)
@@ -300,8 +300,8 @@ with tab2:
     ]
 
     for source_key, display_name in comparison_targets:
-        # Extract source-specific rows from our master 'df'
-        subset = df[df['Source_Dataset'] == source_key]
+        # Extract source-specific rows from our master 'active_df'
+        subset = active_df[active_df['Source_Dataset'] == source_key]
         
         if not subset.empty and 'Flight_DD_ms' in subset.columns:
             # Use standardized columns: Flight_DD_ms and Hold_Time_ms
@@ -421,7 +421,7 @@ with tab3:
                 y="Flight_DD_ms",
                 color="Typo_Category",
                 title="Reaction Time Disparity Between Error Streams",
-                labels={"Typo_Category": "Error Origin", "Flight_Time": "Flight Time (ms)"},
+                labels={"Typo_Category": "Error Origin", "Flight_DD_ms": "Flight Time (ms)"},
                 color_discrete_map={"Spatial": "#00e676", "Cognitive": "#ff5252"}
             )
             
