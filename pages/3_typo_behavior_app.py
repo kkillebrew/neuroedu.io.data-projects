@@ -35,8 +35,12 @@ st.markdown("Analyze microscopic keystroke events, backspace footprints, and cog
 base_dir = os.path.join(os.path.dirname(__file__), '..', 'documents')
 master_path = os.path.join(base_dir, 'master_dataset.parquet')
 
-@st.cache_data(show_spinner=False)
+@st.cache_resource(show_spinner=False)
 def load_master_matrix(filepath):
+    """ 
+    Uses cache_resource to store a global pointer to the data. 
+    This bypasses Streamlit's heavy hashing overhead, saving hundreds of MBs of RAM!
+    """
     if os.path.exists(filepath):
         return pd.read_parquet(filepath)
     return pd.DataFrame()
