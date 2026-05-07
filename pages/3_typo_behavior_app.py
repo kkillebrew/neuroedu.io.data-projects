@@ -70,8 +70,12 @@ if active_df is not None and not active_df.empty:
         total_typos = 0
         typo_rate = 0.0
 
-    # Use the standardized 'Flight_DD_ms'
-    avg_flight = active_df['Flight_DD_ms'].mean() if 'Flight_DD_ms' in active_df.columns else 0.0
+    # Fix the Flight Time Math: Filter out massive gaps between sessions (>2000ms)
+    if 'Flight_DD_ms' in active_df.columns:
+        valid_flights = active_df[(active_df['Flight_DD_ms'] > 0) & (active_df['Flight_DD_ms'] < 2000)]['Flight_DD_ms']
+        avg_flight = valid_flights.mean() if not valid_flights.empty else 0.0
+    else:
+        avg_flight = 0.0
 
     # Display Metrics in a 3-column layout
     col1, col2, col3 = st.columns(3)
@@ -81,22 +85,29 @@ if active_df is not None and not active_df.empty:
 
     # Show the Microscopic Event Log
     st.divider()
-    
-    # Header and toggle switch aligned horizontally
     head_col, toggle_col = st.columns([3, 1])
     with head_col:
         st.subheader("Microscopic Event Log: Master Matrix")
     with toggle_col:
         show_only_typos = st.checkbox("Show only flagged typos")
     
-    # Safely render only the first 1000 rows to prevent Arrow serialization OOM crashes
+    # Safely isolate the top 1000 rows
     if show_only_typos and 'Is_Typo' in active_df.columns:
         display_df = active_df[active_df['Is_Typo'] == True].head(1000)
     else:
         display_df = active_df.head(1000)
         
+    # --- FIX THE 'NONE' APOCALYPSE ---
+    # Hide the CMU-specific string columns so the UI only shows our clean, unified Master Schema
+    core_cols = [
+        'Source_Dataset', 'Participant_ID', 'Session_ID', 'Action_Type', 
+        'Key_Code', 'Key_Char', 'Timestamp_ms', 'Hold_Time_ms', 'Flight_DD_ms', 
+        'Is_Typo', 'Typo_Category'
+    ]
+    display_cols = [c for c in core_cols if c in display_df.columns]
+    
     # Render the interactive dataframe
-    st.dataframe(display_df, use_container_width=True, height=500)
+    st.dataframe(display_df[display_cols], use_container_width=True, height=500)
 
 else:
     st.warning("Data not loaded. Please verify the Parquet files are in the 'documents/' folder.")
