@@ -3,6 +3,7 @@ import numpy as np
 import difflib
 import streamlit as st
 import os
+from scripts.qwerty_mapper import classify_typo
 
 # =====================================================================
 # MODULE: typo_behavior_loader.py (The Model / Backend)
