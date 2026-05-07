@@ -397,21 +397,33 @@ with tab2:
     cmu_indices = active_df.index[active_df['Source_Dataset'] == 'CMU']
     if len(cmu_indices) > 0:
         df_cmu_only = active_df.loc[cmu_indices].copy()
-        decay_df = calculate_muscle_memory_decay(df_cmu_only)
         
-        if not decay_df.empty:
-            fig_decay = px.line(
-                decay_df, x='Attempt_Number', y='Avg_Flight_Time',
-                title=f"The '.tie5Roanl' Muscle Memory Curve<br><sup>Total Password Attempts: {len(df_cmu_only):,}</sup>",
-                labels={'Attempt_Number': 'Password Attempt #', 'Avg_Flight_Time': 'Avg Flight Time (ms)'},
-                color_discrete_sequence=['#00e676'] 
-            )
-            fig_decay.update_traces(
-                line=dict(width=3), 
-                hovertemplate="<b>Attempt %{x}</b><br>Avg Speed: %{y:.1f} ms<br><i>Average time taken across all subjects.</i><extra></extra>"
-            )
-            st.plotly_chart(fig_decay, use_container_width=True)
-            st.info("**Chart Guide:** As subjects memorized the sequence, their typing speed drastically improved, eventually flattening out at their biological execution speed limit.")
+        # Secure, direct calculation of the decay curve inside the app
+        if 'sessionIndex' in df_cmu_only.columns and 'rep' in df_cmu_only.columns:
+            df_cmu_only['sessionIndex'] = pd.to_numeric(df_cmu_only['sessionIndex'], errors='coerce')
+            df_cmu_only['rep'] = pd.to_numeric(df_cmu_only['rep'], errors='coerce')
+            
+            # Calculate the continuous Attempt Number (X-Axis)
+            df_cmu_only['Attempt_Number'] = ((df_cmu_only['sessionIndex'] - 1) * 50) + df_cmu_only['rep']
+            
+            # Group by Attempt Number using our newly fixed Flight_DD_ms (Y-Axis)
+            decay_df = df_cmu_only.groupby('Attempt_Number')['Flight_DD_ms'].mean().reset_index().dropna()
+            
+            if not decay_df.empty:
+                fig_decay = px.line(
+                    decay_df, x='Attempt_Number', y='Flight_DD_ms',
+                    title=f"The '.tie5Roanl' Muscle Memory Curve<br><sup>Total Password Attempts: {len(df_cmu_only):,}</sup>",
+                    labels={'Attempt_Number': 'Password Attempt #', 'Flight_DD_ms': 'Avg Flight Time (ms)'},
+                    color_discrete_sequence=['#00e676'] 
+                )
+                fig_decay.update_traces(
+                    line=dict(width=3), 
+                    hovertemplate="<b>Attempt %{x}</b><br>Avg Speed: %{y:.1f} ms<br><i>Average time taken across all subjects.</i><extra></extra>"
+                )
+                st.plotly_chart(fig_decay, use_container_width=True)
+                st.info("**Chart Guide:** As subjects memorized the sequence, their typing speed drastically improved, eventually flattening out at their biological execution speed limit.")
+            else:
+                st.warning("Could not calculate decay curve. Missing attempt numerical data.")
     else:
         st.warning("CMU dataset is required for the Muscle Memory baseline.")
 
