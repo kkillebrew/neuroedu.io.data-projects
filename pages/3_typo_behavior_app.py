@@ -5,6 +5,7 @@
 import streamlit as st
 import plotly.express as px
 import scipy.stats as stats
+import numpy as np
 import sys
 import os
 import pandas as pd
