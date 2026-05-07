@@ -46,11 +46,12 @@ def ingest_clarkson_I(tar_path):
     dfs = []
     with tarfile.open(tar_path, "r:*") as tar:
         for member in tar.getmembers():
+            if member.name.split('/')[-1].startswith('._'): continue
             if member.isfile() and member.name.endswith('.txt'): # Adjust extension if needed based on tar contents
                 user_id = f"C1_{member.name.split('/')[1]}" # Extract user ID from the path
                 f = tar.extractfile(member)
                 if f:
-                    content = f.read().decode('utf-8').strip()
+                    content = f.read().decode('utf-8', errors='ignore').strip()
                     
                     # 1. Split the massive string into individual comma-separated events
                     events = content.split(',')
