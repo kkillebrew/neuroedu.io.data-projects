@@ -123,8 +123,8 @@ if os.path.exists(clarkson_i_tar_path):
     with tarfile.open(clarkson_i_tar_path, 'r:gz') as tar:
         # FIX: Force extraction directly into your custom folder
         tar.extractall(path=clarkson_i_folder) 
-else:
-    print(f"Warning: {clarkson_i_tar_path} not found.")
+    else:
+        print(f"Warning: {clarkson_i_tar_path} not found.")
 
 if os.path.exists(clarkson_i_folder):
     df_c1 = ingest_clarkson_I(clarkson_i_folder)
