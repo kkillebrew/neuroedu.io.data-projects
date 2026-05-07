@@ -227,23 +227,6 @@ with tab1:
                 st.plotly_chart(fig_flight, use_container_width=True)
                 
         st.divider()
-        
-        # 2. Interactive Raw Dataframe
-        head_col, toggle_col = st.columns([3, 1])
-        with head_col:
-            st.markdown("### Raw Event Log")
-        with toggle_col:
-            # Added a unique key to prevent DuplicateWidgetID crash
-            show_only_typos_tab1 = st.checkbox("Show only flagged typos", value=True, key="tab1_typo_toggle")
-            
-        # Safely render only the first 1000 rows to prevent serialization crashes
-        if show_only_typos_tab1 and 'Is_Typo' in active_df.columns:
-            display_df = active_df[active_df['Is_Typo'] == True].head(1000)
-        else:
-            display_df = active_df.head(1000)
-            
-        st.dataframe(display_df, use_container_width=True, height=400)
-
 # ---------------------------------------------------------------------
 # TAB 2: PHASE 2 (Macro-Level Benchmarks)
 # ---------------------------------------------------------------------
