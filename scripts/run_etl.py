@@ -183,31 +183,36 @@ df_c2 = calculate_raw_digraphs(df_c2)
 df_clarkson_raw = pd.concat([df_c1, df_c2], ignore_index=True) if not df_c1.empty else df_c2
 
 if not df_clarkson_raw.empty:
-    # Separate and sort
-    presses = df_clarkson_raw[df_clarkson_raw['Action'] == 0].copy()
-    releases = df_clarkson_raw[df_clarkson_raw['Action'] == 1].copy()
-    
+    # Separate and sort    
     presses = df_clarkson_raw[df_clarkson_raw['Action_Type'] == 'PRESS'].copy()
     releases = df_clarkson_raw[df_clarkson_raw['Action_Type'] == 'RELEASE'].copy()
-    
+
     # Heavy ETL Merge
-    print("Running merge_asof matrix operation for Clarkson...")
+    print("Running merge_asof matrix operation for Clarkson II...")
+    
+    # merge_asof requires both dataframes to be sorted by the timestamp
+    presses = presses.sort_values('Timestamp_ms')
+    releases = releases.sort_values('Timestamp_ms')
+
     df_merged = pd.merge_asof(
         presses, 
-        releases[['PARTICIPANT_ID', 'Key_Code', 'Timestamp_Release']], 
-        left_on='Timestamp_Press', right_on='Timestamp_Release', 
-        by=['PARTICIPANT_ID', 'Key_Code'], direction='forward'
+        releases[['Participant_ID', 'Key_Code', 'Timestamp_ms']], 
+        on='Timestamp_ms', 
+        by=['Participant_ID', 'Key_Code'], 
+        direction='forward',
+        suffixes=('', '_Release')
     )
     
     # Map to Master Schema
-    df_merged = df_merged.rename(columns={'PARTICIPANT_ID': 'User_ID'})
-    df_merged['Dataset'] = 'Clarkson'
+    df_merged['Source_Dataset'] = 'Clarkson_II'
     df_merged['Device_Type'] = 'desktop' 
-    df_merged['Session_ID'] = df_merged['Dataset'] + '_' + df_merged['User_ID']
-    df_merged['Dwell_Time'] = df_merged['Timestamp_Release'] - df_merged['Timestamp_Press']
+    df_merged['Session_ID'] = df_merged['Source_Dataset'] + '_' + df_merged['Participant_ID'].astype(str)
     
-    df_merged = df_merged.sort_values(by=['User_ID', 'Timestamp_Press'])
-    df_merged['Flight_Time'] = df_merged.groupby('User_ID')['Timestamp_Press'].diff().fillna(0)
+    # Calculate Latencies using our new standardized names
+    df_merged['Hold_Time_ms'] = df_merged['Timestamp_ms_Release'] - df_merged['Timestamp_ms']
+    
+    df_merged = df_merged.sort_values(by=['Participant_ID', 'Timestamp_ms'])
+    df_merged['Flight_DD_ms'] = df_merged.groupby('Participant_ID')['Timestamp_ms'].diff().fillna(0)
     
     # Route through Phase 1 Taxonomy
     df_merged = apply_typo_taxonomy(df_merged)
@@ -216,10 +221,12 @@ if not df_clarkson_raw.empty:
 
     # Apply to Clarkson before saving
     df_merged = optimize_memory(df_merged)
-    clarkson_output = os.path.join(base_dir, 'clarkson_processed.parquet')
+    
+    # Save as Clarkson II specifically, matching our Step 6 merge list
+    clarkson_output = os.path.join(base_dir, 'clarkson_ii_processed.parquet')
     df_merged.to_parquet(clarkson_output, index=False)
     
-    print(f"✅ Saved Clarkson: {len(df_merged)} rows.")
+    print(f"✅ Saved Clarkson_II: {len(df_merged)} rows.")
 
 # --- CMU (Seconds to Milliseconds & ID Alignment) ---
 cmu_raw_path = os.path.join(base_dir, 'cmu_baseline.parquet')
