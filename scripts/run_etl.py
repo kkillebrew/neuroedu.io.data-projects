@@ -10,6 +10,8 @@ from loaders.typo_behavior_loader import (
     apply_typo_taxonomy, build_word_boundaries, apply_historical_consistency_filter
 )
 
+from loaders.qwerty_mapper import classify_typo
+
 base_dir = os.path.join(os.path.dirname(__file__), '..', 'documents')
 aalto_path = os.path.join(base_dir, 'aalto_macro.parquet')
 
