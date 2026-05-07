@@ -79,6 +79,20 @@ if os.path.exists(aalto_path):
     print("Loading raw Aalto dataset...")
     df_aalto = pd.read_parquet(aalto_path)
 
+    # --- FIX: Master Schema Alignment ---
+    # Rename raw participant columns if necessary
+    if 'SUBJECT_ID' in df_aalto.columns:
+        df_aalto = df_aalto.rename(columns={'SUBJECT_ID': 'User_ID'})
+    elif 'PARTICIPANT_ID' in df_aalto.columns:
+        df_aalto = df_aalto.rename(columns={'PARTICIPANT_ID': 'User_ID'})
+
+    # --- FIX: Master Schema Alignment ---
+    # Rename raw participant columns if necessary
+    if 'SUBJECT_ID' in df_aalto.columns:
+        df_aalto = df_aalto.rename(columns={'SUBJECT_ID': 'User_ID'})
+    elif 'PARTICIPANT_ID' in df_aalto.columns:
+        df_aalto = df_aalto.rename(columns={'PARTICIPANT_ID': 'User_ID'})
+
     print("Running Phase 1 Pipeline Calculations...")
     df_aalto = apply_typo_taxonomy(df_aalto)
     df_aalto = build_word_boundaries(df_aalto)
