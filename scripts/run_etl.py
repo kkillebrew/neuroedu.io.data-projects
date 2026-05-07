@@ -275,24 +275,14 @@ print("ETL Pipeline Complete!")
 # ==========================================
 print("Combining all datasets into Master Matrix...")
 
-# Standardized targets from our updated pipeline
+# Load all processed files
 cmu_path = os.path.join(base_dir, 'cmu_baseline.parquet')
 keyrecs_path = os.path.join(base_dir, 'keyrecs_micro.parquet')
 aalto_path = os.path.join(base_dir, 'aalto_processed.parquet')
-# We now have two separate Clarkson files
 clarkson_i_path = os.path.join(base_dir, 'clarkson_i_processed.parquet')
 clarkson_ii_path = os.path.join(base_dir, 'clarkson_ii_processed.parquet')
 
 master_dfs = []
-
-# We now check for the specific processed files we created in previous steps
-merge_targets = [
-    (cmu_raw_path, 'CMU'),
-    (keyrecs_raw_path, 'KeyRecs'),
-    (aalto_path, 'Aalto'),
-    (os.path.join(base_dir, 'clarkson_i_processed.parquet'), 'Clarkson_I'),
-    (os.path.join(base_dir, 'clarkson_ii_processed.parquet'), 'Clarkson_II')
-]
 
 # List of all standardized datasets to merge
 merge_list = [
@@ -306,16 +296,24 @@ merge_list = [
 for path, name in merge_list:
     if os.path.exists(path):
         df_temp = pd.read_parquet(path)
-        
-        # FINAL SAFETY CHECK: Ensure the source is tagged correctly
-        df_temp['Source_Dataset'] = name
-        
         master_dfs.append(df_temp)
-        print(f"✅ Loaded {name} ({len(df_temp)} rows) for Master Merge.")
+        print(f"✅ Loaded {name} for Master Merge.")
 
 if master_dfs:
     print("Fusing Master Matrix...")
+    # Concatenate on GitHub's 7GB RAM runner
     df_master = pd.concat(master_dfs, ignore_index=True)
+    
+    # --- SCHEMA MAPPING FOR THE FRONTEND ---
+    # Rename columns to match Streamlit expectations
+    df_master = df_master.rename(columns={
+        'Dataset': 'Source_Dataset',
+        'Flight_Time': 'Flight_DD_ms'
+    })
+    
+    # --- DROP DUPLICATE COLUMNS ---
+    # Fixes the attribute crash by ensuring column names are strictly unique
+    df_master = df_master.loc[:, ~df_master.columns.duplicated()]
     
     # Force ID columns to be purely strings to prevent PyArrow mixed-type crashes
     if 'Participant_ID' in df_master.columns:
@@ -323,59 +321,21 @@ if master_dfs:
     if 'Session_ID' in df_master.columns:
         df_master['Session_ID'] = df_master['Session_ID'].astype(str)
         
-    # Apply the final memory downcasting before saving
-    # This converts float64 -> float32 and Object -> Category
-    df_master = optimize_memory(df_master)
-    
+    # --- SAFE MEMORY DOWNCASTING ---
+    # Uses built-in bulk selection instead of the brittle for-loop
+    float_cols = df_master.select_dtypes(include=['float64']).columns
+    if not float_cols.empty:
+        df_master[float_cols] = df_master[float_cols].astype('float32')
+        
+    obj_cols = df_master.select_dtypes(include=['object']).columns
+    if not obj_cols.empty:
+        df_master[obj_cols] = df_master[obj_cols].astype('category')
+        
     # Sort by User and Time to maintain sequential integrity for ML training
     if 'Timestamp_ms' in df_master.columns:
         df_master = df_master.sort_values(['Participant_ID', 'Timestamp_ms'])
-    
-    final_output_path = os.path.join(base_dir, 'master_dataset.parquet')
-    df_master.to_parquet(final_output_path, index=False, compression='snappy')
-    
-    print(f"🚀 SUCCESS: Master Dataset created at {final_output_path}")
-    print(f"Final Shape: {df_master.shape} | Columns: {list(df_master.columns)}")
-
-
-# ==========================================
-# 3. BUILD THE UNIFIED MASTER DATASET
-# ==========================================
-print("Combining all datasets into Master Matrix...")
-
-# Load all processed files
-cmu_path = os.path.join(base_dir, 'cmu_baseline.parquet')
-keyrecs_path = os.path.join(base_dir, 'keyrecs_micro.parquet')
-aalto_path = os.path.join(base_dir, 'aalto_processed.parquet')
-clarkson_path = os.path.join(base_dir, 'clarkson_processed.parquet')
-
-master_dfs = []
-
-for path, name in [(cmu_path, 'CMU'), (keyrecs_path, 'KeyRecs'), (aalto_path, 'Aalto'), (clarkson_path, 'Clarkson')]:
-    if os.path.exists(path):
-        df_temp = pd.read_parquet(path)
-        master_dfs.append(df_temp)
-        print(f"Loaded {name} for Master Merge.")
-
-if master_dfs:
-        # Concatenate on GitHub's 7GB RAM runner
-        df_master = pd.concat(master_dfs, ignore_index=True)
         
-        # --- NEW: SCHEMA MAPPING FOR THE FRONTEND ---
-        # Rename columns so they perfectly match the Streamlit UI expectations
-        df_master = df_master.rename(columns={
-            'Dataset': 'Source_Dataset',
-            'Flight_Time': 'Flight_DD_ms'
-        })
-        
-        # Apply the memory downcasting (shrinks float64 to float32, strings to categories)
-        for col in df_master.columns:
-            if df_master[col].dtype == 'float64':
-                df_master[col] = df_master[col].astype('float32')
-            elif df_master[col].dtype == 'object':
-                df_master[col] = df_master[col].astype('category')
-                
-        # Export the single, unified UI matrix
-        master_output = os.path.join(base_dir, 'master_dataset.parquet')
-        df_master.to_parquet(master_output, index=False)
-        print(f"✅ Master Dataset Exported! Total rows: {len(df_master)}")
+    # Export the single, unified UI matrix
+    master_output = os.path.join(base_dir, 'master_dataset.parquet')
+    df_master.to_parquet(master_output, index=False, compression='snappy')
+    print(f"✅ Master Dataset Exported! Total rows: {len(df_master)}")
