@@ -27,20 +27,6 @@ def optimize_memory(df):
             df[col] = df[col].astype('category')
     return df
 
-def ingest_clarkson_II(folder_path):
-    """ Parses the raw tab-separated Clarkson II files. """
-    dfs = []
-    for file_name in os.listdir(folder_path):
-        if file_name.isdigit(): # E.g., '25563'
-            file_path = os.path.join(folder_path, file_name)
-            # Read tab-separated values
-            df = pd.read_csv(file_path, sep='\t', header=None, names=['Timestamp_Ticks', 'Action', 'Key_Code'])
-            df['PARTICIPANT_ID'] = f"C2_{file_name}"
-            # Convert 100-nanosecond Windows ticks to milliseconds
-            df['Timestamp'] = df['Timestamp_Ticks'] / 10000.0
-            dfs.append(df)
-    return pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
-
 def ingest_clarkson_I(tar_path):
     """ Reads raw keystrokes directly out of the compressed tar archive. """
     dfs = []
@@ -53,30 +39,57 @@ def ingest_clarkson_I(tar_path):
                 if f:
                     content = f.read().decode('utf-8', errors='ignore').strip()
                     
-                    # 1. Split the massive string into individual comma-separated events
-                    events = content.split(',')
-                    parsed_data = []
+                    # 1. Split the file into lines (each line is a task)
+                    for line in content.split('\n'):
+                        line_parts = line.split('\t')
+                        if len(line_parts) >= 4:
+                            task_id = line_parts[1] # Metadata: 1=Pass, 2=Free, 3=Trans
+                            events = line_parts[3].split(',')
+                            
+                            for event in events:
+                                parts = event.split(':')
+                                if len(parts) >= 3 and parts[0].isdigit():
+                                    try:
+                                        # Format: Action:KeyCode:Timestamp:Duration
+                                        action_type = 'PRESS' if parts[0] == '0' else 'RELEASE'
+                                        key_code = int(parts[1])
+                                        timestamp_ms = float(parts[2])
+                                        
+                                        # Store as a list of dictionaries for easier DF creation
+                                        parsed_data.append({
+                                            'Timestamp_ms': timestamp_ms,
+                                            'Action_Type': action_type,
+                                            'Key_Code': key_code,
+                                            'Task_Type': task_id
+                                        })
+                                    except ValueError:
+                                        continue
                     
-                    # 2. Iterate and split each event by its colon delimiter
-                    for event in events:
-                        parts = event.split(':')
-                        # Ensure it is a valid 4-part event block before parsing
-                        if len(parts) >= 3 and parts[0].isdigit():
-                            try:
-                                action = int(parts[0])
-                                key_code = parts[1]
-                                timestamp = float(parts[2]) # Unix timestamp in ms
-                                parsed_data.append([timestamp, action, key_code])
-                            except ValueError:
-                                # Silently skip any \x00 null bytes or corrupted archive strings
-                                continue
-                    
-                    # 3. Convert the user's parsed array into a dataframe
+                    # 2. Convert the user's parsed array into a dataframe
                     if parsed_data:
-                        df_user = pd.DataFrame(parsed_data, columns=['Timestamp', 'Action', 'Key_Code'])
-                        df_user['PARTICIPANT_ID'] = user_id
+                        # Update your df_user creation:
+                        df_user = pd.DataFrame(parsed_data, columns=['Timestamp_ms', 'Action_Type', 'Key_Code', 'Task_Type'])
+                        df_user['Participant_ID'] = user_id
+                        df_user['Source_Dataset'] = 'Clarkson_I'
                         dfs.append(df_user)
-    return pd.DataFrame() # Replace with actual concat once internal structure is fully mapped
+
+    return pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
+
+def ingest_clarkson_II(folder_path):
+    """ Parses the raw tab-separated Clarkson II files. """
+    dfs = []
+    for file_name in os.listdir(folder_path):
+        if file_name.isdigit(): # E.g., '25563'
+            file_path = os.path.join(folder_path, file_name)
+            # Read tab-separated values
+            df = pd.read_csv(file_path, sep='\t', header=None, names=['Timestamp_Ticks', 'Action', 'Key_Code'])
+            df['PARTICIPANT_ID'] = f"C2_{file_name}"
+            # Convert 100-nanosecond Windows ticks to milliseconds
+            df['Timestamp_ms'] = (df[0] - 116444736000000000) / 10000
+            df['Action_Type'] = df[1].map({1: 'PRESS', 0: 'RELEASE'}) # Based on publisher: 1/0
+            df['Key_Code'] = df[2]
+            dfs.append(df)
+    return pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
 
 # ==========================================
 # 1. PROCESS AALTO
@@ -85,7 +98,16 @@ if os.path.exists(aalto_path):
     print("Loading raw Aalto dataset...")
     df_aalto = pd.read_parquet(aalto_path)
 
-    # --- Master Schema Alignment ---
+    # Rename to Master Schema naming convention
+    df_aalto = df_aalto.rename(columns={
+        'PARTICIPANT_ID': 'Participant_ID',
+        'PRESS_TIME': 'Timestamp_ms'
+    })
+
+    # Aalto rows are already individual keypresses; we tag them as PRESS
+    df_aalto['Action_Type'] = 'PRESS'
+    df_aalto['Source_Dataset'] = 'Aalto'
+
     # Rename raw participant columns if necessary
     if 'SUBJECT_ID' in df_aalto.columns:
         df_aalto = df_aalto.rename(columns={'SUBJECT_ID': 'User_ID'})
@@ -103,6 +125,7 @@ if os.path.exists(aalto_path):
     df_aalto = apply_typo_taxonomy(df_aalto)
     df_aalto = build_word_boundaries(df_aalto)
     df_aalto = apply_historical_consistency_filter(df_aalto)
+    df_aalto = calculate_raw_digraphs(df_aalto)
 
     # Apply to Aalto before saving
     df_aalto = optimize_memory(df_aalto)
@@ -146,6 +169,10 @@ if os.path.exists(clarkson_ii_folder):
 else:
     df_c2 = pd.DataFrame()
 # -----------------------------
+
+# Repeat for Clarkson processing:
+df_c1 = calculate_raw_digraphs(df_c1)
+df_c2 = calculate_raw_digraphs(df_c2)
 
 # Combine all raw Clarkson data
 df_clarkson_raw = pd.concat([df_c1, df_c2], ignore_index=True) if not df_c1.empty else df_c2
@@ -192,6 +219,44 @@ if not df_clarkson_raw.empty:
     
     print(f"✅ Saved Clarkson: {len(df_merged)} rows.")
 
+# --- CMU (Seconds to Milliseconds & ID Alignment) ---
+cmu_raw_path = os.path.join(base_dir, 'cmu_baseline.parquet')
+if os.path.exists(cmu_raw_path):
+    print("Standardizing CMU Dataset...")
+    df_cmu = pd.read_parquet(cmu_raw_path)
+    
+    # 1. Convert all timing columns from Seconds to Milliseconds
+    # CMU uses 'H.', 'DD.', and 'UD.' prefixes
+    timing_cols = [c for c in df_cmu.columns if any(pref in c for pref in ['H.', 'DD.', 'UD.'])]
+    df_cmu[timing_cols] = df_cmu[timing_cols] * 1000
+    
+    # 2. Standardize Schema
+    df_cmu = df_cmu.rename(columns={'subject': 'Participant_ID'})
+    df_cmu['Source_Dataset'] = 'CMU'
+    df_cmu['Action_Type'] = 'DIGRAPH'
+    df_cmu['Task_Type'] = 'Password'
+    
+    # Save it back so the merge loop sees the updated version
+    df_cmu.to_parquet(cmu_raw_path)
+
+# --- KeyRecs (Column Mapping) ---
+keyrecs_raw_path = os.path.join(base_dir, 'keyrecs_micro.parquet')
+if os.path.exists(keyrecs_raw_path):
+    print("Standardizing KeyRecs Dataset...")
+    df_keyrecs = pd.read_parquet(keyrecs_raw_path)
+    
+    # 3. Rename columns to Master Schema
+    df_keyrecs = df_keyrecs.rename(columns={
+        'participant': 'Participant_ID',
+        'DD.key1.key2': 'Flight_DD_ms', 
+        'UD.key1.key2': 'Flight_UD_ms'
+    })
+    df_keyrecs['Source_Dataset'] = 'KeyRecs'
+    df_keyrecs['Action_Type'] = 'DIGRAPH'
+    df_keyrecs['Task_Type'] = 'Mixed'
+    
+    df_keyrecs.to_parquet(keyrecs_raw_path)
+
 print("ETL Pipeline Complete!")
 
 # ==========================================
@@ -199,32 +264,58 @@ print("ETL Pipeline Complete!")
 # ==========================================
 print("Combining all datasets into Master Matrix...")
 
-# Load all processed files
+# Standardized targets from our updated pipeline
 cmu_path = os.path.join(base_dir, 'cmu_baseline.parquet')
 keyrecs_path = os.path.join(base_dir, 'keyrecs_micro.parquet')
 aalto_path = os.path.join(base_dir, 'aalto_processed.parquet')
-clarkson_path = os.path.join(base_dir, 'clarkson_processed.parquet')
+# We now have two separate Clarkson files
+clarkson_i_path = os.path.join(base_dir, 'clarkson_i_processed.parquet')
+clarkson_ii_path = os.path.join(base_dir, 'clarkson_ii_processed.parquet')
 
 master_dfs = []
 
-for path, name in [(cmu_path, 'CMU'), (keyrecs_path, 'KeyRecs'), (aalto_path, 'Aalto'), (clarkson_path, 'Clarkson')]:
+# We now check for the specific processed files we created in previous steps
+merge_targets = [
+    (cmu_raw_path, 'CMU'),
+    (keyrecs_raw_path, 'KeyRecs'),
+    (aalto_path, 'Aalto'),
+    (os.path.join(base_dir, 'clarkson_i_processed.parquet'), 'Clarkson_I'),
+    (os.path.join(base_dir, 'clarkson_ii_processed.parquet'), 'Clarkson_II')
+]
+
+# List of all standardized datasets to merge
+merge_list = [
+    (cmu_path, 'CMU'), 
+    (keyrecs_path, 'KeyRecs'), 
+    (aalto_path, 'Aalto'), 
+    (clarkson_i_path, 'Clarkson_I'),
+    (clarkson_ii_path, 'Clarkson_II')
+]
+
+for path, name in merge_list:
     if os.path.exists(path):
         df_temp = pd.read_parquet(path)
+        
+        # FINAL SAFETY CHECK: Ensure the source is tagged correctly
+        df_temp['Source_Dataset'] = name
+        
         master_dfs.append(df_temp)
-        print(f"Loaded {name} for Master Merge.")
+        print(f"✅ Loaded {name} ({len(df_temp)} rows) for Master Merge.")
 
 if master_dfs:
-    # Concatenate on GitHub's 7GB RAM runner
+    print("Fusing Master Matrix...")
     df_master = pd.concat(master_dfs, ignore_index=True)
     
-    # Apply the memory downcasting (shrinks float64 to float32, strings to categories)
-    for col in df_master.columns:
-        if df_master[col].dtype == 'float64':
-            df_master[col] = df_master[col].astype('float32')
-        elif df_master[col].dtype == 'object':
-            df_master[col] = df_master[col].astype('category')
-            
-    # Export the single, unified UI matrix
-    master_output = os.path.join(base_dir, 'master_dataset.parquet')
-    df_master.to_parquet(master_output, index=False)
-    print(f"✅ Master Dataset Exported! Total rows: {len(df_master)}")
+    # Apply the final memory downcasting before saving
+    # This converts float64 -> float32 and Object -> Category
+    df_master = optimize_memory(df_master)
+    
+    # Sort by User and Time to maintain sequential integrity for ML training
+    if 'Timestamp_ms' in df_master.columns:
+        df_master = df_master.sort_values(['Participant_ID', 'Timestamp_ms'])
+    
+    final_output_path = os.path.join(base_dir, 'master_dataset.parquet')
+    df_master.to_parquet(final_output_path, index=False, compression='snappy')
+    
+    print(f"🚀 SUCCESS: Master Dataset created at {final_output_path}")
+    print(f"Final Shape: {df_master.shape} | Columns: {list(df_master.columns)}")

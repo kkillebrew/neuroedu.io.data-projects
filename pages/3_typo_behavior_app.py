@@ -241,25 +241,46 @@ with tab2:
     st.subheader("1. Muscle Memory Decay (CMU Dataset)")
     st.markdown("This curve tracks 51 subjects typing the same complex password 400 times. Notice the exponential drop in cognitive load before hitting a physical motor-control asymptote.")
     
-    # 1. Run the cached backend calculation
-    decay_df = calculate_muscle_memory_decay(df_cmu)
+    # 1. Create the filtered timing dataframe using the standardized columns from Step 4
+    # We filter out rows without flight times and cap outliers at 3 seconds
+    df_timing = df.dropna(subset=['Flight_DD_ms'])
+    df_timing = df_timing[df_timing['Flight_DD_ms'] < 3000]
+
+    st.subheader("Inter-Key Interval (IKI) by Dataset")
     
-    # 2. Render the interactive Plotly line chart
-    if not decay_df.empty:
+    # Use the standardized 'Source_Dataset' and 'Flight_DD_ms' columns
+    fig_iki = px.box(
+        df_timing, 
+        x="Source_Dataset", 
+        y="Flight_DD_ms", 
+        color="Source_Dataset",
+        points=False, 
+        labels={'Flight_DD_ms': 'Flight Time (ms)', 'Source_Dataset': 'Study Source'},
+        title="Macro Latency Benchmarks"
+    )
+    st.plotly_chart(fig_iki, use_container_width=True)
+
+
+    # 1. Isolate CMU data from the Master Matrix to calculate the curve
+    df_cmu_only = df[df['Source_Dataset'] == 'CMU']
+    
+    if not df_cmu_only.empty:
+        # Calculate the decay using our standardized subset
+        decay_df = calculate_muscle_memory_decay(df_cmu_only)
+        
+        # 2. Render the interactive Plotly line chart
         fig_decay = px.line(
             decay_df, 
             x='Attempt_Number', 
             y='Avg_Flight_Time',
-            title="Universal Flight Time vs. Repetition",
-            labels={'Attempt_Number': 'Password Attempt #', 'Avg_Flight_Time': 'Average Flight Time (ms)'},
-            color_discrete_sequence=['#00e676'] # Neuro-Edu green
+            title="The '.tie5Roanl' Muscle Memory Curve",
+            labels={'Attempt_Number': 'Password Attempt #', 'Avg_Flight_Time': 'Avg Flight Time (ms)'},
+            color_discrete_sequence=['#00e676'] 
         )
-        
         fig_decay.update_traces(line=dict(width=3))
-        fig_decay.update_layout(plot_bgcolor='rgba(0,0,0,0)', xaxis_showgrid=True, yaxis_showgrid=True)
         st.plotly_chart(fig_decay, use_container_width=True)
     else:
-        st.warning("CMU dataset is required to generate the Muscle Memory baseline.")
+        st.warning("CMU dataset is required for the Muscle Memory baseline.")
 
     st.divider()
 
@@ -267,20 +288,27 @@ with tab2:
     st.subheader("2. Universal Baseline Variance")
     st.markdown("Comparing average typing speeds across different datasets to establish macro-baselines. Notice how free-text typing (Aalto) differs from rigid password entry (CMU).")
     
-    # 1. Calculate macro averages on the fly for the bar chart
+   # 1. Calculate macro averages by slicing the Unified Master 'df'
     macro_stats = []
-    for df, name in [(df_cmu, "CMU (Passwords)"), (df_aalto, "Aalto (Free Text)"), (df_keyrecs, "KeyRecs (Digraphs)")]:
-        if df is not None and not df.empty and 'Flight_Time' in df.columns and 'Dwell_Time' in df.columns:
+    comparison_targets = [
+        ('CMU', "CMU (Passwords)"), 
+        ('Aalto', "Aalto (Free Text)"), 
+        ('KeyRecs', "KeyRecs (Mixed)")
+    ]
+
+    for source_key, display_name in comparison_targets:
+        # Extract source-specific rows from our master 'df'
+        subset = df[df['Source_Dataset'] == source_key]
+        
+        if not subset.empty and 'Flight_DD_ms' in subset.columns:
+            # Use standardized columns: Flight_DD_ms and Hold_Time_ms
+            clean_subset = subset[(subset['Flight_DD_ms'] > 0) & (subset['Flight_DD_ms'] < 1500)]
             
-            # Filter out wild outliers to get true averages
-            clean_df = df[(df['Flight_Time'] > 0) & (df['Flight_Time'] < 1500) & 
-                          (df['Dwell_Time'] > 0) & (df['Dwell_Time'] < 500)]
+            avg_flight = clean_subset['Flight_DD_ms'].mean()
+            avg_hold = clean_subset['Hold_Time_ms'].mean() if 'Hold_Time_ms' in clean_subset.columns else 0
             
-            avg_flight = clean_df['Flight_Time'].mean()
-            avg_dwell = clean_df['Dwell_Time'].mean()
-            
-            macro_stats.append({"Dataset": name, "Metric": "Avg Flight Time", "Value (ms)": avg_flight})
-            macro_stats.append({"Dataset": name, "Metric": "Avg Dwell Time", "Value (ms)": avg_dwell})
+            macro_stats.append({"Dataset": display_name, "Metric": "Avg Flight Time", "Value (ms)": avg_flight})
+            macro_stats.append({"Dataset": display_name, "Metric": "Avg Hold Time", "Value (ms)": avg_hold})
             
     # 2. Render the Grouped Bar Chart
     if macro_stats:
@@ -303,40 +331,42 @@ with tab2:
     st.markdown("Mathematically proving the boundary between Muscle Memory (CMU) and Cognitive Load (Aalto).")
     
     if not df_cmu.empty and not active_df.empty and 'Flight_Time' in active_df.columns:
-        # 1. Isolate clean flight time array for CMU
-        cmu_array = df_cmu[(df_cmu['Flight_Time'] > 0) & (df_cmu['Flight_Time'] < 1000)]['Flight_Time'].dropna()
+        # 1. Isolate clean flight time arrays from the master 'df'
+        # Filter: 0 < ms < 1000 to remove long pauses and errors
+        cmu_array = df[(df['Source_Dataset'] == 'CMU') & 
+                       (df['Flight_DD_ms'] > 0) & 
+                       (df['Flight_DD_ms'] < 1000)]['Flight_DD_ms'].dropna()
+
+        aalto_array = df[(df['Source_Dataset'] == 'Aalto') & 
+                         (df['Flight_DD_ms'] > 0) & 
+                         (df['Flight_DD_ms'] < 1000)]['Flight_DD_ms'].dropna()
         
-        # 2. Extract ONLY Aalto from the unified Master Dataset
-        aalto_subset = active_df[active_df['Dataset'] == 'Aalto']
-        
-        if not aalto_subset.empty:
-            aalto_array = aalto_subset[(aalto_subset['Flight_Time'] > 0) & (aalto_subset['Flight_Time'] < 1000)]['Flight_Time'].dropna()
+        if not cmu_array.empty and not aalto_array.empty:
+            # 2. Run Welch's T-Test (equal_var=False handles the massive sample size difference)
+            t_stat, p_val = stats.ttest_ind(aalto_array, cmu_array, equal_var=False)
             
-            # 3. Run Welch's T-Test (equal_var=False handles the massive sample size difference)
-            if not cmu_array.empty and not aalto_array.empty:
-                t_stat, p_val = stats.ttest_ind(aalto_array, cmu_array, equal_var=False)
+            # 3. Render the statistical readout
+            t_col1, t_col2, t_col3, t_col4 = st.columns(4)
+            t_col1.metric("CMU Mean (Muscle)", f"{cmu_array.mean():.1f} ms")
+            t_col2.metric("Aalto Mean (Cognitive)", f"{aalto_array.mean():.1f} ms")
+            t_col3.metric("T-Statistic", f"{t_stat:.2f}")
+            
+            # Format p-value output
+            if p_val < 0.0001:
+                p_display = "< 0.0001"
+                significance = "Significant Boundary"
+            else:
+                p_display = f"{p_val:.4f}"
+                significance = "Not Significant" if p_val >= 0.05 else "Significant"
                 
-                # 4. Render the statistical readout
-                t_col1, t_col2, t_col3, t_col4 = st.columns(4)
-                t_col1.metric("CMU Mean (Muscle)", f"{cmu_array.mean():.1f} ms")
-                t_col2.metric("Aalto Mean (Cognitive)", f"{aalto_array.mean():.1f} ms")
-                t_col3.metric("T-Statistic", f"{t_stat:.2f}")
-                
-                # Format p-value output
-                if p_val < 0.0001:
-                    p_display = "< 0.0001"
-                    significance = "Significant Boundary"
-                else:
-                    p_display = f"{p_val:.4f}"
-                    significance = "Not Significant" if p_val >= 0.05 else "Significant"
-                    
-                t_col4.metric("P-Value", p_display, delta=significance, delta_color="normal" if p_val < 0.05 else "inverse")
-                
-                # 5. State the finding
-                if p_val < 0.05:
-                    st.success(f"**Conclusion:** The data proves a statistically significant boundary between motor execution and cognitive generation. Free-text typing requires significantly more mental overhead, resulting in an average latency penalty of **{aalto_array.mean() - cmu_array.mean():.1f} ms** per keystroke.")
-                else:
-                    st.warning("**Conclusion:** No statistically significant difference found. Ensure sample sizes are large enough.")
+            t_col4.metric("P-Value", p_display, delta=significance, delta_color="normal" if p_val < 0.05 else "inverse")
+            
+            # 4. State the findings
+            if p_val < 0.05:
+                penalty = aalto_array.mean() - cmu_array.mean()
+                st.success(f"**Conclusion:** The data proves a statistically significant boundary between motor execution and cognitive generation. Free-text typing requires significantly more mental overhead, resulting in an average latency penalty of **{penalty:.1f} ms** per keystroke.")
+            else:
+                st.warning("**Conclusion:** No statistically significant difference found. Ensure dataset ingestion is fully complete.")
 
 # ---------------------------------------------------------------------
 # TAB 3: PHASES 3 & 4 (Taxonomy & Feature Engineering)

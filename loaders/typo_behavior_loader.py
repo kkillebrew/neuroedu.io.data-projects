@@ -225,39 +225,19 @@ def load_all_datasets():
 # PHASE 1B: TYPO DETECTION ALGORITHMS
 # ---------------------------------------------------------------------
 def apply_typo_taxonomy(df):
-    """
-    Scans the DataFrame for Backspace Footprints (Immediate Self-Corrections).
-    Tags the error, the intention, and categorizes it via qwerty_mapper.
-    """
-    if df is None or df.empty:
+    """Categorizes errors using the QWERTY distance and cognitive maps."""
+    # Check if this specific dataset even supports typo tracking
+    if 'Intended_Char' not in df.columns or 'Typed_Char' not in df.columns:
+        df['Typo_Category'] = 'Not Applicable'
         return df
 
-    # 1. Create shifted columns to look ahead/behind in time
-    # Grouping by Session_ID ensures we don't accidentally link keystrokes from two different users
-    df['Next_Key'] = df.groupby('Session_ID')['Key_Code'].shift(-1)
-    df['Next_Next_Char'] = df.groupby('Session_ID')['Key_Char'].shift(-2)
-
-    # 2. Define the Backspace Footprint Mask
-    # An error occurred if the CURRENT keystroke is immediately followed by a Backspace (Key_Code 8)
-    error_mask = (df['Next_Key'] == 8)
-
-    # 3. Apply the tags
-    df.loc[error_mask, 'Is_Typo'] = True
-    df.loc[error_mask, 'Typed_Char'] = df.loc[error_mask, 'Key_Char']
-    df.loc[error_mask, 'Intended_Char'] = df.loc[error_mask, 'Next_Next_Char']
-
-    # 4. Apply the Taxonomy Classification (Category A vs B vs C)
-    def categorize_row(row):
-        if row['Is_Typo'] and pd.notna(row['Intended_Char']) and pd.notna(row['Typed_Char']):
-            return classify_typo(row['Intended_Char'], row['Typed_Char'])
-        return 'None'
-
-    # Create the new column for the taxonomy label
-    df['Typo_Category'] = df.apply(categorize_row, axis=1)
-
-    # 5. Cleanup temporary columns to save memory
-    df = df.drop(columns=['Next_Key', 'Next_Next_Char'])
-    
+    # Apply taxonomy only where an intended character exists
+    df['Typo_Category'] = df.apply(
+        lambda row: classify_typo(row['Intended_Char'], row['Typed_Char']) 
+        if pd.notnull(row['Intended_Char']) and row['Intended_Char'] != row['Typed_Char']
+        else 'Correct', 
+        axis=1
+    )
     return df
 
 # ---------------------------------------------------------------------
@@ -265,29 +245,20 @@ def apply_typo_taxonomy(df):
 # ---------------------------------------------------------------------
 
 def build_word_boundaries(df):
-    """
-    Groups individual keystrokes into discrete word blocks.
-    Triggers a new Word_ID every time [Space] or [Enter] is pressed.
-    """
-    if df is None or df.empty:
+    """Increments Word_ID every time a Space or Enter is detected."""
+    if 'Timestamp_ms' not in df.columns:
         return df
 
-    # Ensure the Key_Code column exists to prevent crashes
-    if 'Key_Code' not in df.columns:
-        df['Word_ID'] = 0
-        return df
-
-    # Create a temporary column that marks True for any spacing key
-    # (Checking multiple variations to catch differences between Aalto, Clarkson, and CMU)
-    df['Is_Delimiter'] = df['Key_Code'].isin(['SPACE', 'ENTER', ' ', '\n', 'Return', 'space', 'Enter'])
+    # Sort to ensure we aren't mixing up different users' timelines
+    df = df.sort_values(['Participant_ID', 'Timestamp_ms'])
     
-    # Calculate the Word_ID by doing a cumulative sum on the named column
-    df['Word_ID'] = df.groupby('Session_ID')['Is_Delimiter'].cumsum().fillna(0).astype(int)
+    # 32 = Space, 13 = Enter (Standard JS/Browser Keycodes)
+    df['is_delimiter'] = df['Key_Code'].isin([32, 13])
     
-    # Drop the temporary column to save memory before it goes to the Master Dataset
-    df = df.drop(columns=['Is_Delimiter'])
-
-    return df
+    # Cumulative sum creates a unique ID for every word in a session
+    df['Word_ID'] = df.groupby('Participant_ID')['is_delimiter'].cumsum().shift(1).fillna(0).astype(int)
+    
+    return df.drop(columns=['is_delimiter'])
 
 def flag_levenshtein_anomalies(df, dictionary_fallback=None):
     """
@@ -391,6 +362,31 @@ def apply_historical_consistency_filter(df, consistency_threshold=0.8):
 
     return df
 
+def calculate_raw_digraphs(df):
+    """
+    Calculates Hold and Flight times for Raw Sequential datasets.
+    This allows Aalto/Clarkson to be analyzed alongside CMU/KeyRecs.
+    """
+    if 'Timestamp_ms' not in df.columns or 'Action_Type' not in df.columns:
+        return df
+    
+    # Ensure temporal integrity within each user session
+    df = df.sort_values(['Participant_ID', 'Timestamp_ms'])
+    
+    # 1. Calculate Flight Time (Down-to-Down)
+    # The time difference between the current PRESS and the previous PRESS
+    press_mask = df['Action_Type'] == 'PRESS'
+    df.loc[press_mask, 'Flight_DD_ms'] = df[press_mask].groupby('Participant_ID')['Timestamp_ms'].diff()
+    
+    # 2. Calculate Hold Time (Dwell Time)
+    # For datasets like Clarkson II where Press and Release are separate rows
+    # we find the time difference between a PRESS and the NEXT event for that same user
+    df['Hold_Time_ms'] = df.groupby(['Participant_ID', 'Key_Code'])['Timestamp_ms'].diff()
+    # Note: We only keep Hold times on 'RELEASE' rows
+    df.loc[df['Action_Type'] == 'PRESS', 'Hold_Time_ms'] = np.nan
+    
+    return df
+
 # ---------------------------------------------------------------------
 # PHASE 2: MACRO-LEVEL BENCHMARKING
 # ---------------------------------------------------------------------
@@ -431,11 +427,19 @@ def calculate_muscle_memory_decay(df_cmu):
 # ---------------------------------------------------------------------
 def engineer_behavioral_features(df_micro):
     """ 
-    Calculates Dwell/Flight latencies, Rolling Variance (Burstiness), 
-    and Euclidean Keyboard Distances.
+    Calculates Dwell/Flight latencies and Rolling Variance (Burstiness).
     """
-    # TODO: Phase 3 & 4 logic here
-    pass
+    # 3. Synthesize missing digraphs for raw data
+    df_micro = calculate_raw_digraphs(df_micro)
+    
+    # 4. Calculate Rolling WPM (Phase 4 Cognitive Load Metric)
+    # Using 10-event windows to track bursts in speed
+    if 'Flight_DD_ms' in df_micro.columns:
+        df_micro['Rolling_IKI'] = df_micro.groupby('Participant_ID')['Flight_DD_ms'].transform(
+            lambda x: x.rolling(window=10, min_periods=1).mean()
+        )
+        
+    return df_micro
 
 # ---------------------------------------------------------------------
 # PHASE 5: MACHINE LEARNING (SINGLETON INSTANCE)
