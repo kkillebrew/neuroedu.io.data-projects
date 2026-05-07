@@ -317,7 +317,9 @@ with tab2:
         if len(valid_timing_idx) > 0:
             total_timing_pop = len(valid_timing_idx)
             sample_size = min(total_timing_pop, 15000) # Safe cap for Plotly
-            sampled_idx = pd.Series(valid_timing_idx).sample(n=sample_size, random_state=42)
+            
+            # THE FIX: .values ensures Pandas doesn't use the wrong index
+            sampled_idx = pd.Series(valid_timing_idx).sample(n=sample_size, random_state=42).values
             
             df_timing = active_df.loc[sampled_idx, ['Source_Dataset', 'Flight_DD_ms']].copy()
             
