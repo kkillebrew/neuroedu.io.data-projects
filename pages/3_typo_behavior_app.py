@@ -307,97 +307,129 @@ with tab2:
     st.header("Phase 2: Muscle Memory vs. Cognitive Load")
     st.write("Establishing the statistical boundaries of 'normal' typing.")
     
-    # --- SECTION A: MUSCLE MEMORY DECAY ---
-    st.subheader("1. Muscle Memory Decay (CMU Dataset)")
-    st.markdown("This curve tracks 51 subjects typing the same complex password 400 times. Notice the exponential drop in cognitive load before hitting a physical motor-control asymptote.")
+    # --- SECTION A: INTER-KEY INTERVAL (IKI) ---
+    st.subheader("1. Inter-Key Interval (IKI) by Dataset")
+    st.markdown("This box plot shows the distribution of typing speeds across different study contexts.")
     
-    # 1. Create the filtered timing dataframe using the standardized columns from Step 4
-    # Filter for rows that have valid timing data (Standardized in Step 4)
-    df_timing = active_df.dropna(subset=['Flight_DD_ms'])
-    df_timing = df_timing[df_timing['Flight_DD_ms'] < 3000]
+    if not active_df.empty and 'Flight_DD_ms' in active_df.columns:
+        # MEMORY SAFE: Extract indices first, sample, then slice
+        valid_timing_idx = active_df.index[(active_df['Flight_DD_ms'] > 0) & (active_df['Flight_DD_ms'] < 1500)]
+        if len(valid_timing_idx) > 0:
+            total_timing_pop = len(valid_timing_idx)
+            sample_size = min(total_timing_pop, 15000) # Safe cap for Plotly
+            sampled_idx = pd.Series(valid_timing_idx).sample(n=sample_size, random_state=42)
+            
+            df_timing = active_df.loc[sampled_idx, ['Source_Dataset', 'Flight_DD_ms']].copy()
+            
+            # 1. Map Custom Hover Descriptions
+            source_desc = {
+                'CMU': 'Highly repetitive password typing (Pure Muscle Memory).',
+                'Aalto': 'Free-text transcription (High Cognitive Load).',
+                'KeyRecs': 'Mixed digraph baseline.',
+                'Clarkson_I': 'Cognitive free-text generation.',
+                'Clarkson_II': 'Cognitive free-text generation.'
+            }
+            df_timing['Description'] = df_timing['Source_Dataset'].map(source_desc).fillna('Dataset')
+            
+            # 2. Add Totals to Title & Inject Hover Data
+            fig_iki = px.box(
+                df_timing, 
+                x="Source_Dataset", y="Flight_DD_ms", color="Source_Dataset",
+                title=f"Macro Latency Benchmarks<br><sup>Total Population: {total_timing_pop:,} (Visualizing 15k sample)</sup>",
+                labels={'Flight_DD_ms': 'Flight Time (ms)', 'Source_Dataset': 'Study Source'},
+                custom_data=['Description']
+            )
+            
+            # 3. Format the Hover Bubble
+            fig_iki.update_traces(hovertemplate="<b>%{x}</b><br>Speed: %{y} ms<br><i>%{customdata[0]}</i><extra></extra>")
+            
+            # 4. Add Explicit Medians
+            medians = df_timing.groupby('Source_Dataset')['Flight_DD_ms'].median()
+            for source_name in medians.index:
+                fig_iki.add_annotation(
+                    x=source_name, y=medians[source_name],
+                    text=f"{medians[source_name]:.0f} ms",
+                    showarrow=False, yshift=-15, font=dict(color="white", size=10),
+                    bgcolor="rgba(0,0,0,0.6)", borderpad=2
+                )
+                
+            st.plotly_chart(fig_iki, use_container_width=True)
+            
+            # 5. Explanatory Blurb
+            st.info("**Chart Guide:** Notice how the 'CMU' dataset is tightly packed at the bottom (fast, consistent muscle memory), while datasets like 'Aalto' are stretched out, indicating high cognitive hesitation.")
 
-    st.subheader("Inter-Key Interval (IKI) by Dataset")
+    st.divider()
+
+    # --- SECTION B: MUSCLE MEMORY DECAY ---
+    st.subheader("2. Muscle Memory Decay (CMU Dataset)")
+    st.markdown("This curve tracks subjects typing the same complex password 400 times. Notice the exponential drop in cognitive load before hitting a physical motor-control limit.")
     
-    # Use the standardized 'Source_Dataset' and 'Flight_DD_ms' columns
-    fig_iki = px.box(
-        df_timing, 
-        x="Source_Dataset", 
-        y="Flight_DD_ms", 
-        color="Source_Dataset",
-        points=False, 
-        labels={'Flight_DD_ms': 'Flight Time (ms)', 'Source_Dataset': 'Study Source'},
-        title="Macro Latency Benchmarks"
-    )
-    st.plotly_chart(fig_iki, use_container_width=True)
-
-
-    # 1. Isolate CMU data from the Master Matrix to calculate the curve
-    df_cmu_only = active_df[active_df['Source_Dataset'] == 'CMU']
-        
-    if not df_cmu_only.empty:
-        # Calculate the decay using our standardized subset
+    # MEMORY SAFE: Isolate only CMU rows without copying the full dataset
+    cmu_indices = active_df.index[active_df['Source_Dataset'] == 'CMU']
+    if len(cmu_indices) > 0:
+        df_cmu_only = active_df.loc[cmu_indices].copy()
         decay_df = calculate_muscle_memory_decay(df_cmu_only)
         
-        # 2. Render the interactive Plotly line chart
-        fig_decay = px.line(
-            decay_df, 
-            x='Attempt_Number', 
-            y='Avg_Flight_Time',
-            title="The '.tie5Roanl' Muscle Memory Curve",
-            labels={'Attempt_Number': 'Password Attempt #', 'Avg_Flight_Time': 'Avg Flight Time (ms)'},
-            color_discrete_sequence=['#00e676'] 
-        )
-        fig_decay.update_traces(line=dict(width=3))
-        st.plotly_chart(fig_decay, use_container_width=True)
+        if not decay_df.empty:
+            fig_decay = px.line(
+                decay_df, x='Attempt_Number', y='Avg_Flight_Time',
+                title=f"The '.tie5Roanl' Muscle Memory Curve<br><sup>Total Password Attempts: {len(df_cmu_only):,}</sup>",
+                labels={'Attempt_Number': 'Password Attempt #', 'Avg_Flight_Time': 'Avg Flight Time (ms)'},
+                color_discrete_sequence=['#00e676'] 
+            )
+            fig_decay.update_traces(
+                line=dict(width=3), 
+                hovertemplate="<b>Attempt %{x}</b><br>Avg Speed: %{y:.1f} ms<br><i>Average time taken across all subjects.</i><extra></extra>"
+            )
+            st.plotly_chart(fig_decay, use_container_width=True)
+            st.info("**Chart Guide:** As subjects memorized the sequence, their typing speed drastically improved, eventually flattening out at their biological execution speed limit.")
     else:
         st.warning("CMU dataset is required for the Muscle Memory baseline.")
 
     st.divider()
 
-    # --- SECTION B: INTERFACE & BASELINE VARIANCE ---
-    st.subheader("2. Universal Baseline Variance")
-    st.markdown("Comparing average typing speeds across different datasets to establish macro-baselines. Notice how free-text typing (Aalto) differs from rigid password entry (CMU).")
+    # --- SECTION C: UNIVERSAL BASELINE VARIANCE ---
+    st.subheader("3. Universal Baseline Variance")
+    st.markdown("Comparing average typing speeds across different datasets to establish macro-baselines.")
     
-   # 1. Calculate macro averages by slicing the Unified Master 'df'
+    # MEMORY SAFE: Calculate macro averages using fast index masking
     macro_stats = []
     comparison_targets = [
         ('CMU', "CMU (Passwords)"), 
         ('Aalto', "Aalto (Free Text)"), 
         ('KeyRecs', "KeyRecs (Mixed)")
     ]
-
+    
     for source_key, display_name in comparison_targets:
-        # Extract source-specific rows from our master 'active_df'
-        subset = active_df[active_df['Source_Dataset'] == source_key]
+        mask = (active_df['Source_Dataset'] == source_key) & (active_df['Flight_DD_ms'] > 0) & (active_df['Flight_DD_ms'] < 1500)
+        subset_idx = active_df.index[mask]
         
-        if not subset.empty and 'Flight_DD_ms' in subset.columns:
-            # Use standardized columns: Flight_DD_ms and Hold_Time_ms
-            clean_subset = subset[(subset['Flight_DD_ms'] > 0) & (subset['Flight_DD_ms'] < 1500)]
+        if len(subset_idx) > 0:
+            avg_flight = active_df.loc[subset_idx, 'Flight_DD_ms'].mean()
             
-            avg_flight = clean_subset['Flight_DD_ms'].mean()
-            avg_hold = clean_subset['Hold_Time_ms'].mean() if 'Hold_Time_ms' in clean_subset.columns else 0
+            hold_mask = (active_df['Source_Dataset'] == source_key) & (active_df['Hold_Time_ms'] > 0) & (active_df['Hold_Time_ms'] < 500)
+            hold_idx = active_df.index[hold_mask]
+            avg_hold = active_df.loc[hold_idx, 'Hold_Time_ms'].mean() if len(hold_idx) > 0 else 0
             
-            macro_stats.append({"Dataset": display_name, "Metric": "Avg Flight Time", "Value (ms)": avg_flight})
-            macro_stats.append({"Dataset": display_name, "Metric": "Avg Hold Time", "Value (ms)": avg_hold})
+            macro_stats.append({"Dataset": display_name, "Metric": "Avg Flight Time", "Value (ms)": avg_flight, "Desc": "Travel time between keys."})
+            macro_stats.append({"Dataset": display_name, "Metric": "Avg Hold Time", "Value (ms)": avg_hold, "Desc": "Time finger rests on key."})
             
-    # 2. Render the Grouped Bar Chart
     if macro_stats:
         df_macro = pd.DataFrame(macro_stats)
         fig_bar = px.bar(
-            df_macro,
-            x="Dataset",
-            y="Value (ms)",
-            color="Metric",
-            barmode="group",
+            df_macro, x="Dataset", y="Value (ms)", color="Metric", barmode="group",
             title="Average Keystroke Latencies by Context",
-            color_discrete_sequence=['#29b6f6', '#ab47bc'] # Light Blue and Purple
+            color_discrete_sequence=['#29b6f6', '#ab47bc'],
+            custom_data=['Desc']
         )
         fig_bar.update_layout(plot_bgcolor='rgba(0,0,0,0)')
+        fig_bar.update_traces(hovertemplate="<b>%{x}</b><br>%{customdata[0]}<br>Average: %{y:.1f} ms<extra></extra>")
         st.plotly_chart(fig_bar, use_container_width=True)
+        st.info("**Chart Guide:** Notice how password entry (CMU) shows significantly faster flight times than free-text typing (Aalto), providing a visual boundary between pure muscle memory and cognitive generation.")
 
-    # --- SECTION C: STATISTICAL BOUNDARIES (T-TEST) ---
+    # --- SECTION D: STATISTICAL BOUNDARIES (T-TEST) ---
     st.divider()
-    st.subheader("3. Statistical Boundaries (Welch's T-Test)")
+    st.subheader("4. Statistical Boundaries (Welch's T-Test)")
     st.markdown("Mathematically proving the boundary between Muscle Memory (CMU) and Cognitive Load (Aalto).")
     
     if not active_df.empty and 'Flight_DD_ms' in active_df.columns:
