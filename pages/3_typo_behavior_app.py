@@ -51,9 +51,24 @@ with st.spinner("Initializing Cloud Master Matrix..."):
     if active_df.empty:
         st.error("Master Dataset not found. Waiting for GitHub ETL pipeline to finish...")
     else:
-        # --- FAST HEURISTIC TAXONOMY ---
-        # Since we bypassed the heavy NLP string-matching in GitHub,
-        # we dynamically categorize the typos based on biometric latency signatures!
+        # --- DATA CLEANING BAND-AIDS ---
+        
+        # 1. KeyRecs was left in seconds (e.g., 0.4). Convert to milliseconds.
+        is_keyrecs = active_df['Source_Dataset'] == 'KeyRecs'
+        if is_keyrecs.any() and 'Flight_DD_ms' in active_df.columns:
+            # Safety check: Only multiply if the average is unnaturally small (< 10)
+            if active_df.loc[is_keyrecs, 'Flight_DD_ms'].mean() < 10:
+                active_df.loc[is_keyrecs, 'Flight_DD_ms'] *= 1000
+                
+        # 2. CMU uses "wide" formatting (DD.period.t, etc). 
+        # We average all those columns into the universal 'Flight_DD_ms' column so CMU can participate!
+        is_cmu = active_df['Source_Dataset'] == 'CMU'
+        dd_cols = [col for col in active_df.columns if col.startswith('DD.')]
+        if is_cmu.any() and dd_cols:
+            # Calculate row-wise mean and safely force to numeric
+            active_df.loc[is_cmu, 'Flight_DD_ms'] = active_df.loc[is_cmu, dd_cols].apply(pd.to_numeric, errors='coerce').mean(axis=1)
+
+        # 3. Dynamic Typo Taxonomy 
         # Fast Typos (< 400ms flight) = Spatial Motor Slips
         # Slow Typos (>= 400ms flight) = Cognitive Processing Errors
         if 'Is_Typo' in active_df.columns:
