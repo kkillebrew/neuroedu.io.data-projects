@@ -48,14 +48,7 @@ def load_master_matrix(filepath):
 with st.spinner("Initializing Cloud Master Matrix..."):
     active_df = load_master_matrix(master_path)
     
-    if not active_df.empty:
-        # Isolate subsets using the new 'Source_Dataset' column schema
-        df_cmu = active_df[active_df['Source_Dataset'] == 'CMU']
-        df_clarkson = active_df[active_df['Source_Dataset'].isin(['Clarkson_I', 'Clarkson_II'])]
-        df_aalto = active_df[active_df['Source_Dataset'] == 'Aalto']
-        df_keyrecs = active_df[active_df['Source_Dataset'] == 'KeyRecs']
-    else:
-        df_cmu = df_clarkson = df_aalto = df_keyrecs = pd.DataFrame()
+    if active_df.empty:
         st.error("Master Dataset not found. Waiting for GitHub ETL pipeline to finish...")
 
 if active_df is not None and not active_df.empty:
@@ -132,68 +125,70 @@ with tab1:
     st.header("Phase 1: Cloud Pre-Processing & Ingestion")
     st.write("Overview of the massive datasets downsampled via Colab and ingested as Parquet files.")
     
-    # --- SCHEMA UNIFICATION PROOF (Check off the TODO!) ---
+    # --- SCHEMA UNIFICATION PROOF ---
     with st.expander("🔍 Verify Schema Unification"):
         st.markdown("Proof that disparate datasets were successfully normalized into the Master Data Schema:")
         
         schema_col1, schema_col2 = st.columns(2)
         with schema_col1:
             st.caption("Clarkson Dataset (Raw Keystrokes)")
-            if not df_clarkson.empty:
-                st.dataframe(df_clarkson.head(3), use_container_width=True)
+            if not active_df.empty:
+                st.dataframe(active_df[active_df['Source_Dataset'] == 'Clarkson_II'].head(3), use_container_width=True)
         with schema_col2:
             st.caption("Aalto Dataset (Macro Baseline)")
-            if not df_aalto.empty:
-                st.dataframe(df_aalto.head(3), use_container_width=True)
+            if not active_df.empty:
+                st.dataframe(active_df[active_df['Source_Dataset'] == 'Aalto'].head(3), use_container_width=True)
 
-        # --- TAB 1: DATASET OVERVIEW & PHASE 1 ANALYTICS ---
         st.subheader("Microscopic Event Log: Master Matrix")
         st.markdown("Analyze raw chronologies, backspace footprints, and behavioral error classifications.")
         
         # --- SMALL MULTIPLES (TRELLIS) CORRELATION CHART ---
         st.markdown("### Cross-Dataset Biometric Correlations")
-        st.markdown("This Small Multiples chart plots **Dwell Time vs. Flight Time**. By standardizing the axes across different datasets, we can visually compare the fundamental shape of human typing behavior regardless of the data's origin.")
+        st.markdown("This Small Multiples chart plots **Hold Time vs. Flight Time**. By standardizing the axes, we visually compare the fundamental shape of human typing behavior.")
         
-        # Gather a random sample from each dataset to keep the browser lightning fast
         multiples_data = []
+        target_datasets = [
+            (['Clarkson_I', 'Clarkson_II'], "Clarkson (Cognitive)"),
+            (['Aalto'], "Aalto (Macro)"),
+            (['KeyRecs'], "KeyRecs (Digraph)")
+        ]
         
-        # We loop through the 3 datasets that utilize the Dwell/Flight master schema
-        for df, name in [(df_clarkson, "Clarkson (Cognitive)"), (df_aalto, "Aalto (Macro)"), (df_keyrecs, "KeyRecs (Digraph)")]:
-            if df is not None and not df.empty and 'Flight_DD_ms' in df.columns and 'Hold_Time_ms' in df.columns:
+        for ds_list, name in target_datasets:
+            if not active_df.empty and 'Flight_DD_ms' in active_df.columns and 'Hold_Time_ms' in active_df.columns:
                 
-                # Filter out extreme outliers (e.g., getting up for a coffee) to see the true cluster
-                clean_df = df[(df['Flight_DD_ms'] > 0) & (df['Flight_DD_ms'] < 800) & 
-                              (df['Hold_Time_ms'] > 0) & (df['Hold_Time_ms'] < 300)].copy()
+                # MEMORY SAFE: Get indices first, do not copy dataframe
+                mask = (active_df['Source_Dataset'].isin(ds_list)) & \
+                       (active_df['Flight_DD_ms'] > 0) & (active_df['Flight_DD_ms'] < 800) & \
+                       (active_df['Hold_Time_ms'] > 0) & (active_df['Hold_Time_ms'] < 300)
                 
-                if not clean_df.empty:
-                    # Sample exactly 2,000 points per dataset so the plot is perfectly balanced
-                    sample_size = min(len(clean_df), 2000)
-                    sampled = clean_df.sample(n=sample_size, random_state=42)
+                valid_indices = active_df.index[mask]
+                
+                if len(valid_indices) > 0:
+                    # Sample directly from the indices, then extract ONLY those 2000 rows
+                    sample_size = min(len(valid_indices), 2000)
+                    sampled_indices = pd.Series(valid_indices).sample(n=sample_size, random_state=42)
+                    
+                    sampled = active_df.loc[sampled_indices].copy()
                     sampled['Source_Dataset'] = name
                     multiples_data.append(sampled)
         
         # Render the Plotly Facet Grid
         if multiples_data:
             combined_multiples = pd.concat(multiples_data, ignore_index=True)
-            
-            # facet_col is the magic Plotly parameter that creates Small Multiples
             fig_trellis = px.scatter(
                 combined_multiples, 
                 x="Hold_Time_ms", 
                 y="Flight_DD_ms", 
                 color="Source_Dataset",
-                facet_col="Source_Dataset",  # <-- CREATES THE GRID
-                opacity=0.4,                 # Transparency shows density
-                title="Universal Keystroke Signatures (Dwell vs. Flight)",
-                labels={"Dwell_Time": "Dwell Time (ms)", "Flight_Time": "Flight Time (ms)"},
-                trendline="ols"              # Draws the linear correlation line
+                facet_col="Source_Dataset",
+                opacity=0.4,
+                title="Universal Keystroke Signatures (Hold vs. Flight)",
+                labels={"Hold_Time_ms": "Hold Time (ms)", "Flight_DD_ms": "Flight Time (ms)"},
+                trendline="ols"
             )
-            
-            # Hide the legend since the column titles already explain which dataset is which
             fig_trellis.update_layout(showlegend=False, plot_bgcolor='rgba(0,0,0,0)')
             fig_trellis.update_xaxes(showgrid=True, gridcolor='rgba(128,128,128,0.2)')
             fig_trellis.update_yaxes(showgrid=True, gridcolor='rgba(128,128,128,0.2)')
-            
             st.plotly_chart(fig_trellis, use_container_width=True)
             st.divider()
 
@@ -202,35 +197,26 @@ with tab1:
             col_chart1, col_chart2 = st.columns(2)
             
             with col_chart1:
-                # Chart 1: Typo Taxonomy Pie Chart
                 if 'Typo_Category' in active_df.columns:
-                    category_df = active_df[active_df['Typo_Category'] != 'None']
-                    if not category_df.empty:
-                        cat_counts = category_df['Typo_Category'].value_counts().reset_index()
-                        cat_counts.columns = ['Category', 'Count']
-                        fig_cat = px.pie(
-                            cat_counts, names='Category', values='Count', 
-                            title="Typo Behavioral Taxonomy Distribution", 
-                            hole=0.4, color_discrete_sequence=px.colors.sequential.Teal
-                        )
+                    # Fast slice on just the single column for the Pie Chart
+                    cat_counts = active_df['Typo_Category'][active_df['Typo_Category'] != 'None'].value_counts().reset_index()
+                    cat_counts.columns = ['Category', 'Count']
+                    if not cat_counts.empty:
+                        fig_cat = px.pie(cat_counts, names='Category', values='Count', title="Typo Behavioral Taxonomy Distribution", hole=0.4, color_discrete_sequence=px.colors.sequential.Teal)
                         st.plotly_chart(fig_cat, use_container_width=True)
-                    else:
-                        st.info("No spatial/cognitive categorizations found in this dataset.")
                         
             with col_chart2:
-                # Chart 2: Latency Cost of Typos (Box Plot)
-                # We cap at 1500ms to filter out pauses/getting up from the desk
-                flight_df = active_df[active_df['Flight_DD_ms'] < 1500].copy()
-                # Map booleans to readable strings for the chart legend
-                flight_df['Event_Type'] = flight_df['Is_Typo'].map({True: 'Typo / Backspace Trigger', False: 'Valid Keystroke'})
-                
-                fig_flight = px.box(
-                    flight_df, x='Event_Type', y='Flight_DD_ms', 
-                    title="Flight Time Latency: Valid vs. Typos", 
-                    color='Event_Type', color_discrete_sequence=['#00e676', '#ff5252']
-                )
-                st.plotly_chart(fig_flight, use_container_width=True)
-                
+                # Memory safe random sample for the Box Plot (prevent plotting millions of dots)
+                flight_mask = (active_df['Flight_DD_ms'] < 1500) & (active_df['Flight_DD_ms'] > 0)
+                flight_indices = active_df.index[flight_mask]
+                if len(flight_indices) > 0:
+                    sample_size = min(len(flight_indices), 10000)
+                    sampled_flight_idx = pd.Series(flight_indices).sample(n=sample_size, random_state=42)
+                    flight_df = active_df.loc[sampled_flight_idx, ['Flight_DD_ms', 'Is_Typo']].copy()
+                    
+                    flight_df['Event_Type'] = flight_df['Is_Typo'].map({True: 'Typo / Backspace Trigger', False: 'Valid Keystroke'})
+                    fig_flight = px.box(flight_df, x='Event_Type', y='Flight_DD_ms', title="Flight Time Latency: Valid vs. Typos", color='Event_Type', color_discrete_sequence=['#00e676', '#ff5252'])
+                    st.plotly_chart(fig_flight, use_container_width=True)
         st.divider()
 # ---------------------------------------------------------------------
 # TAB 2: PHASE 2 (Macro-Level Benchmarks)
@@ -332,25 +318,24 @@ with tab2:
     st.subheader("3. Statistical Boundaries (Welch's T-Test)")
     st.markdown("Mathematically proving the boundary between Muscle Memory (CMU) and Cognitive Load (Aalto).")
     
-    if not df_cmu.empty and not active_df.empty and 'Flight_DD_ms' in active_df.columns:
-        # 1. Isolate clean flight time array for CMU
-        cmu_array = df_cmu[(df_cmu['Flight_DD_ms'] > 0) & (df_cmu['Flight_DD_ms'] < 1000)]['Flight_DD_ms'].dropna()
+    if not active_df.empty and 'Flight_DD_ms' in active_df.columns:
+        # MEMORY SAFE: Extract just the 1D arrays of numbers directly
+        is_cmu = active_df['Source_Dataset'] == 'CMU'
+        cmu_flights = active_df.loc[is_cmu, 'Flight_DD_ms']
+        cmu_array = cmu_flights[(cmu_flights > 0) & (cmu_flights < 1000)].dropna()
         
-        # 2. Extract ONLY Aalto from the unified Master Dataset
-        aalto_subset = active_df[active_df['Source_Dataset'] == 'Aalto']
+        is_aalto = active_df['Source_Dataset'] == 'Aalto'
+        aalto_flights = active_df.loc[is_aalto, 'Flight_DD_ms']
+        aalto_array = aalto_flights[(aalto_flights > 0) & (aalto_flights < 1000)].dropna()
         
-        if not aalto_subset.empty:
-            aalto_array = aalto_subset[(aalto_subset['Flight_DD_ms'] > 0) & (aalto_subset['Flight_DD_ms'] < 1000)]['Flight_DD_ms'].dropna()
-            # 2. Run Welch's T-Test (equal_var=False handles the massive sample size difference)
+        if not aalto_array.empty and not cmu_array.empty:
             t_stat, p_val = stats.ttest_ind(aalto_array, cmu_array, equal_var=False)
             
-            # 3. Render the statistical readout
             t_col1, t_col2, t_col3, t_col4 = st.columns(4)
             t_col1.metric("CMU Mean (Muscle)", f"{cmu_array.mean():.1f} ms")
             t_col2.metric("Aalto Mean (Cognitive)", f"{aalto_array.mean():.1f} ms")
             t_col3.metric("T-Statistic", f"{t_stat:.2f}")
             
-            # Format p-value output
             if p_val < 0.0001:
                 p_display = "< 0.0001"
                 significance = "Significant Boundary"
@@ -360,7 +345,6 @@ with tab2:
                 
             t_col4.metric("P-Value", p_display, delta=significance, delta_color="normal" if p_val < 0.05 else "inverse")
             
-            # 4. State the findings
             if p_val < 0.05:
                 penalty = aalto_array.mean() - cmu_array.mean()
                 st.success(f"**Conclusion:** The data proves a statistically significant boundary between motor execution and cognitive generation. Free-text typing requires significantly more mental overhead, resulting in an average latency penalty of **{penalty:.1f} ms** per keystroke.")
