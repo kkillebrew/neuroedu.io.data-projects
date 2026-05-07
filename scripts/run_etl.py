@@ -79,19 +79,19 @@ if os.path.exists(aalto_path):
     print("Loading raw Aalto dataset...")
     df_aalto = pd.read_parquet(aalto_path)
 
-    # --- FIX: Master Schema Alignment ---
+    # --- Master Schema Alignment ---
     # Rename raw participant columns if necessary
     if 'SUBJECT_ID' in df_aalto.columns:
         df_aalto = df_aalto.rename(columns={'SUBJECT_ID': 'User_ID'})
     elif 'PARTICIPANT_ID' in df_aalto.columns:
         df_aalto = df_aalto.rename(columns={'PARTICIPANT_ID': 'User_ID'})
 
-    # --- FIX: Master Schema Alignment ---
-    # Rename raw participant columns if necessary
-    if 'SUBJECT_ID' in df_aalto.columns:
-        df_aalto = df_aalto.rename(columns={'SUBJECT_ID': 'User_ID'})
-    elif 'PARTICIPANT_ID' in df_aalto.columns:
-        df_aalto = df_aalto.rename(columns={'PARTICIPANT_ID': 'User_ID'})
+    # Generate the missing Session_ID required by the taxonomy function
+    df_aalto['Dataset'] = 'Aalto'
+    if 'User_ID' in df_aalto.columns:
+        df_aalto['Session_ID'] = df_aalto['Dataset'] + '_' + df_aalto['User_ID'].astype(str)
+    else:
+        df_aalto['Session_ID'] = 'Aalto_UnknownSession'
 
     print("Running Phase 1 Pipeline Calculations...")
     df_aalto = apply_typo_taxonomy(df_aalto)
