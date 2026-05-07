@@ -13,7 +13,7 @@ import pandas as pd
 # This tells the script to look one folder up to find the 'loaders' directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from loaders.typo_behavior_loader import load_all_datasets, load_ml_pipeline, calculate_muscle_memory_decay
+from loaders.typo_behavior_loader import calculate_muscle_memory_decay
 
 from data_projects_sidebar import apply_global_settings, render_sidebar
 
@@ -28,9 +28,6 @@ apply_global_settings("Neuro-Edu | Why do we make typos?")
 render_sidebar()
 
 # --- INITIALIZE DATA & MODELS ---
-df_cmu, df_keyrecs, df_aalto, df_clarkson = load_all_datasets()
-ml_model = load_ml_pipeline()
-
 st.title("Typo Behavior & Cognitive Load Dashboard")
 st.markdown("Analyze microscopic keystroke events, backspace footprints, and cognitive misfires.")
 
@@ -38,14 +35,19 @@ st.markdown("Analyze microscopic keystroke events, backspace footprints, and cog
 base_dir = os.path.join(os.path.dirname(__file__), '..', 'documents')
 master_path = os.path.join(base_dir, 'master_dataset.parquet')
 
-with st.spinner("Loading unified Master Dataset into memory..."):
-    if os.path.exists(master_path):
-        active_df = pd.read_parquet(master_path)
-        
-        # Since CMU is now inside the master matrix, we isolate it for the Tab 2 baseline tests
+@st.cache_data(show_spinner=False)
+def load_master_matrix(filepath):
+    if os.path.exists(filepath):
+        return pd.read_parquet(filepath)
+    return pd.DataFrame()
+
+with st.spinner("Initializing Cloud Master Matrix..."):
+    active_df = load_master_matrix(master_path)
+    
+    if not active_df.empty:
+        # Isolate CMU for the Tab 2 baseline tests
         df_cmu = active_df[active_df['Dataset'] == 'CMU']
     else:
-        active_df = pd.DataFrame()
         df_cmu = pd.DataFrame()
         st.error("Master Dataset not found. Waiting for GitHub ETL pipeline to finish...")
 
