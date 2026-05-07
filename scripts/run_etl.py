@@ -118,11 +118,11 @@ clarkson_i_tar_path = os.path.join(base_dir, 'Clarkson-I-2014.tar.gz')
 clarkson_i_folder = os.path.join(base_dir, 'clarkson_1_extracted') 
 
 if not os.path.exists(clarkson_i_folder):
-if os.path.exists(clarkson_i_tar_path):
-    print(f"Extracting {clarkson_i_tar_path}...")
-    with tarfile.open(clarkson_i_tar_path, 'r:gz') as tar:
-        # FIX: Force extraction directly into your custom folder
-        tar.extractall(path=clarkson_i_folder) 
+    if os.path.exists(clarkson_i_tar_path):
+        print(f"Extracting {clarkson_i_tar_path}...")
+        with tarfile.open(clarkson_i_tar_path, 'r:gz') as tar:
+            # FIX: Force extraction directly into your custom folder
+            tar.extractall(path=clarkson_i_folder) 
     else:
         print(f"Warning: {clarkson_i_tar_path} not found.")
 
@@ -136,13 +136,13 @@ clarkson_ii_zip_path = os.path.join(base_dir, 'clarkson-II-2018-filtered_dataset
 clarkson_ii_folder = os.path.join(base_dir, 'clarkson_2_extracted') 
 
 if not os.path.exists(clarkson_ii_folder):
-if os.path.exists(clarkson_ii_zip_path):
-    print(f"Extracting {clarkson_ii_zip_path}...")
-    with zipfile.ZipFile(clarkson_ii_zip_path, 'r') as zip_ref:
-        # FIX: Force extraction directly into your custom folder
-        zip_ref.extractall(path=clarkson_ii_folder) 
-else:
-    print(f"Warning: {clarkson_ii_zip_path} not found.")
+    if os.path.exists(clarkson_ii_zip_path):
+        print(f"Extracting {clarkson_ii_zip_path}...")
+        with zipfile.ZipFile(clarkson_ii_zip_path, 'r') as zip_ref:
+            # FIX: Force extraction directly into your custom folder
+            zip_ref.extractall(path=clarkson_ii_folder) 
+    else:
+        print(f"Warning: {clarkson_ii_zip_path} not found.")
 
 if os.path.exists(clarkson_ii_folder):
     df_c2 = ingest_clarkson_II(clarkson_ii_folder)
