@@ -44,67 +44,64 @@ def load_master_matrix(filepath):
     df = pd.read_parquet(filepath)
     
     # ==========================================
-    # --- BRUTE FORCE DATA SANITIZER ---
+    # --- THE CATEGORICAL LOCK-BREAKER ---
     # ==========================================
+    # When Parquet compresses columns, it locks them into Categoricals.
+    # If we assign a new calculated mean to a categorical column, Pandas 
+    # rejects the number and secretly inserts 'NaN'.
+    # We explicitly force these target columns to pure floats BEFORE doing math.
     
-    # Helper function to brutally shatter categorical locks and force raw floats
-    def force_numeric(series):
-        # Convert to string, strip all non-numeric characters (except decimals/negatives), then cast to float
-        clean_strings = series.astype(str).str.replace(r'[^\d.-]', '', regex=True)
-        return pd.to_numeric(clean_strings, errors='coerce')
-
-    # 1. Force Dataset IDs to string
-    if 'Source_Dataset' in df.columns:
-        df['Source_Dataset'] = df['Source_Dataset'].astype(str)
-
-    # 2. CMU Wide to Long Fix
+    for col in ['Flight_DD_ms', 'Hold_Time_ms']:
+        if col in df.columns:
+            # Fast, memory-safe conversion bypassing regex
+            df[col] = pd.to_numeric(df[col], errors='coerce').astype('float32')
+            
+    # 1. CMU Wide to Long Fix
     is_cmu = df['Source_Dataset'] == 'CMU'
     if is_cmu.any():
         cmu_idx = df.index[is_cmu]
         
-        # Flight Times (Aggregate all 11 columns)
-        dd_cols = [col for col in df.columns if col.startswith('DD.') and col != 'Flight_DD_ms']
+        # Aggregate Flight Times safely
+        dd_cols = [c for c in df.columns if c.startswith('DD.') and c != 'Flight_DD_ms']
         if dd_cols:
-            cmu_flights = df.loc[cmu_idx, dd_cols].apply(force_numeric)
-            df.loc[cmu_idx, 'Flight_DD_ms'] = cmu_flights.mean(axis=1, skipna=True)
+            cmu_flights = df.loc[cmu_idx, dd_cols].apply(lambda x: pd.to_numeric(x, errors='coerce'))
+            df.loc[cmu_idx, 'Flight_DD_ms'] = cmu_flights.mean(axis=1).astype('float32')
             
-        # Hold Times (Aggregate all 11 columns)
-        h_cols = [col for col in df.columns if col.startswith('H.') and col != 'Hold_Time_ms']
+        # Aggregate Hold Times safely
+        h_cols = [c for c in df.columns if c.startswith('H.') and c != 'Hold_Time_ms']
         if h_cols:
-            cmu_holds = df.loc[cmu_idx, h_cols].apply(force_numeric)
-            df.loc[cmu_idx, 'Hold_Time_ms'] = cmu_holds.mean(axis=1, skipna=True)
+            cmu_holds = df.loc[cmu_idx, h_cols].apply(lambda x: pd.to_numeric(x, errors='coerce'))
+            df.loc[cmu_idx, 'Hold_Time_ms'] = cmu_holds.mean(axis=1).astype('float32')
             
         # Attempt Number for Decay Curve
         if 'sessionIndex' in df.columns and 'rep' in df.columns:
-            s_num = force_numeric(df.loc[cmu_idx, 'sessionIndex']).fillna(1)
-            r_num = force_numeric(df.loc[cmu_idx, 'rep']).fillna(1)
-            df.loc[cmu_idx, 'Attempt_Number'] = ((s_num - 1) * 50) + r_num
+            s_num = pd.to_numeric(df.loc[cmu_idx, 'sessionIndex'], errors='coerce').fillna(1)
+            r_num = pd.to_numeric(df.loc[cmu_idx, 'rep'], errors='coerce').fillna(1)
+            df.loc[cmu_idx, 'Attempt_Number'] = (((s_num - 1) * 50) + r_num).astype('float32')
 
-    # 3. KeyRecs Seconds to Milliseconds
+    # 2. KeyRecs Scaling & Naming
     is_keyrecs = df['Source_Dataset'] == 'KeyRecs'
     if is_keyrecs.any():
         kr_idx = df.index[is_keyrecs]
         
-        # Rescue the hidden hold time column
         if 'DU.key1.key1' in df.columns:
-            df.loc[kr_idx, 'Hold_Time_ms'] = force_numeric(df.loc[kr_idx, 'DU.key1.key1'])
-        
-        # Unconditionally force conversion to numeric, then scale if in seconds
-        if 'Flight_DD_ms' in df.columns:
-            df.loc[kr_idx, 'Flight_DD_ms'] = force_numeric(df.loc[kr_idx, 'Flight_DD_ms'])
-            if df.loc[kr_idx, 'Flight_DD_ms'].median() < 10:  
-                df.loc[kr_idx, 'Flight_DD_ms'] *= 1000
-                
-        if 'Hold_Time_ms' in df.columns:
-            df.loc[kr_idx, 'Hold_Time_ms'] = force_numeric(df.loc[kr_idx, 'Hold_Time_ms'])
-            if df.loc[kr_idx, 'Hold_Time_ms'].median() < 10:
-                df.loc[kr_idx, 'Hold_Time_ms'] *= 1000
-                
-    # 4. Dynamic Typo Taxonomy
+            df.loc[kr_idx, 'Hold_Time_ms'] = pd.to_numeric(df.loc[kr_idx, 'DU.key1.key1'], errors='coerce').astype('float32')
+            
+        # Scale seconds to ms safely
+        if 'Flight_DD_ms' in df.columns and df.loc[kr_idx, 'Flight_DD_ms'].median() < 10:
+            df.loc[kr_idx, 'Flight_DD_ms'] *= 1000
+            
+        if 'Hold_Time_ms' in df.columns and df.loc[kr_idx, 'Hold_Time_ms'].median() < 10:
+            df.loc[kr_idx, 'Hold_Time_ms'] *= 1000
+
+    # 3. Dynamic Typo Taxonomy
     if 'Is_Typo' in df.columns and 'Flight_DD_ms' in df.columns:
-        df['Typo_Category'] = 'None'
-        df['Flight_DD_ms'] = force_numeric(df['Flight_DD_ms']) # Ensure entire column is float
-        
+        # First, ensure it's not locked as categorical
+        if 'Typo_Category' in df.columns and df['Typo_Category'].dtype.name == 'category':
+            df['Typo_Category'] = df['Typo_Category'].astype(str)
+        else:
+            df['Typo_Category'] = 'None'
+            
         spatial_mask = (df['Is_Typo'] == True) & (df['Flight_DD_ms'] < 400)
         df.loc[spatial_mask, 'Typo_Category'] = 'Spatial'
         
