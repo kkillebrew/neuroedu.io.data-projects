@@ -35,43 +35,41 @@ st.markdown("Analyze microscopic keystroke events, backspace footprints, and cog
 base_dir = os.path.join(os.path.dirname(__file__), '..', 'documents')
 master_path = os.path.join(base_dir, 'master_dataset.parquet')
 
+# THE FIX: Renamed to v2 to force Streamlit to wipe its cache!
 @st.cache_resource(show_spinner=False)
-def load_master_matrix(filepath):
-    """ Loads the data and permanently applies schema band-aids inside the cache. """
+def load_master_matrix_v2(filepath):
+    """ Loads the data, clears caches, and permanently applies schema band-aids. """
     if not os.path.exists(filepath):
         return pd.DataFrame()
         
     df = pd.read_parquet(filepath)
     
-    # ==========================================
-    # --- THE CATEGORICAL LOCK-BREAKER ---
-    # ==========================================
-    # When Parquet compresses columns, it locks them into Categoricals.
-    # If we assign a new calculated mean to a categorical column, Pandas 
-    # rejects the number and secretly inserts 'NaN'.
-    # We explicitly force these target columns to pure floats BEFORE doing math.
+    # 0. Clean the Source Names (removes hidden spaces like "CMU ")
+    if 'Source_Dataset' in df.columns:
+        df['Source_Dataset'] = df['Source_Dataset'].astype(str).str.strip()
     
-    for col in ['Flight_DD_ms', 'Hold_Time_ms']:
-        if col in df.columns:
-            # Fast, memory-safe conversion bypassing regex
-            df[col] = pd.to_numeric(df[col], errors='coerce').astype('float32')
-            
-    # 1. CMU Wide to Long Fix
+    # 1. Initialize safe Float columns to break Categorical Locks
+    for col in ['Flight_DD_ms', 'Hold_Time_ms', 'Attempt_Number']:
+        if col not in df.columns:
+            df[col] = np.nan
+        df[col] = pd.to_numeric(df[col], errors='coerce').astype('float32')
+
+    # 2. CMU Wide to Long Fix & Decay Math
     is_cmu = df['Source_Dataset'] == 'CMU'
     if is_cmu.any():
         cmu_idx = df.index[is_cmu]
         
-        # Aggregate Flight Times safely
+        # Aggregate Flight Times
         dd_cols = [c for c in df.columns if c.startswith('DD.') and c != 'Flight_DD_ms']
         if dd_cols:
-            cmu_flights = df.loc[cmu_idx, dd_cols].apply(lambda x: pd.to_numeric(x, errors='coerce'))
-            df.loc[cmu_idx, 'Flight_DD_ms'] = cmu_flights.mean(axis=1).astype('float32')
+            cmu_flights = df.loc[cmu_idx, dd_cols].apply(pd.to_numeric, errors='coerce')
+            df.loc[cmu_idx, 'Flight_DD_ms'] = cmu_flights.mean(axis=1, skipna=True).astype('float32')
             
-        # Aggregate Hold Times safely
+        # Aggregate Hold Times
         h_cols = [c for c in df.columns if c.startswith('H.') and c != 'Hold_Time_ms']
         if h_cols:
-            cmu_holds = df.loc[cmu_idx, h_cols].apply(lambda x: pd.to_numeric(x, errors='coerce'))
-            df.loc[cmu_idx, 'Hold_Time_ms'] = cmu_holds.mean(axis=1).astype('float32')
+            cmu_holds = df.loc[cmu_idx, h_cols].apply(pd.to_numeric, errors='coerce')
+            df.loc[cmu_idx, 'Hold_Time_ms'] = cmu_holds.mean(axis=1, skipna=True).astype('float32')
             
         # Attempt Number for Decay Curve
         if 'sessionIndex' in df.columns and 'rep' in df.columns:
@@ -79,24 +77,28 @@ def load_master_matrix(filepath):
             r_num = pd.to_numeric(df.loc[cmu_idx, 'rep'], errors='coerce').fillna(1)
             df.loc[cmu_idx, 'Attempt_Number'] = (((s_num - 1) * 50) + r_num).astype('float32')
 
-    # 2. KeyRecs Scaling & Naming
+    # 3. KeyRecs Seconds to Milliseconds & Name Fallback
     is_keyrecs = df['Source_Dataset'] == 'KeyRecs'
     if is_keyrecs.any():
         kr_idx = df.index[is_keyrecs]
         
-        if 'DU.key1.key1' in df.columns:
-            df.loc[kr_idx, 'Hold_Time_ms'] = pd.to_numeric(df.loc[kr_idx, 'DU.key1.key1'], errors='coerce').astype('float32')
-            
-        # Scale seconds to ms safely
-        if 'Flight_DD_ms' in df.columns and df.loc[kr_idx, 'Flight_DD_ms'].median() < 10:
+        # Rescue hidden data if ETL missed the rename
+        if 'DD.key1.key2' in df.columns and df.loc[kr_idx, 'Flight_DD_ms'].isna().all():
+            df.loc[kr_idx, 'Flight_DD_ms'] = pd.to_numeric(df.loc[kr_idx, 'DD.key1.key2'], errors='coerce')
+        if 'DU.key1.key1' in df.columns and df.loc[kr_idx, 'Hold_Time_ms'].isna().all():
+            df.loc[kr_idx, 'Hold_Time_ms'] = pd.to_numeric(df.loc[kr_idx, 'DU.key1.key1'], errors='coerce')
+
+        # Scale seconds to ms
+        flight_med = df.loc[kr_idx, 'Flight_DD_ms'].median()
+        if pd.notna(flight_med) and flight_med < 10:
             df.loc[kr_idx, 'Flight_DD_ms'] *= 1000
             
-        if 'Hold_Time_ms' in df.columns and df.loc[kr_idx, 'Hold_Time_ms'].median() < 10:
+        hold_med = df.loc[kr_idx, 'Hold_Time_ms'].median()
+        if pd.notna(hold_med) and hold_med < 10:
             df.loc[kr_idx, 'Hold_Time_ms'] *= 1000
 
-    # 3. Dynamic Typo Taxonomy
-    if 'Is_Typo' in df.columns and 'Flight_DD_ms' in df.columns:
-        # First, ensure it's not locked as categorical
+    # 4. Dynamic Typo Taxonomy
+    if 'Is_Typo' in df.columns:
         if 'Typo_Category' in df.columns and df['Typo_Category'].dtype.name == 'category':
             df['Typo_Category'] = df['Typo_Category'].astype(str)
         else:
@@ -110,8 +112,9 @@ def load_master_matrix(filepath):
         
     return df
 
-with st.spinner("Initializing Cloud Master Matrix..."):
-    active_df = load_master_matrix(master_path)
+with st.spinner("Initializing Cloud Master Matrix (Cache Cleared)..."):
+    # Call the new V2 function!
+    active_df = load_master_matrix_v2(master_path)
     
     if active_df.empty:
         st.error("Master Dataset not found. Waiting for GitHub ETL pipeline to finish...")
