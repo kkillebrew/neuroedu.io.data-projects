@@ -187,12 +187,9 @@ if not df_clarkson_raw.empty:
     presses = df_clarkson_raw[df_clarkson_raw['Action'] == 0].copy()
     releases = df_clarkson_raw[df_clarkson_raw['Action'] == 1].copy()
     
-    presses = presses.rename(columns={'Timestamp': 'Timestamp_Press'})
-    releases = releases.rename(columns={'Timestamp': 'Timestamp_Release'})
+    presses = df_clarkson_raw[df_clarkson_raw['Action_Type'] == 'PRESS'].copy()
+    releases = df_clarkson_raw[df_clarkson_raw['Action_Type'] == 'RELEASE'].copy()
     
-    presses = presses.sort_values(by=['PARTICIPANT_ID', 'Key_Code', 'Timestamp_Press'])
-    releases = releases.sort_values(by=['PARTICIPANT_ID', 'Key_Code', 'Timestamp_Release'])
-
     # Heavy ETL Merge
     print("Running merge_asof matrix operation for Clarkson...")
     df_merged = pd.merge_asof(
