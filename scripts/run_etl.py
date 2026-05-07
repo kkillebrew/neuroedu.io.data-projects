@@ -317,6 +317,12 @@ if master_dfs:
     print("Fusing Master Matrix...")
     df_master = pd.concat(master_dfs, ignore_index=True)
     
+    # Force ID columns to be purely strings to prevent PyArrow mixed-type crashes
+    if 'Participant_ID' in df_master.columns:
+        df_master['Participant_ID'] = df_master['Participant_ID'].astype(str)
+    if 'Session_ID' in df_master.columns:
+        df_master['Session_ID'] = df_master['Session_ID'].astype(str)
+        
     # Apply the final memory downcasting before saving
     # This converts float64 -> float32 and Object -> Category
     df_master = optimize_memory(df_master)
