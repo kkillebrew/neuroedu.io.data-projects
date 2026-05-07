@@ -192,7 +192,7 @@ with tab1:
                 if len(valid_indices) > 0:
                     # Sample directly from the indices, then extract ONLY those 2000 rows
                     sample_size = min(len(valid_indices), 2000)
-                    sampled_indices = pd.Series(valid_indices).sample(n=sample_size, random_state=42)
+                    sampled_indices = pd.Series(valid_indices).sample(n=sample_size, random_state=42).values
                     
                     sampled = active_df.loc[sampled_indices].copy()
                     sampled['Source_Dataset'] = name
@@ -261,7 +261,7 @@ with tab1:
                 if len(flight_indices) > 0:
                     total_population = len(flight_indices)
                     sample_size = min(total_population, 10000)
-                    sampled_flight_idx = pd.Series(flight_indices).sample(n=sample_size, random_state=42)
+                    sampled_flight_idx = pd.Series(flight_indices).sample(n=sample_size, random_state=42).values
                     flight_df = active_df.loc[sampled_flight_idx, ['Flight_DD_ms', 'Is_Typo']].copy()
                     
                     flight_df['Event_Type'] = flight_df['Is_Typo'].map({True: 'Typo / Backspace Trigger', False: 'Valid Keystroke'})
