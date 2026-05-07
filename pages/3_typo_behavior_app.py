@@ -53,30 +53,35 @@ with st.spinner("Initializing Cloud Master Matrix..."):
     else:
         # --- DATA CLEANING BAND-AIDS ---
         
-        # 1. KeyRecs was left in seconds (e.g., 0.4). Convert to milliseconds.
-        is_keyrecs = active_df['Source_Dataset'] == 'KeyRecs'
-        if is_keyrecs.any() and 'Flight_DD_ms' in active_df.columns:
-            # Safety check: Only multiply if the average is unnaturally small (< 10)
-            if active_df.loc[is_keyrecs, 'Flight_DD_ms'].mean() < 10:
-                active_df.loc[is_keyrecs, 'Flight_DD_ms'] *= 1000
-                
-        # 2. CMU uses "wide" formatting (DD.period.t, etc). 
-        # We average all those columns into the universal 'Flight_DD_ms' column so CMU can participate!
+        # 1. CMU uses "wide" formatting (DD.period.t, H.t, etc). 
+        # We average all those columns into the universal 'Flight_DD_ms' and 'Hold_Time_ms' columns!
         is_cmu = active_df['Source_Dataset'] == 'CMU'
-        dd_cols = [col for col in active_df.columns if col.startswith('DD.')]
-        if is_cmu.any() and dd_cols:
-            # Calculate row-wise mean and safely force to numeric
-            active_df.loc[is_cmu, 'Flight_DD_ms'] = active_df.loc[is_cmu, dd_cols].apply(pd.to_numeric, errors='coerce').mean(axis=1)
+        if is_cmu.any():
+            dd_cols = [col for col in active_df.columns if col.startswith('DD.')]
+            if dd_cols:
+                active_df.loc[is_cmu, 'Flight_DD_ms'] = active_df.loc[is_cmu, dd_cols].apply(pd.to_numeric, errors='coerce').mean(axis=1)
+                
+            h_cols = [col for col in active_df.columns if col.startswith('H.')]
+            if h_cols:
+                active_df.loc[is_cmu, 'Hold_Time_ms'] = active_df.loc[is_cmu, h_cols].apply(pd.to_numeric, errors='coerce').mean(axis=1)
+
+        # 2. KeyRecs used 'Dwell_Time' instead of 'Hold_Time_ms', and is left in seconds.
+        is_keyrecs = active_df['Source_Dataset'] == 'KeyRecs'
+        if is_keyrecs.any():
+            if 'Dwell_Time' in active_df.columns:
+                active_df.loc[is_keyrecs, 'Hold_Time_ms'] = active_df.loc[is_keyrecs, 'Dwell_Time']
+                
+            # Convert to milliseconds if they are artificially tiny (< 10 seconds)
+            if 'Flight_DD_ms' in active_df.columns and active_df.loc[is_keyrecs, 'Flight_DD_ms'].mean() < 10:
+                active_df.loc[is_keyrecs, 'Flight_DD_ms'] *= 1000
+            if 'Hold_Time_ms' in active_df.columns and active_df.loc[is_keyrecs, 'Hold_Time_ms'].mean() < 10:
+                active_df.loc[is_keyrecs, 'Hold_Time_ms'] *= 1000
 
         # 3. Dynamic Typo Taxonomy 
-        # Fast Typos (< 400ms flight) = Spatial Motor Slips
-        # Slow Typos (>= 400ms flight) = Cognitive Processing Errors
         if 'Is_Typo' in active_df.columns:
             active_df['Typo_Category'] = 'None'
-            
             spatial_mask = (active_df['Is_Typo'] == True) & (active_df['Flight_DD_ms'] < 400)
             active_df.loc[spatial_mask, 'Typo_Category'] = 'Spatial'
-            
             cognitive_mask = (active_df['Is_Typo'] == True) & (active_df['Flight_DD_ms'] >= 400)
             active_df.loc[cognitive_mask, 'Typo_Category'] = 'Cognitive'
 
@@ -400,8 +405,9 @@ with tab2:
         
         # Secure, direct calculation of the decay curve inside the app
         if 'sessionIndex' in df_cmu_only.columns and 'rep' in df_cmu_only.columns:
-            df_cmu_only['sessionIndex'] = pd.to_numeric(df_cmu_only['sessionIndex'], errors='coerce')
-            df_cmu_only['rep'] = pd.to_numeric(df_cmu_only['rep'], errors='coerce')
+            # THE FIX: Cast the Categorical columns to strings first so pd.to_numeric can read them!
+            df_cmu_only['sessionIndex'] = pd.to_numeric(df_cmu_only['sessionIndex'].astype(str), errors='coerce')
+            df_cmu_only['rep'] = pd.to_numeric(df_cmu_only['rep'].astype(str), errors='coerce')
             
             # Calculate the continuous Attempt Number (X-Axis)
             df_cmu_only['Attempt_Number'] = ((df_cmu_only['sessionIndex'] - 1) * 50) + df_cmu_only['rep']
