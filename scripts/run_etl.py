@@ -194,13 +194,15 @@ if not df_clarkson_raw.empty:
     presses = presses.sort_values('Timestamp_ms')
     releases = releases.sort_values('Timestamp_ms')
 
+    # Explicitly duplicate the timestamp so it survives the merge as a data column
+    releases['Timestamp_ms_Release'] = releases['Timestamp_ms']
+
     df_merged = pd.merge_asof(
         presses, 
-        releases[['Participant_ID', 'Key_Code', 'Timestamp_ms']], 
+        releases[['Participant_ID', 'Key_Code', 'Timestamp_ms', 'Timestamp_ms_Release']], 
         on='Timestamp_ms', 
         by=['Participant_ID', 'Key_Code'], 
-        direction='forward',
-        suffixes=('', '_Release')
+        direction='forward'
     )
     
     # Map to Master Schema
