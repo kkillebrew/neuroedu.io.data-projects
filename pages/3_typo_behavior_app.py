@@ -50,37 +50,44 @@ def load_master_matrix(filepath):
     # 1. CMU Wide to Long Fix
     is_cmu = df['Source_Dataset'] == 'CMU'
     if is_cmu.any():
-        # Safely convert all Flight columns
-        dd_cols = [col for col in df.columns if col.startswith('DD.')]
+        cmu_idx = df.index[is_cmu]
+        
+        # Aggregate all 11 Flight columns into one Average Flight Time
+        dd_cols = [col for col in df.columns if col.startswith('DD.') and col != 'Flight_DD_ms']
         if dd_cols:
-            cmu_dd = df.loc[is_cmu, dd_cols].apply(lambda x: pd.to_numeric(x, errors='coerce'))
-            df.loc[is_cmu, 'Flight_DD_ms'] = cmu_dd.mean(axis=1, skipna=True)
+            df.loc[cmu_idx, 'Flight_DD_ms'] = df.loc[cmu_idx, dd_cols].astype(float).mean(axis=1)
             
-        # Safely convert all Hold columns
-        h_cols = [col for col in df.columns if col.startswith('H.')]
+        # Aggregate all 11 Hold columns into one Average Hold Time
+        h_cols = [col for col in df.columns if col.startswith('H.') and col != 'Hold_Time_ms']
         if h_cols:
-            cmu_h = df.loc[is_cmu, h_cols].apply(lambda x: pd.to_numeric(x, errors='coerce'))
-            df.loc[is_cmu, 'Hold_Time_ms'] = cmu_h.mean(axis=1, skipna=True)
+            df.loc[cmu_idx, 'Hold_Time_ms'] = df.loc[cmu_idx, h_cols].astype(float).mean(axis=1)
             
-        # Fix categorical locking on session data so the decay curve can do math
-        if 'sessionIndex' in df.columns:
-            df['sessionIndex'] = pd.to_numeric(df['sessionIndex'].astype(str), errors='coerce')
-        if 'rep' in df.columns:
-            df['rep'] = pd.to_numeric(df['rep'].astype(str), errors='coerce')
+        # Pre-calculate the Attempt Number for the decay curve so we bypass categorical UI errors!
+        if 'sessionIndex' in df.columns and 'rep' in df.columns:
+            s_num = pd.to_numeric(df.loc[cmu_idx, 'sessionIndex'].astype(str), errors='coerce').fillna(1)
+            r_num = pd.to_numeric(df.loc[cmu_idx, 'rep'].astype(str), errors='coerce').fillna(1)
+            df.loc[cmu_idx, 'Attempt_Number'] = ((s_num - 1) * 50) + r_num
 
     # 2. KeyRecs Seconds to Milliseconds & True Name Mapping
     is_keyrecs = df['Source_Dataset'] == 'KeyRecs'
     if is_keyrecs.any():
-        # The raw KeyRecs hold time is actually under DU.key1.key1
-        if 'DU.key1.key1' in df.columns:
-            df.loc[is_keyrecs, 'Hold_Time_ms'] = pd.to_numeric(df.loc[is_keyrecs, 'DU.key1.key1'], errors='coerce')
+        kr_idx = df.index[is_keyrecs]
         
-        # Convert to milliseconds if the dataset average is still in seconds (< 10)
-        if 'Flight_DD_ms' in df.columns and df.loc[is_keyrecs, 'Flight_DD_ms'].mean() < 10:
-            df.loc[is_keyrecs, 'Flight_DD_ms'] *= 1000
-        if 'Hold_Time_ms' in df.columns and df.loc[is_keyrecs, 'Hold_Time_ms'].mean() < 10:
-            df.loc[is_keyrecs, 'Hold_Time_ms'] *= 1000
-            
+        # Rescue the hidden hold time column
+        if 'DU.key1.key1' in df.columns:
+            df.loc[kr_idx, 'Hold_Time_ms'] = pd.to_numeric(df.loc[kr_idx, 'DU.key1.key1'], errors='coerce')
+        
+        # Unconditionally force conversion to milliseconds
+        if 'Flight_DD_ms' in df.columns:
+            kr_flight = df.loc[kr_idx, 'Flight_DD_ms'].astype(float)
+            if kr_flight.median() < 10:  # If it's 0.4 seconds, multiply it!
+                df.loc[kr_idx, 'Flight_DD_ms'] = kr_flight * 1000
+                
+        if 'Hold_Time_ms' in df.columns:
+            kr_hold = df.loc[kr_idx, 'Hold_Time_ms'].astype(float)
+            if kr_hold.median() < 10:
+                df.loc[kr_idx, 'Hold_Time_ms'] = kr_hold * 1000
+                
     # 3. Dynamic Typo Taxonomy
     if 'Is_Typo' in df.columns:
         df['Typo_Category'] = 'None'
@@ -410,22 +417,17 @@ with tab2:
     st.subheader("2. Muscle Memory Decay (CMU Dataset)")
     st.markdown("This curve tracks subjects typing the same complex password 400 times. Notice the exponential drop in cognitive load before hitting a physical motor-control limit.")
     
-    # MEMORY SAFE: Isolate only CMU rows without copying the full dataset
-    cmu_indices = active_df.index[active_df['Source_Dataset'] == 'CMU']
-    if len(cmu_indices) > 0:
-        df_cmu_only = active_df.loc[cmu_indices].copy()
+    # MEMORY SAFE: Isolate only CMU rows that have valid decay data
+    is_cmu = active_df['Source_Dataset'] == 'CMU'
+    
+    if is_cmu.any() and 'Attempt_Number' in active_df.columns:
+        cmu_indices = active_df.index[is_cmu & active_df['Flight_DD_ms'].notna() & active_df['Attempt_Number'].notna()]
         
-        # Secure, direct calculation of the decay curve inside the app
-        if 'sessionIndex' in df_cmu_only.columns and 'rep' in df_cmu_only.columns:
-            # THE FIX: Cast the Categorical columns to strings first so pd.to_numeric can read them!
-            df_cmu_only['sessionIndex'] = pd.to_numeric(df_cmu_only['sessionIndex'].astype(str), errors='coerce')
-            df_cmu_only['rep'] = pd.to_numeric(df_cmu_only['rep'].astype(str), errors='coerce')
+        if len(cmu_indices) > 0:
+            df_cmu_only = active_df.loc[cmu_indices, ['Attempt_Number', 'Flight_DD_ms']].copy()
             
-            # Calculate the continuous Attempt Number (X-Axis)
-            df_cmu_only['Attempt_Number'] = ((df_cmu_only['sessionIndex'] - 1) * 50) + df_cmu_only['rep']
-            
-            # Group by Attempt Number using our newly fixed Flight_DD_ms (Y-Axis)
-            decay_df = df_cmu_only.groupby('Attempt_Number')['Flight_DD_ms'].mean().reset_index().dropna()
+            # Group by Attempt Number
+            decay_df = df_cmu_only.groupby('Attempt_Number')['Flight_DD_ms'].mean().reset_index()
             
             if not decay_df.empty:
                 fig_decay = px.line(
@@ -441,9 +443,11 @@ with tab2:
                 st.plotly_chart(fig_decay, use_container_width=True)
                 st.info("**Chart Guide:** As subjects memorized the sequence, their typing speed drastically improved, eventually flattening out at their biological execution speed limit.")
             else:
-                st.warning("Could not calculate decay curve. Missing attempt numerical data.")
+                st.warning("Could not calculate decay curve. Data grouping returned empty.")
+        else:
+            st.warning("CMU dataset is missing or could not calculate timing metrics.")
     else:
-        st.warning("CMU dataset is required for the Muscle Memory baseline.")
+        st.warning("CMU dataset is missing.")
 
     st.divider()
 
