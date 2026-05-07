@@ -62,10 +62,14 @@ def ingest_clarkson_I(tar_path):
                         parts = event.split(':')
                         # Ensure it is a valid 4-part event block before parsing
                         if len(parts) >= 3 and parts[0].isdigit():
-                            action = int(parts[0])
-                            key_code = parts[1]
-                            timestamp = float(parts[2]) # Unix timestamp in ms
-                            parsed_data.append([timestamp, action, key_code])
+                            try:
+                                action = int(parts[0])
+                                key_code = parts[1]
+                                timestamp = float(parts[2]) # Unix timestamp in ms
+                                parsed_data.append([timestamp, action, key_code])
+                            except ValueError:
+                                # Silently skip any \x00 null bytes or corrupted archive strings
+                                continue
                     
                     # 3. Convert the user's parsed array into a dataframe
                     if parsed_data:
