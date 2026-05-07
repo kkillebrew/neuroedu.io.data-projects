@@ -80,9 +80,9 @@ if os.path.exists(aalto_path):
     df_aalto = pd.read_parquet(aalto_path)
 
     print("Running Phase 1 Pipeline Calculations...")
-    df_aalto = apply_typo_taxonomy(df)
-    df_aalto = build_word_boundaries(df)
-    df_aalto = apply_historical_consistency_filter(df)
+    df_aalto = apply_typo_taxonomy(df_aalto)
+    df_aalto = build_word_boundaries(df_aalto)
+    df_aalto = apply_historical_consistency_filter(df_aalto)
 
     # Apply to Aalto before saving
     df_aalto = optimize_memory(df_aalto)
