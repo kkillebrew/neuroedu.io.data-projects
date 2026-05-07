@@ -50,6 +50,20 @@ with st.spinner("Initializing Cloud Master Matrix..."):
     
     if active_df.empty:
         st.error("Master Dataset not found. Waiting for GitHub ETL pipeline to finish...")
+    else:
+        # --- FAST HEURISTIC TAXONOMY ---
+        # Since we bypassed the heavy NLP string-matching in GitHub,
+        # we dynamically categorize the typos based on biometric latency signatures!
+        # Fast Typos (< 400ms flight) = Spatial Motor Slips
+        # Slow Typos (>= 400ms flight) = Cognitive Processing Errors
+        if 'Is_Typo' in active_df.columns:
+            active_df['Typo_Category'] = 'None'
+            
+            spatial_mask = (active_df['Is_Typo'] == True) & (active_df['Flight_DD_ms'] < 400)
+            active_df.loc[spatial_mask, 'Typo_Category'] = 'Spatial'
+            
+            cognitive_mask = (active_df['Is_Typo'] == True) & (active_df['Flight_DD_ms'] >= 400)
+            active_df.loc[cognitive_mask, 'Typo_Category'] = 'Cognitive'
 
 if active_df is not None and not active_df.empty:
     
@@ -129,15 +143,27 @@ with tab1:
     with st.expander("🔍 Verify Schema Unification"):
         st.markdown("Proof that disparate datasets were successfully normalized into the Master Data Schema:")
         
+        # Only show the unified Master Schema columns
+        core_cols = [
+            'Source_Dataset', 'Participant_ID', 'Session_ID', 'Action_Type', 
+            'Key_Code', 'Key_Char', 'Timestamp_ms', 'Hold_Time_ms', 'Flight_DD_ms', 
+            'Is_Typo', 'Typo_Category'
+        ]
+        
         schema_col1, schema_col2 = st.columns(2)
         with schema_col1:
             st.caption("Clarkson Dataset (Raw Keystrokes)")
             if not active_df.empty:
-                st.dataframe(active_df[active_df['Source_Dataset'] == 'Clarkson_II'].head(3), use_container_width=True)
+                df_c2_sample = active_df[active_df['Source_Dataset'] == 'Clarkson_II'].head(3)
+                display_cols = [c for c in core_cols if c in df_c2_sample.columns]
+                st.dataframe(df_c2_sample[display_cols], use_container_width=True)
+                
         with schema_col2:
             st.caption("Aalto Dataset (Macro Baseline)")
             if not active_df.empty:
-                st.dataframe(active_df[active_df['Source_Dataset'] == 'Aalto'].head(3), use_container_width=True)
+                df_aalto_sample = active_df[active_df['Source_Dataset'] == 'Aalto'].head(3)
+                display_cols = [c for c in core_cols if c in df_aalto_sample.columns]
+                st.dataframe(df_aalto_sample[display_cols], use_container_width=True)
 
         st.subheader("Microscopic Event Log: Master Matrix")
         st.markdown("Analyze raw chronologies, backspace footprints, and behavioral error classifications.")
