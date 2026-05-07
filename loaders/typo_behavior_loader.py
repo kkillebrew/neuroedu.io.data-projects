@@ -332,7 +332,19 @@ def apply_historical_consistency_filter(df, consistency_threshold=0.8):
         return df
 
     # 1. Reconstruct words to evaluate consistency
-    words_df = df.dropna(subset=['Key_Char']).groupby(['User_ID', 'Session_ID', 'Word_ID'])['Key_Char'].apply(lambda x: ''.join(x.astype(str))).reset_index()
+    # Safety Bypass: If the dataset only contains integer Key_Codes (like Clarkson)
+    # or is missing the old User_ID format, we gracefully skip this filter.
+    if 'Key_Char' not in df.columns:
+        return df
+        
+    # We also ensure it uses the Participant_ID we standardized if User_ID isn't present
+    id_col = 'Participant_ID' if 'Participant_ID' in df.columns else 'User_ID'
+    
+    if id_col not in df.columns or 'Session_ID' not in df.columns or 'Word_ID' not in df.columns:
+        return df
+
+    # Reconstruct words safely
+    words_df = df.dropna(subset=['Key_Char']).groupby([id_col, 'Session_ID', 'Word_ID'])['Key_Char'].apply(lambda x: ''.join(x.astype(str))).reset_index()
     words_df = words_df.rename(columns={'Key_Char': 'Submitted_Word'})
     
     # Placeholder for the prompt text (Expected_Word)
