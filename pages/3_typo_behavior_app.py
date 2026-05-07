@@ -37,53 +37,65 @@ master_path = os.path.join(base_dir, 'master_dataset.parquet')
 
 @st.cache_resource(show_spinner=False)
 def load_master_matrix(filepath):
-    """ 
-    Uses cache_resource to store a global pointer to the data. 
-    This bypasses Streamlit's heavy hashing overhead, saving hundreds of MBs of RAM!
-    """
-    if os.path.exists(filepath):
-        return pd.read_parquet(filepath)
-    return pd.DataFrame()
+    """ Loads the data and permanently applies schema band-aids inside the cache. """
+    if not os.path.exists(filepath):
+        return pd.DataFrame()
+        
+    df = pd.read_parquet(filepath)
+    
+    # ==========================================
+    # --- ONE-TIME DATA CLEANING BAND-AIDS ---
+    # ==========================================
+    
+    # 1. CMU Wide to Long Fix
+    is_cmu = df['Source_Dataset'] == 'CMU'
+    if is_cmu.any():
+        # Safely convert all Flight columns
+        dd_cols = [col for col in df.columns if col.startswith('DD.')]
+        if dd_cols:
+            cmu_dd = df.loc[is_cmu, dd_cols].apply(lambda x: pd.to_numeric(x, errors='coerce'))
+            df.loc[is_cmu, 'Flight_DD_ms'] = cmu_dd.mean(axis=1, skipna=True)
+            
+        # Safely convert all Hold columns
+        h_cols = [col for col in df.columns if col.startswith('H.')]
+        if h_cols:
+            cmu_h = df.loc[is_cmu, h_cols].apply(lambda x: pd.to_numeric(x, errors='coerce'))
+            df.loc[is_cmu, 'Hold_Time_ms'] = cmu_h.mean(axis=1, skipna=True)
+            
+        # Fix categorical locking on session data so the decay curve can do math
+        if 'sessionIndex' in df.columns:
+            df['sessionIndex'] = pd.to_numeric(df['sessionIndex'].astype(str), errors='coerce')
+        if 'rep' in df.columns:
+            df['rep'] = pd.to_numeric(df['rep'].astype(str), errors='coerce')
+
+    # 2. KeyRecs Seconds to Milliseconds & True Name Mapping
+    is_keyrecs = df['Source_Dataset'] == 'KeyRecs'
+    if is_keyrecs.any():
+        # The raw KeyRecs hold time is actually under DU.key1.key1
+        if 'DU.key1.key1' in df.columns:
+            df.loc[is_keyrecs, 'Hold_Time_ms'] = pd.to_numeric(df.loc[is_keyrecs, 'DU.key1.key1'], errors='coerce')
+        
+        # Convert to milliseconds if the dataset average is still in seconds (< 10)
+        if 'Flight_DD_ms' in df.columns and df.loc[is_keyrecs, 'Flight_DD_ms'].mean() < 10:
+            df.loc[is_keyrecs, 'Flight_DD_ms'] *= 1000
+        if 'Hold_Time_ms' in df.columns and df.loc[is_keyrecs, 'Hold_Time_ms'].mean() < 10:
+            df.loc[is_keyrecs, 'Hold_Time_ms'] *= 1000
+            
+    # 3. Dynamic Typo Taxonomy
+    if 'Is_Typo' in df.columns:
+        df['Typo_Category'] = 'None'
+        spatial_mask = (df['Is_Typo'] == True) & (df['Flight_DD_ms'] < 400)
+        df.loc[spatial_mask, 'Typo_Category'] = 'Spatial'
+        cognitive_mask = (df['Is_Typo'] == True) & (df['Flight_DD_ms'] >= 400)
+        df.loc[cognitive_mask, 'Typo_Category'] = 'Cognitive'
+        
+    return df
 
 with st.spinner("Initializing Cloud Master Matrix..."):
     active_df = load_master_matrix(master_path)
     
     if active_df.empty:
         st.error("Master Dataset not found. Waiting for GitHub ETL pipeline to finish...")
-    else:
-        # --- DATA CLEANING BAND-AIDS ---
-        
-        # 1. CMU uses "wide" formatting (DD.period.t, H.t, etc). 
-        # We average all those columns into the universal 'Flight_DD_ms' and 'Hold_Time_ms' columns!
-        is_cmu = active_df['Source_Dataset'] == 'CMU'
-        if is_cmu.any():
-            dd_cols = [col for col in active_df.columns if col.startswith('DD.')]
-            if dd_cols:
-                active_df.loc[is_cmu, 'Flight_DD_ms'] = active_df.loc[is_cmu, dd_cols].apply(pd.to_numeric, errors='coerce').mean(axis=1)
-                
-            h_cols = [col for col in active_df.columns if col.startswith('H.')]
-            if h_cols:
-                active_df.loc[is_cmu, 'Hold_Time_ms'] = active_df.loc[is_cmu, h_cols].apply(pd.to_numeric, errors='coerce').mean(axis=1)
-
-        # 2. KeyRecs used 'Dwell_Time' instead of 'Hold_Time_ms', and is left in seconds.
-        is_keyrecs = active_df['Source_Dataset'] == 'KeyRecs'
-        if is_keyrecs.any():
-            if 'Dwell_Time' in active_df.columns:
-                active_df.loc[is_keyrecs, 'Hold_Time_ms'] = active_df.loc[is_keyrecs, 'Dwell_Time']
-                
-            # Convert to milliseconds if they are artificially tiny (< 10 seconds)
-            if 'Flight_DD_ms' in active_df.columns and active_df.loc[is_keyrecs, 'Flight_DD_ms'].mean() < 10:
-                active_df.loc[is_keyrecs, 'Flight_DD_ms'] *= 1000
-            if 'Hold_Time_ms' in active_df.columns and active_df.loc[is_keyrecs, 'Hold_Time_ms'].mean() < 10:
-                active_df.loc[is_keyrecs, 'Hold_Time_ms'] *= 1000
-
-        # 3. Dynamic Typo Taxonomy 
-        if 'Is_Typo' in active_df.columns:
-            active_df['Typo_Category'] = 'None'
-            spatial_mask = (active_df['Is_Typo'] == True) & (active_df['Flight_DD_ms'] < 400)
-            active_df.loc[spatial_mask, 'Typo_Category'] = 'Spatial'
-            cognitive_mask = (active_df['Is_Typo'] == True) & (active_df['Flight_DD_ms'] >= 400)
-            active_df.loc[cognitive_mask, 'Typo_Category'] = 'Cognitive'
 
 if active_df is not None and not active_df.empty:
     
