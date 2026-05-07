@@ -45,12 +45,14 @@ with st.spinner("Initializing Cloud Master Matrix..."):
     active_df = load_master_matrix(master_path)
     
     if not active_df.empty:
-        # Isolate CMU for the Tab 2 baseline tests
-        df_cmu = active_df[active_df['Dataset'] == 'CMU']
+        # Isolate subsets using the new 'Source_Dataset' column schema
+        df_cmu = active_df[active_df['Source_Dataset'] == 'CMU']
+        df_clarkson = active_df[active_df['Source_Dataset'].isin(['Clarkson_I', 'Clarkson_II'])]
+        df_aalto = active_df[active_df['Source_Dataset'] == 'Aalto']
+        df_keyrecs = active_df[active_df['Source_Dataset'] == 'KeyRecs']
     else:
-        df_cmu = pd.DataFrame()
+        df_cmu = df_clarkson = df_aalto = df_keyrecs = pd.DataFrame()
         st.error("Master Dataset not found. Waiting for GitHub ETL pipeline to finish...")
-
 
 if active_df is not None and not active_df.empty:
     
@@ -64,7 +66,8 @@ if active_df is not None and not active_df.empty:
         total_typos = 0
         typo_rate = 0.0
 
-    avg_flight = active_df['Flight_Time'].mean()
+    # Use the standardized 'Flight_DD_ms'
+    avg_flight = active_df['Flight_DD_ms'].mean() if 'Flight_DD_ms' in active_df.columns else 0.0
 
     # Display Metrics in a 3-column layout
     col1, col2, col3 = st.columns(3)
@@ -78,7 +81,7 @@ if active_df is not None and not active_df.empty:
     # Header and toggle switch aligned horizontally
     head_col, toggle_col = st.columns([3, 1])
     with head_col:
-        st.subheader(f"Microscopic Event Log: {dataset_choice.split(' ')[0]}")
+        st.subheader("Microscopic Event Log: Master Matrix")
     with toggle_col:
         show_only_typos = st.checkbox("Show only flagged typos")
     
@@ -136,11 +139,11 @@ with tab1:
         
         # We loop through the 3 datasets that utilize the Dwell/Flight master schema
         for df, name in [(df_clarkson, "Clarkson (Cognitive)"), (df_aalto, "Aalto (Macro)"), (df_keyrecs, "KeyRecs (Digraph)")]:
-            if df is not None and not df.empty and 'Flight_Time' in df.columns and 'Dwell_Time' in df.columns:
+            if df is not None and not df.empty and 'Flight_DD_ms' in df.columns and 'Hold_Time_ms' in df.columns:
                 
                 # Filter out extreme outliers (e.g., getting up for a coffee) to see the true cluster
-                clean_df = df[(df['Flight_Time'] > 0) & (df['Flight_Time'] < 800) & 
-                              (df['Dwell_Time'] > 0) & (df['Dwell_Time'] < 300)].copy()
+                clean_df = df[(df['Flight_DD_ms'] > 0) & (df['Flight_DD_ms'] < 800) & 
+                              (df['Hold_Time_ms'] > 0) & (df['Hold_Time_ms'] < 300)].copy()
                 
                 if not clean_df.empty:
                     # Sample exactly 2,000 points per dataset so the plot is perfectly balanced
@@ -197,12 +200,12 @@ with tab1:
             with col_chart2:
                 # Chart 2: Latency Cost of Typos (Box Plot)
                 # We cap at 1500ms to filter out pauses/getting up from the desk
-                flight_df = active_df[active_df['Flight_Time'] < 1500].copy()
+                flight_df = active_df[active_df['Flight_DD_ms'] < 1500].copy()
                 # Map booleans to readable strings for the chart legend
                 flight_df['Event_Type'] = flight_df['Is_Typo'].map({True: 'Typo / Backspace Trigger', False: 'Valid Keystroke'})
                 
                 fig_flight = px.box(
-                    flight_df, x='Event_Type', y='Flight_Time', 
+                    flight_df, x='Event_Type', y='Flight_DD_ms', 
                     title="Flight Time Latency: Valid vs. Typos", 
                     color='Event_Type', color_discrete_sequence=['#00e676', '#ff5252']
                 )
@@ -242,8 +245,8 @@ with tab2:
     st.markdown("This curve tracks 51 subjects typing the same complex password 400 times. Notice the exponential drop in cognitive load before hitting a physical motor-control asymptote.")
     
     # 1. Create the filtered timing dataframe using the standardized columns from Step 4
-    # We filter out rows without flight times and cap outliers at 3 seconds
-    df_timing = df.dropna(subset=['Flight_DD_ms'])
+    # Filter for rows that have valid timing data (Standardized in Step 4)
+    df_timing = active_df.dropna(subset=['Flight_DD_ms'])
     df_timing = df_timing[df_timing['Flight_DD_ms'] < 3000]
 
     st.subheader("Inter-Key Interval (IKI) by Dataset")
@@ -330,18 +333,15 @@ with tab2:
     st.subheader("3. Statistical Boundaries (Welch's T-Test)")
     st.markdown("Mathematically proving the boundary between Muscle Memory (CMU) and Cognitive Load (Aalto).")
     
-    if not df_cmu.empty and not active_df.empty and 'Flight_Time' in active_df.columns:
-        # 1. Isolate clean flight time arrays from the master 'df'
-        # Filter: 0 < ms < 1000 to remove long pauses and errors
-        cmu_array = df[(df['Source_Dataset'] == 'CMU') & 
-                       (df['Flight_DD_ms'] > 0) & 
-                       (df['Flight_DD_ms'] < 1000)]['Flight_DD_ms'].dropna()
-
-        aalto_array = df[(df['Source_Dataset'] == 'Aalto') & 
-                         (df['Flight_DD_ms'] > 0) & 
-                         (df['Flight_DD_ms'] < 1000)]['Flight_DD_ms'].dropna()
+    if not df_cmu.empty and not active_df.empty and 'Flight_DD_ms' in active_df.columns:
+        # 1. Isolate clean flight time array for CMU
+        cmu_array = df_cmu[(df_cmu['Flight_DD_ms'] > 0) & (df_cmu['Flight_DD_ms'] < 1000)]['Flight_DD_ms'].dropna()
         
-        if not cmu_array.empty and not aalto_array.empty:
+        # 2. Extract ONLY Aalto from the unified Master Dataset
+        aalto_subset = active_df[active_df['Source_Dataset'] == 'Aalto']
+        
+        if not aalto_subset.empty:
+            aalto_array = aalto_subset[(aalto_subset['Flight_DD_ms'] > 0) & (aalto_subset['Flight_DD_ms'] < 1000)]['Flight_DD_ms'].dropna()
             # 2. Run Welch's T-Test (equal_var=False handles the massive sample size difference)
             t_stat, p_val = stats.ttest_ind(aalto_array, cmu_array, equal_var=False)
             
@@ -393,15 +393,15 @@ with tab3:
             st.success("### Category A: Spatial Error")
             st.markdown("**The Motor Slip:** The brain knew the correct sequence, but the motor execution missed the target by millimeters. Characterized by extremely fast realization and immediate correction.")
             if not df_spatial.empty:
-                st.metric("Avg Reaction Time (Flight)", f"{df_spatial['Flight_Time'].mean():.1f} ms")
-                st.metric("Avg Hesitation (Dwell)", f"{df_spatial['Dwell_Time'].mean():.1f} ms")
+                st.metric("Avg Reaction Time (Flight)", f"{df_spatial['Flight_DD_ms'].mean():.1f} ms")
+                st.metric("Avg Hesitation (Hold)", f"{df_spatial['Hold_Time_ms'].mean():.1f} ms")
         
         with col_cog:
             st.error("### Category B: Cognitive Error")
             st.markdown("**The Mental Misfire:** The brain temporarily lost the syntactic or spelling thread. Characterized by a massive latency spike as the brain recalculates, often resulting in multiple backspaces.")
             if not df_cognitive.empty:
-                st.metric("Avg Reaction Time (Flight)", f"{df_cognitive['Flight_Time'].mean():.1f} ms")
-                st.metric("Avg Hesitation (Dwell)", f"{df_cognitive['Dwell_Time'].mean():.1f} ms")
+                st.metric("Avg Reaction Time (Flight)", f"{df_cognitive['Flight_DD_ms'].mean():.1f} ms")
+                st.metric("Avg Hesitation (Hold)", f"{df_cognitive['Hold_Time_ms'].mean():.1f} ms")
         
         st.divider()
         
@@ -413,12 +413,12 @@ with tab3:
         
         if not valid_typos.empty:
             # Filter massive outliers (pauses > 2 seconds) for a clean visual distribution
-            plot_df = valid_typos[valid_typos['Flight_Time'] < 2000]
+            plot_df = valid_typos[valid_typos['Flight_DD_ms'] < 2000]
             
             fig_box = px.box(
                 plot_df, 
                 x="Typo_Category", 
-                y="Flight_Time",
+                y="Flight_DD_ms",
                 color="Typo_Category",
                 title="Reaction Time Disparity Between Error Streams",
                 labels={"Typo_Category": "Error Origin", "Flight_Time": "Flight Time (ms)"},
