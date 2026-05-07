@@ -227,22 +227,78 @@ with tab1:
                     # Fast slice on just the single column for the Pie Chart
                     cat_counts = active_df['Typo_Category'][active_df['Typo_Category'] != 'None'].value_counts().reset_index()
                     cat_counts.columns = ['Category', 'Count']
+                    
                     if not cat_counts.empty:
-                        fig_cat = px.pie(cat_counts, names='Category', values='Count', title="Typo Behavioral Taxonomy Distribution", hole=0.4, color_discrete_sequence=px.colors.sequential.Teal)
+                        total_typos = cat_counts['Count'].sum()
+                        
+                        # 1. Map Custom Hover Descriptions
+                        hover_descs = {
+                            'Spatial': 'Motor-execution slip. The brain knew the sequence, but fingers missed.',
+                            'Cognitive': 'Top-down misfire. The brain paused to recalculate syntax or spelling.'
+                        }
+                        cat_counts['Description'] = cat_counts['Category'].map(hover_descs)
+                        
+                        # 2. Add Totals to Title & Inject Hover Data
+                        fig_cat = px.pie(
+                            cat_counts, names='Category', values='Count', 
+                            title=f"Typo Behavioral Taxonomy<br><sup>Total Categorized Typos: {total_typos:,}</sup>", 
+                            hole=0.4, color_discrete_sequence=px.colors.sequential.Teal,
+                            custom_data=['Description']
+                        )
+                        # 3. Format the Hover Bubble
+                        fig_cat.update_traces(hovertemplate="<b>%{label} Error</b><br>Count: %{value:,}<br><i>%{customdata[0]}</i><extra></extra>")
+                        
                         st.plotly_chart(fig_cat, use_container_width=True)
                         
+                        # 4. Add the explanatory blurb below
+                        st.info("**Chart Guide:** Displays the biometric distribution of errors. *Spatial* errors are rapid, physical finger-slips, whereas *Cognitive* errors indicate slower mental hesitation.")
+                        
             with col_chart2:
-                # Memory safe random sample for the Box Plot (prevent plotting millions of dots)
+                # Memory safe random sample for the Box Plot
                 flight_mask = (active_df['Flight_DD_ms'] < 1500) & (active_df['Flight_DD_ms'] > 0)
                 flight_indices = active_df.index[flight_mask]
+                
                 if len(flight_indices) > 0:
-                    sample_size = min(len(flight_indices), 10000)
+                    total_population = len(flight_indices)
+                    sample_size = min(total_population, 10000)
                     sampled_flight_idx = pd.Series(flight_indices).sample(n=sample_size, random_state=42)
                     flight_df = active_df.loc[sampled_flight_idx, ['Flight_DD_ms', 'Is_Typo']].copy()
                     
                     flight_df['Event_Type'] = flight_df['Is_Typo'].map({True: 'Typo / Backspace Trigger', False: 'Valid Keystroke'})
-                    fig_flight = px.box(flight_df, x='Event_Type', y='Flight_DD_ms', title="Flight Time Latency: Valid vs. Typos", color='Event_Type', color_discrete_sequence=['#00e676', '#ff5252'])
+                    
+                    # 1. Map Custom Hover Descriptions
+                    box_descs = {
+                        'Typo / Backspace Trigger': 'The keystroke that caused an error. Notice the wider variance.',
+                        'Valid Keystroke': 'Normal, fluid typing behavior driven by muscle memory.'
+                    }
+                    flight_df['Description'] = flight_df['Event_Type'].map(box_descs)
+                    
+                    # 2. Add Totals to Title & Inject Hover Data
+                    fig_flight = px.box(
+                        flight_df, x='Event_Type', y='Flight_DD_ms', 
+                        title=f"Flight Time Latency: Valid vs. Typos<br><sup>Total Population: {total_population:,} (Visualizing 10k sample)</sup>", 
+                        color='Event_Type', color_discrete_sequence=['#00e676', '#ff5252'],
+                        custom_data=['Description']
+                    )
+                    
+                    # 3. Format the Hover Bubble
+                    fig_flight.update_traces(hovertemplate="<b>%{x}</b><br>Speed: %{y} ms<br><i>%{customdata[0]}</i><extra></extra>")
+                    
+                    # 4. Calculate and Plot Explicit Stats (Medians) on the Graph
+                    medians = flight_df.groupby('Event_Type')['Flight_DD_ms'].median()
+                    for event_name in medians.index:
+                        fig_flight.add_annotation(
+                            x=event_name, y=medians[event_name],
+                            text=f"Median: {medians[event_name]:.0f} ms",
+                            showarrow=False, yshift=-18, # Shifts text slightly below the median line
+                            font=dict(color="white", size=11),
+                            bgcolor="rgba(0,0,0,0.6)", borderpad=3
+                        )
+                        
                     st.plotly_chart(fig_flight, use_container_width=True)
+                    
+                    # 5. Add the explanatory blurb below
+                    st.info("**Chart Guide:** The 'box' shows where the middle 50% of typing speeds occur. The higher and taller the red box is, the more mathematically evident it is that hesitation precedes mistakes.")
         st.divider()
 # ---------------------------------------------------------------------
 # TAB 2: PHASE 2 (Macro-Level Benchmarks)
