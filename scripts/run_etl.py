@@ -41,6 +41,8 @@ def ingest_clarkson_I(tar_path):
                 f = tar.extractfile(member)
                 if f:
                     content = f.read().decode('utf-8', errors='ignore').strip()
+
+                    parsed_data = []
                     
                     # 1. Split the file into lines (each line is a task)
                     for line in content.split('\n'):
