@@ -125,8 +125,7 @@ with tab1:
             if not df_aalto.empty:
                 st.dataframe(df_aalto.head(3), use_container_width=True)
 
-    # --- TAB 1: DATASET OVERVIEW & PHASE 1 ANALYTICS ---
-    with tab1:
+        # --- TAB 1: DATASET OVERVIEW & PHASE 1 ANALYTICS ---
         st.subheader("Microscopic Event Log: Master Matrix")
         st.markdown("Analyze raw chronologies, backspace footprints, and behavioral error classifications.")
         
@@ -220,14 +219,9 @@ with tab1:
         with toggle_col:
             # Added a unique key to prevent DuplicateWidgetID crash
             show_only_typos_tab1 = st.checkbox("Show only flagged typos", value=True, key="tab1_typo_toggle")
-        
-        if show_only_typos and 'Is_Typo' in active_df.columns:
-            display_df = active_df[active_df['Is_Typo'] == True]
-        else:
-            display_df = active_df
             
         # Safely render only the first 1000 rows to prevent serialization crashes
-        if show_only_typos and 'Is_Typo' in active_df.columns:
+        if show_only_typos_tab1 and 'Is_Typo' in active_df.columns:
             display_df = active_df[active_df['Is_Typo'] == True].head(1000)
         else:
             display_df = active_df.head(1000)
