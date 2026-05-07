@@ -70,9 +70,11 @@ if active_df is not None and not active_df.empty:
         total_typos = 0
         typo_rate = 0.0
 
-    # Fix the Flight Time Math: Filter out massive gaps between sessions (>2000ms)
+    # --- MEMORY SAFE MATH ---
+    # Extract just the 1 column first so we don't copy the whole 50-col matrix!
     if 'Flight_DD_ms' in active_df.columns:
-        valid_flights = active_df[(active_df['Flight_DD_ms'] > 0) & (active_df['Flight_DD_ms'] < 2000)]['Flight_DD_ms']
+        s_flight = active_df['Flight_DD_ms']
+        valid_flights = s_flight[(s_flight > 0) & (s_flight < 2000)]
         avg_flight = valid_flights.mean() if not valid_flights.empty else 0.0
     else:
         avg_flight = 0.0
@@ -91,9 +93,12 @@ if active_df is not None and not active_df.empty:
     with toggle_col:
         show_only_typos = st.checkbox("Show only flagged typos")
     
-    # Safely isolate the top 1000 rows
+    # --- MEMORY SAFE SLICING ---
     if show_only_typos and 'Is_Typo' in active_df.columns:
-        display_df = active_df[active_df['Is_Typo'] == True].head(1000)
+        # Find the exact index numbers of the typos first, slice ONLY the top 1000, 
+        # and then extract those specific rows. This entirely prevents the OOM crash!
+        typo_indices = active_df.index[active_df['Is_Typo'] == True][:1000]
+        display_df = active_df.loc[typo_indices]
     else:
         display_df = active_df.head(1000)
         
