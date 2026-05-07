@@ -20,7 +20,7 @@ jobs:
 
       - name: Install Data Science Libraries
         run: |
-          pip install pandas pyarrow fastparquet scipy
+          pip install pandas pyarrow fastparquet scipy streamlit
 
       - name: Run ETL Script
         env:
