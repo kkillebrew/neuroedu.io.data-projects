@@ -113,25 +113,18 @@ else:
 # ==========================================
 print("Processing Clarkson Datasets...")
 
-# --- CLARKSON I CLOUD UNPACKING ---
+# --- CLARKSON I (Reads directly from tarball) ---
 clarkson_i_tar_path = os.path.join(base_dir, 'Clarkson-I-2014.tar.gz')
-clarkson_i_folder = os.path.join(base_dir, 'clarkson_1_extracted') 
 
-if not os.path.exists(clarkson_i_folder):
-    if os.path.exists(clarkson_i_tar_path):
-        print(f"Extracting {clarkson_i_tar_path}...")
-        with tarfile.open(clarkson_i_tar_path, 'r:gz') as tar:
-            # FIX: Force extraction directly into your custom folder
-            tar.extractall(path=clarkson_i_folder) 
-    else:
-        print(f"Warning: {clarkson_i_tar_path} not found.")
-
-if os.path.exists(clarkson_i_folder):
-    df_c1 = ingest_clarkson_I(clarkson_i_folder)
+if os.path.exists(clarkson_i_tar_path):
+    # Pass the .tar.gz file directly into the function!
+    df_c1 = ingest_clarkson_I(clarkson_i_tar_path)
 else:
+    print(f"Warning: {clarkson_i_tar_path} not found.")
     df_c1 = pd.DataFrame()
 
-# --- CLARKSON II UNPACKING LOGIC ---
+
+# --- CLARKSON II (Requires extracted folder) ---
 clarkson_ii_zip_path = os.path.join(base_dir, 'clarkson-II-2018-filtered_dataset.zip')
 clarkson_ii_folder = os.path.join(base_dir, 'clarkson_2_extracted') 
 
@@ -139,7 +132,6 @@ if not os.path.exists(clarkson_ii_folder):
     if os.path.exists(clarkson_ii_zip_path):
         print(f"Extracting {clarkson_ii_zip_path}...")
         with zipfile.ZipFile(clarkson_ii_zip_path, 'r') as zip_ref:
-            # FIX: Force extraction directly into your custom folder
             zip_ref.extractall(path=clarkson_ii_folder) 
     else:
         print(f"Warning: {clarkson_ii_zip_path} not found.")
@@ -150,7 +142,7 @@ else:
     df_c2 = pd.DataFrame()
 # -----------------------------
 
-# Combine all raw Clarkson data (currently just C2 until C1 parsing is finished)
+# Combine all raw Clarkson data
 df_clarkson_raw = pd.concat([df_c1, df_c2], ignore_index=True) if not df_c1.empty else df_c2
 
 if not df_clarkson_raw.empty:
