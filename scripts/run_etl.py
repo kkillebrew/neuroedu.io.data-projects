@@ -10,7 +10,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from loaders.typo_behavior_loader import (
     build_word_boundaries, 
     apply_typo_taxonomy, 
-    calculate_raw_digraphs  # <--- Add this
+    calculate_raw_digraphs,  # <--- Add this
+    apply_historical_consistency_filter  # <--- Add this line
 )
 
 base_dir = os.path.join(os.path.dirname(__file__), '..', 'documents')
