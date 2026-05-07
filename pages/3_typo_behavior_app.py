@@ -159,8 +159,8 @@ with tab1:
             # facet_col is the magic Plotly parameter that creates Small Multiples
             fig_trellis = px.scatter(
                 combined_multiples, 
-                x="Dwell_Time", 
-                y="Flight_Time", 
+                x="Hold_Time_ms", 
+                y="Flight_DD_ms", 
                 color="Source_Dataset",
                 facet_col="Source_Dataset",  # <-- CREATES THE GRID
                 opacity=0.4,                 # Transparency shows density
@@ -218,7 +218,8 @@ with tab1:
         with head_col:
             st.markdown("### Raw Event Log")
         with toggle_col:
-            show_only_typos = st.checkbox("Show only flagged typos", value=True)
+            # Added a unique key to prevent DuplicateWidgetID crash
+            show_only_typos_tab1 = st.checkbox("Show only flagged typos", value=True, key="tab1_typo_toggle")
         
         if show_only_typos and 'Is_Typo' in active_df.columns:
             display_df = active_df[active_df['Is_Typo'] == True]
