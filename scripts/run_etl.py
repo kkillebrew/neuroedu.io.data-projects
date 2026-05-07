@@ -320,6 +320,13 @@ if master_dfs:
         df_master['Participant_ID'] = df_master['Participant_ID'].astype(str)
     if 'Session_ID' in df_master.columns:
         df_master['Session_ID'] = df_master['Session_ID'].astype(str)
+
+    # --- FAST TYPO DETECTION ---
+    # Look for backspaces (Key_Code 8 or the string 'Back') and flag the preceding keystroke as a typo
+    if 'Key_Code' in df_master.columns:
+        is_backspace = df_master['Key_Code'].isin([8, 8.0, '8', 'Back', 'Backspace'])
+        # Shift the boolean mask backwards by 1 to flag the character that caused the backspace
+        df_master['Is_Typo'] = is_backspace.shift(-1).fillna(False)
         
     # --- SAFE MEMORY DOWNCASTING ---
     # Uses built-in bulk selection instead of the brittle for-loop
