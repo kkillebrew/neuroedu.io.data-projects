@@ -321,6 +321,7 @@ with tab2:
     if not active_df.empty and 'Flight_DD_ms' in active_df.columns:
         # MEMORY SAFE: Extract indices first, sample, then slice
         valid_timing_idx = active_df.index[(active_df['Flight_DD_ms'] > 0) & (active_df['Flight_DD_ms'] < 1500)]
+        
         if len(valid_timing_idx) > 0:
             total_timing_pop = len(valid_timing_idx)
             sample_size = min(total_timing_pop, 15000) # Safe cap for Plotly
@@ -328,8 +329,7 @@ with tab2:
             # THE FIX: .values ensures Pandas doesn't use the wrong index
             sampled_idx = pd.Series(valid_timing_idx).sample(n=sample_size, random_state=42).values
             
-            # Cast the categorical array to a string temporarily so Pandas accepts new mapping values
-            df_timing['Description'] = df_timing['Source_Dataset'].astype(str).map(source_desc).fillna('Dataset')
+            df_timing = active_df.loc[sampled_idx, ['Source_Dataset', 'Flight_DD_ms']].copy()
             
             # 1. Map Custom Hover Descriptions
             source_desc = {
@@ -339,7 +339,9 @@ with tab2:
                 'Clarkson_I': 'Cognitive free-text generation.',
                 'Clarkson_II': 'Cognitive free-text generation.'
             }
-            df_timing['Description'] = df_timing['Source_Dataset'].map(source_desc).fillna('Dataset')
+            
+            # THE CATEGORICAL FIX: Casts to string before mapping to avoid TypeErrors
+            df_timing['Description'] = df_timing['Source_Dataset'].astype(str).map(source_desc).fillna('Dataset')
             
             # 2. Add Totals to Title & Inject Hover Data
             fig_iki = px.box(
@@ -369,6 +371,7 @@ with tab2:
             st.info("**Chart Guide:** Notice how the 'CMU' dataset is tightly packed at the bottom (fast, consistent muscle memory), while datasets like 'Aalto' are stretched out, indicating high cognitive hesitation.")
         else:
             st.warning("No valid flight time data found in this range.")
+            
     st.divider()
 
     # --- SECTION B: MUSCLE MEMORY DECAY ---
