@@ -358,17 +358,24 @@ for path, name in [(cmu_path, 'CMU'), (keyrecs_path, 'KeyRecs'), (aalto_path, 'A
         print(f"Loaded {name} for Master Merge.")
 
 if master_dfs:
-    # Concatenate on GitHub's 7GB RAM runner
-    df_master = pd.concat(master_dfs, ignore_index=True)
-    
-    # Apply the memory downcasting (shrinks float64 to float32, strings to categories)
-    for col in df_master.columns:
-        if df_master[col].dtype == 'float64':
-            df_master[col] = df_master[col].astype('float32')
-        elif df_master[col].dtype == 'object':
-            df_master[col] = df_master[col].astype('category')
-            
-    # Export the single, unified UI matrix
-    master_output = os.path.join(base_dir, 'master_dataset.parquet')
-    df_master.to_parquet(master_output, index=False)
-    print(f"✅ Master Dataset Exported! Total rows: {len(df_master)}")
+        # Concatenate on GitHub's 7GB RAM runner
+        df_master = pd.concat(master_dfs, ignore_index=True)
+        
+        # --- NEW: SCHEMA MAPPING FOR THE FRONTEND ---
+        # Rename columns so they perfectly match the Streamlit UI expectations
+        df_master = df_master.rename(columns={
+            'Dataset': 'Source_Dataset',
+            'Flight_Time': 'Flight_DD_ms'
+        })
+        
+        # Apply the memory downcasting (shrinks float64 to float32, strings to categories)
+        for col in df_master.columns:
+            if df_master[col].dtype == 'float64':
+                df_master[col] = df_master[col].astype('float32')
+            elif df_master[col].dtype == 'object':
+                df_master[col] = df_master[col].astype('category')
+                
+        # Export the single, unified UI matrix
+        master_output = os.path.join(base_dir, 'master_dataset.parquet')
+        df_master.to_parquet(master_output, index=False)
+        print(f"✅ Master Dataset Exported! Total rows: {len(df_master)}")
