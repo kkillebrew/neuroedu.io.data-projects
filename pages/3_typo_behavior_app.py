@@ -367,7 +367,8 @@ with tab2:
             
             # 5. Explanatory Blurb
             st.info("**Chart Guide:** Notice how the 'CMU' dataset is tightly packed at the bottom (fast, consistent muscle memory), while datasets like 'Aalto' are stretched out, indicating high cognitive hesitation.")
-
+        else:
+            st.warning("No valid flight time data found in this range.")
     st.divider()
 
     # --- SECTION B: MUSCLE MEMORY DECAY ---
