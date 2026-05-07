@@ -272,12 +272,20 @@ def build_word_boundaries(df):
     if df is None or df.empty:
         return df
 
-    # Create a boolean mask for delimiters (Space = 32, Enter = 13)
-    delimiters = df['Key_Code'].isin([32, 13])
+    # Ensure the Key_Code column exists to prevent crashes
+    if 'Key_Code' not in df.columns:
+        df['Word_ID'] = 0
+        return df
+
+    # Create a temporary column that marks True for any spacing key
+    # (Checking multiple variations to catch differences between Aalto, Clarkson, and CMU)
+    df['Is_Delimiter'] = df['Key_Code'].isin(['SPACE', 'ENTER', ' ', '\n', 'Return', 'space', 'Enter'])
     
-    # cumsum() adds 1 to the Word_ID every time it hits a True value in the delimiter mask.
-    # Grouping by Session_ID ensures Word 1 for User A doesn't bleed into User B.
-    df['Word_ID'] = df.groupby('Session_ID')[delimiters].cumsum().ffill().fillna(0).astype(int)
+    # Calculate the Word_ID by doing a cumulative sum on the named column
+    df['Word_ID'] = df.groupby('Session_ID')['Is_Delimiter'].cumsum().fillna(0).astype(int)
+    
+    # Drop the temporary column to save memory before it goes to the Master Dataset
+    df = df.drop(columns=['Is_Delimiter'])
 
     return df
 
