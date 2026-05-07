@@ -273,16 +273,23 @@ with tab1:
                     }
                     flight_df['Description'] = flight_df['Event_Type'].map(box_descs)
                     
-                    # 2. Add Totals to Title & Inject Hover Data
+                    # 2. Add Totals to Title, Inject Hover Data, & Enable Beeswarm
                     fig_flight = px.box(
                         flight_df, x='Event_Type', y='Flight_DD_ms', 
                         title=f"Flight Time Latency: Valid vs. Typos<br><sup>Total Population: {total_population:,} (Visualizing 10k sample)</sup>", 
                         color='Event_Type', color_discrete_sequence=['#00e676', '#ff5252'],
-                        custom_data=['Description']
+                        custom_data=['Description'],
+                        points="all" # <-- Enables the raw data points
                     )
                     
-                    # 3. Format the Hover Bubble
-                    fig_flight.update_traces(hovertemplate="<b>%{x}</b><br>Speed: %{y} ms<br><i>%{customdata[0]}</i><extra></extra>")
+                    # 3. Format the Hover Bubble & Beeswarm Styling
+                    fig_flight.update_traces(
+                        hovertemplate="<b>%{x}</b><br>Speed: %{y} ms<br><i>%{customdata[0]}</i><extra></extra>",
+                        pointpos=0,  # Centers the swarm directly behind/on the box
+                        jitter=0.4,  # Spreads the swarm out horizontally for clarity
+                        marker=dict(color='lightgray', opacity=0.3, size=3), # Light gray & highly transparent
+                        fillcolor='rgba(0,0,0,0.5)' # Makes the boxes slightly transparent so the swarm is visible underneath
+                    )
                     
                     # 4. Calculate and Plot Explicit Stats (Medians) on the Graph
                     medians = flight_df.groupby('Event_Type')['Flight_DD_ms'].median()
@@ -321,7 +328,8 @@ with tab2:
             # THE FIX: .values ensures Pandas doesn't use the wrong index
             sampled_idx = pd.Series(valid_timing_idx).sample(n=sample_size, random_state=42).values
             
-            df_timing = active_df.loc[sampled_idx, ['Source_Dataset', 'Flight_DD_ms']].copy()
+            # Cast the categorical array to a string temporarily so Pandas accepts new mapping values
+            df_timing['Description'] = df_timing['Source_Dataset'].astype(str).map(source_desc).fillna('Dataset')
             
             # 1. Map Custom Hover Descriptions
             source_desc = {
