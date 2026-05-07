@@ -85,10 +85,11 @@ if active_df is not None and not active_df.empty:
     with toggle_col:
         show_only_typos = st.checkbox("Show only flagged typos")
     
+    # Safely render only the first 1000 rows to prevent Arrow serialization OOM crashes
     if show_only_typos and 'Is_Typo' in active_df.columns:
-        display_df = active_df[active_df['Is_Typo'] == True]
+        display_df = active_df[active_df['Is_Typo'] == True].head(1000)
     else:
-        display_df = active_df
+        display_df = active_df.head(1000)
         
     # Render the interactive dataframe
     st.dataframe(display_df, use_container_width=True, height=500)
