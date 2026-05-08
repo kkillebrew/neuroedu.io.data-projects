@@ -125,6 +125,9 @@ def load_master_matrix_v3(filepath):
 
     # 4. Dynamic Typo Taxonomy
     if 'Is_Typo' in df.columns:
+        # CRITICAL FIX: Force strictly boolean to prevent masking crashes
+        df['Is_Typo'] = df['Is_Typo'].fillna(False).astype(bool)
+
         if 'Typo_Category' in df.columns and df['Typo_Category'].dtype.name == 'category':
             df['Typo_Category'] = df['Typo_Category'].astype(str)
         else:
@@ -199,8 +202,11 @@ if active_df is not None and not active_df.empty:
             sample_size = min(len(valid_indices), 500)
             sampled_indices = pd.Series(valid_indices).sample(n=sample_size, random_state=42).values
             
-            # PERFORMANCE FIX: Only extract the 2 columns we actually need! (Saves massive RAM)
-            sampled = active_df.loc[sampled_indices, ['Hold_Time_ms', 'Flight_DD_ms']].copy()
+            # PERFORMANCE FIX: Extract only what the UI needs, but preserve metadata!
+            sampled = active_df.loc[sampled_indices].copy()
+            
+            # CRITICAL FIX: Actually append the chunk to our empty list
+            sampled_chunks.append(sampled)
 
     if len(sampled_chunks) > 0:
         display_df = pd.concat(sampled_chunks)
@@ -490,6 +496,10 @@ with tab2:
     is_cmu = active_df['Source_Dataset'] == 'CMU'
     
     if is_cmu.any() and 'Attempt_Number' in active_df.columns:
+        # CRITICAL FIX: UI-Layer fallback to generate X-axis if ETL missed it
+        if 'Attempt_Number' not in active_df.columns or active_df.loc[is_cmu, 'Attempt_Number'].isna().all():
+            active_df.loc[is_cmu, 'Attempt_Number'] = np.arange(1, is_cmu.sum() + 1)
+        
         cmu_indices = active_df.index[is_cmu & active_df['Flight_DD_ms'].notna() & active_df['Attempt_Number'].notna()]
         
         if len(cmu_indices) > 0:
