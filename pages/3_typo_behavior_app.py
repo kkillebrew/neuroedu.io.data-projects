@@ -382,51 +382,43 @@ with tab2:
         
         if len(valid_timing_idx) > 0:
             total_timing_pop = len(valid_timing_idx)
-            sample_size = min(total_timing_pop, 15000) # Safe cap for Plotly
-            
-            # THE FIX: .values ensures Pandas doesn't use the wrong index
+            sample_size = min(total_timing_pop, 15000) 
             sampled_idx = pd.Series(valid_timing_idx).sample(n=sample_size, random_state=42).values
-            
             df_timing = active_df.loc[sampled_idx, ['Source_Dataset', 'Flight_DD_ms']].copy()
             
-            # 1. Map Custom Hover Descriptions
             source_desc = {
-                'CMU': 'Highly repetitive password typing (Pure Muscle Memory).',
                 'Aalto': 'Free-text transcription (High Cognitive Load).',
-                'KeyRecs': 'Mixed digraph baseline.',
                 'Clarkson_I': 'Cognitive free-text generation.',
-                'Clarkson_II': 'Cognitive free-text generation.'
+                'CMU': 'Highly repetitive password typing (Pure Muscle Memory).',
+                'Clarkson_II': 'Cognitive free-text generation.',
+                'KeyRecs': 'Mixed digraph baseline.'
             }
-            
-            # THE CATEGORICAL FIX: Casts to string before mapping to avoid TypeErrors
             df_timing['Description'] = df_timing['Source_Dataset'].astype(str).map(source_desc).fillna('Dataset')
             
-            # 2. Add Totals to Title & Inject Hover Data
+            # THE FIX: category_orders forces all 5 boxes to render with CMU in the exact middle
             fig_iki = px.box(
                 df_timing, 
                 x="Source_Dataset", y="Flight_DD_ms", color="Source_Dataset",
                 title=f"Macro Latency Benchmarks<br><sup>Total Population: {total_timing_pop:,} (Visualizing 15k sample)</sup>",
                 labels={'Flight_DD_ms': 'Flight Time (ms)', 'Source_Dataset': 'Study Source'},
+                category_orders={"Source_Dataset": ["Aalto", "Clarkson_I", "CMU", "Clarkson_II", "KeyRecs"]},
                 custom_data=['Description']
             )
             
-            # 3. Format the Hover Bubble
             fig_iki.update_traces(hovertemplate="<b>%{x}</b><br>Speed: %{y} ms<br><i>%{customdata[0]}</i><extra></extra>")
             
-            # 4. Add Explicit Medians
             medians = df_timing.groupby('Source_Dataset')['Flight_DD_ms'].median()
             for source_name in medians.index:
-                fig_iki.add_annotation(
-                    x=source_name, y=medians[source_name],
-                    text=f"{medians[source_name]:.0f} ms",
-                    showarrow=False, yshift=-15, font=dict(color="white", size=10),
-                    bgcolor="rgba(0,0,0,0.6)", borderpad=2
-                )
+                if pd.notna(medians[source_name]):
+                    fig_iki.add_annotation(
+                        x=source_name, y=medians[source_name],
+                        text=f"{medians[source_name]:.0f} ms",
+                        showarrow=False, yshift=-15, font=dict(color="white", size=10),
+                        bgcolor="rgba(0,0,0,0.6)", borderpad=2
+                    )
                 
             st.plotly_chart(fig_iki, use_container_width=True)
-            
-            # 5. Explanatory Blurb
-            st.info("**Chart Guide:** Notice how the 'CMU' dataset is tightly packed at the bottom (fast, consistent muscle memory), while datasets like 'Aalto' are stretched out, indicating high cognitive hesitation.")
+            st.info("**Chart Guide:** Notice how the 'CMU' dataset in the center is tightly packed at the bottom (fast, consistent muscle memory), while cognitive datasets flanking it are stretched out.")
         else:
             st.warning("No valid flight time data found in this range.")
             
@@ -474,11 +466,13 @@ with tab2:
     st.subheader("3. Universal Baseline Variance")
     st.markdown("Comparing average typing speeds across different datasets to establish macro-baselines.")
     
-    # MEMORY SAFE: Calculate macro averages using fast index masking
     macro_stats = []
+    # THE FIX: Added Clarkson I and Clarkson II to completely sync the bar chart with the box plot!
     comparison_targets = [
-        ('CMU', "CMU (Passwords)"), 
         ('Aalto', "Aalto (Free Text)"), 
+        ('Clarkson_I', "Clarkson I (Cognitive)"),
+        ('CMU', "CMU (Passwords)"), 
+        ('Clarkson_II', "Clarkson II (Cognitive)"),
         ('KeyRecs', "KeyRecs (Mixed)")
     ]
     
@@ -507,8 +501,8 @@ with tab2:
         fig_bar.update_layout(plot_bgcolor='rgba(0,0,0,0)')
         fig_bar.update_traces(hovertemplate="<b>%{x}</b><br>%{customdata[0]}<br>Average: %{y:.1f} ms<extra></extra>")
         st.plotly_chart(fig_bar, use_container_width=True)
-        st.info("**Chart Guide:** Notice how password entry (CMU) shows significantly faster flight times than free-text typing (Aalto), providing a visual boundary between pure muscle memory and cognitive generation.")
-
+        st.info("**Chart Guide:** Notice how password entry (CMU) shows significantly faster flight times than free-text typing (Aalto/Clarkson).")
+        
     # --- SECTION D: STATISTICAL BOUNDARIES (T-TEST) ---
     st.divider()
     st.subheader("4. Statistical Boundaries (Welch's T-Test)")
