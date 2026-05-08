@@ -196,9 +196,11 @@ if active_df is not None and not active_df.empty:
         valid_indices = active_df.index[ds_mask]
         
         if len(valid_indices) > 0:
-            # Grab up to 200 rows from each to ensure a 1000 row total (200 * 5)
-            chunk_indices = valid_indices[:200]
-            sampled_chunks.append(active_df.loc[chunk_indices])
+            sample_size = min(len(valid_indices), 500)
+            sampled_indices = pd.Series(valid_indices).sample(n=sample_size, random_state=42).values
+            
+            # PERFORMANCE FIX: Only extract the 2 columns we actually need! (Saves massive RAM)
+            sampled = active_df.loc[sampled_indices, ['Hold_Time_ms', 'Flight_DD_ms']].copy()
 
     if len(sampled_chunks) > 0:
         display_df = pd.concat(sampled_chunks)
@@ -323,8 +325,8 @@ with tab1:
                 facet_col="Source_Dataset",
                 opacity=0.4,
                 title="Universal Keystroke Signatures (Hold vs. Flight)",
-                labels={"Hold_Time_ms": "Hold Time (ms)", "Flight_DD_ms": "Flight Time (ms)"}
-            )
+                labels={"Hold_Time_ms": "Hold Time (ms)", "Flight_DD_ms": "Flight Time (ms)"}
+            )
             fig_trellis.update_layout(showlegend=False, plot_bgcolor='rgba(0,0,0,0)')
             fig_trellis.update_xaxes(showgrid=True, gridcolor='rgba(128,128,128,0.2)')
             fig_trellis.update_yaxes(showgrid=True, gridcolor='rgba(128,128,128,0.2)')
@@ -388,13 +390,12 @@ with tab1:
                     flight_df['Description'] = flight_df['Event_Type'].map(box_descs)
                     
                     # 2. Add Totals to Title, Inject Hover Data, & Enable Beeswarm
-                    fig_flight = px.box(
-                        flight_df, x='Event_Type', y='Flight_DD_ms', 
-                        title=f"Flight Time Latency: Valid vs. Typos<br><sup>Total Population: {total_population:,} (Visualizing 2.5k sample)</sup>", 
-                        color='Event_Type', color_discrete_sequence=['#00e676', '#ff5252'],
-                        custom_data=['Description'],
-                        points="all" # <-- Enables the raw data points safely now
-                    )
+                    fig_flight = px.box(
+                        flight_df, x='Event_Type', y='Flight_DD_ms', 
+                        title=f"Flight Time Latency: Valid vs. Typos<br><sup>Total Population: {total_population:,} (Visualizing 2.5k sample)</sup>", 
+                        color='Event_Type', color_discrete_sequence=['#00e676', '#ff5252'],
+                        custom_data=['Description']
+                    )
                     
                     # 3. Format the Hover Bubble & Beeswarm Styling
                     fig_flight.update_traces(
@@ -437,9 +438,9 @@ with tab2:
         valid_timing_idx = active_df.index[(active_df['Flight_DD_ms'] > 0) & (active_df['Flight_DD_ms'] < 1500)]
         
         if len(valid_timing_idx) > 0:
-            total_timing_pop = len(valid_timing_idx)
-            sample_size = min(total_timing_pop, 15000) 
-            sampled_idx = pd.Series(valid_timing_idx).sample(n=sample_size, random_state=42).values
+            total_timing_pop = len(valid_timing_idx)
+            sample_size = min(total_timing_pop, 5000) 
+            sampled_idx = pd.Series(valid_timing_idx).sample(n=sample_size, random_state=42).values
             df_timing = active_df.loc[sampled_idx, ['Source_Dataset', 'Flight_DD_ms']].copy()
             
             source_desc = {
@@ -455,7 +456,7 @@ with tab2:
             fig_iki = px.box(
                 df_timing, 
                 x="Source_Dataset", y="Flight_DD_ms", color="Source_Dataset",
-                title=f"Macro Latency Benchmarks<br><sup>Total Population: {total_timing_pop:,} (Visualizing 15k sample)</sup>",
+                title=f"Macro Latency Benchmarks<br><sup>Total Population: {total_timing_pop:,} (Visualizing 5k sample)</sup>",
                 labels={'Flight_DD_ms': 'Flight Time (ms)', 'Source_Dataset': 'Study Source'},
                 category_orders={"Source_Dataset": ["Aalto", "Clarkson_I", "CMU", "Clarkson_II", "KeyRecs"]},
                 custom_data=['Description']
