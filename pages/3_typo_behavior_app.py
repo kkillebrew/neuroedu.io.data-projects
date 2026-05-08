@@ -364,9 +364,10 @@ with tab1:
                             cat_counts, names='Category', values='Count', 
                             title=f"Typo Behavioral Taxonomy<br><sup>Total Categorized Typos: {total_typos:,}</sup>", 
                             hole=0.4, color_discrete_sequence=px.colors.sequential.Teal,
-                            custom_data=['Description'],
-                            points="all" # <-- Enables the raw data points safely now
+                            custom_data=['Description']
+                            # CRITICAL FIX: Removed points="all" to prevent TypeError
                         )
+
                         # 3. Format the Hover Bubble
                         fig_cat.update_traces(hovertemplate="<b>%{label} Error</b><br>Count: %{value:,}<br><i>%{customdata[0]}</i><extra></extra>")
                         

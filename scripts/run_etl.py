@@ -239,6 +239,8 @@ if os.path.exists(cmu_raw_path):
     # 1. Convert all timing columns from Seconds to Milliseconds
     # CMU uses 'H.', 'DD.', and 'UD.' prefixes
     timing_cols = [c for c in df_cmu.columns if any(pref in c for pref in ['H.', 'DD.', 'UD.'])]
+    # CRITICAL FIX: Force numeric so Pandas doesn't multiply strings
+    df_cmu[timing_cols] = df_cmu[timing_cols].apply(pd.to_numeric, errors='coerce')
     df_cmu[timing_cols] = df_cmu[timing_cols] * 1000
     
     # 2. Standardize Schema

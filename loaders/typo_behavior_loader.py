@@ -391,11 +391,17 @@ def calculate_raw_digraphs(df):
     df.loc[press_mask, 'Flight_DD_ms'] = df[press_mask].groupby('Participant_ID')['Timestamp_ms'].diff()
     
     # 2. Calculate Hold Time (Dwell Time)
-    # For datasets like Clarkson II where Press and Release are separate rows
-    # we find the time difference between a PRESS and the NEXT event for that same user
+    # Calculate the raw time difference. 
+    # (Result lands on the RELEASE row)
     df['Hold_Time_ms'] = df.groupby(['Participant_ID', 'Key_Code'])['Timestamp_ms'].diff()
-    # Note: We only keep Hold times on 'RELEASE' rows
-    df.loc[df['Action_Type'] == 'PRESS', 'Hold_Time_ms'] = np.nan
+    
+    # CRITICAL FIX: Shift the Hold Time UP to align with the PRESS row. 
+    # (Moves the result up to the PRESS row)
+    df['Hold_Time_ms'] = df.groupby(['Participant_ID', 'Key_Code'])['Hold_Time_ms'].shift(-1)
+    
+    # 3. Nullify metrics on RELEASE rows so we only plot complete keystroke events
+    df.loc[df['Action_Type'] == 'RELEASE', 'Hold_Time_ms'] = np.nan
+    df.loc[df['Action_Type'] == 'RELEASE', 'Flight_DD_ms'] = np.nan
     
     return df
 
