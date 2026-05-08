@@ -36,86 +36,89 @@ st.markdown("Analyze microscopic keystroke events, backspace footprints, and cog
 base_dir = os.path.join(os.path.dirname(__file__), '..', 'documents')
 master_path = os.path.join(base_dir, 'master_dataset.parquet')
 
-# THE FIX: Renamed to v2 to force Streamlit to wipe its cache!
 @st.cache_resource(show_spinner=False)
-def load_master_matrix_v2(filepath):
-    """ Loads the data, clears caches, and permanently applies schema band-aids. """
+def load_master_matrix_v4(filepath):
+    """ The V4 Bulletproof Loader: Rebuilds data identities using root Session_IDs. """
     if not os.path.exists(filepath):
         return pd.DataFrame()
         
     df = pd.read_parquet(filepath)
     
-    # 0. Clean the Source Names (removes hidden spaces like "CMU ")
-    if 'Source_Dataset' in df.columns:
-        df['Source_Dataset'] = df['Source_Dataset'].astype(str).str.strip()
-    
-    # 1. Initialize safe Float columns to break Categorical Locks
+    # 1. RESCUE SOURCE IDENTITIES (Bypass Corrupted Columns)
+    # We rebuild the 'Source_Dataset' column strictly from the indestructible Session_ID strings
+    if 'Session_ID' in df.columns:
+        s_id = df['Session_ID'].astype(str)
+        df['Source_Dataset'] = 'Unknown'
+        df.loc[s_id.str.contains('Aalto', na=False, case=False), 'Source_Dataset'] = 'Aalto'
+        df.loc[s_id.str.contains('C1_', na=False), 'Source_Dataset'] = 'Clarkson_I'
+        df.loc[s_id.str.contains('CMU', na=False, case=False), 'Source_Dataset'] = 'CMU'
+        df.loc[s_id.str.contains('C2_', na=False), 'Source_Dataset'] = 'Clarkson_II'
+        df.loc[s_id.str.contains('KeyRecs', na=False, case=False), 'Source_Dataset'] = 'KeyRecs'
+
+    # 2. INITIALIZE SAFE NUMERIC COLUMNS
     for col in ['Flight_DD_ms', 'Hold_Time_ms', 'Attempt_Number']:
         if col not in df.columns:
             df[col] = np.nan
-        df[col] = pd.to_numeric(df[col], errors='coerce').astype('float32')
+        df[col] = pd.to_numeric(df[col], errors='coerce')
 
-    # 2. CMU Wide to Long Fix & Decay Math
+    # 3. CMU RECONSTRUCTION & DECAY MATH
     is_cmu = df['Source_Dataset'] == 'CMU'
     if is_cmu.any():
         cmu_idx = df.index[is_cmu]
         
         # Aggregate Flight Times
-        dd_cols = [c for c in df.columns if c.startswith('DD.') and c != 'Flight_DD_ms']
+        dd_cols = [c for c in df.columns if 'DD.' in c and c != 'Flight_DD_ms']
         if dd_cols:
-            cmu_flights = df.loc[cmu_idx, dd_cols].apply(pd.to_numeric, errors='coerce')
-            df.loc[cmu_idx, 'Flight_DD_ms'] = cmu_flights.mean(axis=1, skipna=True).astype('float32')
+            df.loc[cmu_idx, 'Flight_DD_ms'] = df.loc[cmu_idx, dd_cols].apply(pd.to_numeric, errors='coerce').mean(axis=1)
             
         # Aggregate Hold Times
-        h_cols = [c for c in df.columns if c.startswith('H.') and c != 'Hold_Time_ms']
+        h_cols = [c for c in df.columns if 'H.' in c and c != 'Hold_Time_ms']
         if h_cols:
-            cmu_holds = df.loc[cmu_idx, h_cols].apply(pd.to_numeric, errors='coerce')
-            df.loc[cmu_idx, 'Hold_Time_ms'] = cmu_holds.mean(axis=1, skipna=True).astype('float32')
+            df.loc[cmu_idx, 'Hold_Time_ms'] = df.loc[cmu_idx, h_cols].apply(pd.to_numeric, errors='coerce').mean(axis=1)
             
         # Attempt Number for Decay Curve
         if 'sessionIndex' in df.columns and 'rep' in df.columns:
             s_num = pd.to_numeric(df.loc[cmu_idx, 'sessionIndex'], errors='coerce').fillna(1)
             r_num = pd.to_numeric(df.loc[cmu_idx, 'rep'], errors='coerce').fillna(1)
-            df.loc[cmu_idx, 'Attempt_Number'] = (((s_num - 1) * 50) + r_num).astype('float32')
+            df.loc[cmu_idx, 'Attempt_Number'] = ((s_num - 1) * 50) + r_num
+        else:
+            # Failsafe if columns are entirely missing
+            df.loc[cmu_idx, 'Attempt_Number'] = df.loc[cmu_idx].groupby('Participant_ID').cumcount() + 1
+            
+        # Scaling Failsafe
+        cmu_med = df.loc[cmu_idx, 'Flight_DD_ms'].median()
+        if pd.notna(cmu_med):
+            if cmu_med > 10000: df.loc[cmu_idx, 'Flight_DD_ms'] /= 1000
+            elif cmu_med < 10: df.loc[cmu_idx, 'Flight_DD_ms'] *= 1000
 
-    # 3. KeyRecs Seconds to Milliseconds & Name Fallback
+    # 4. KEYRECS RECONSTRUCTION
     is_keyrecs = df['Source_Dataset'] == 'KeyRecs'
     if is_keyrecs.any():
         kr_idx = df.index[is_keyrecs]
-        
-        # Rescue hidden data if ETL missed the rename
-        if 'DD.key1.key2' in df.columns and df.loc[kr_idx, 'Flight_DD_ms'].isna().all():
-            df.loc[kr_idx, 'Flight_DD_ms'] = pd.to_numeric(df.loc[kr_idx, 'DD.key1.key2'], errors='coerce')
-        if 'DU.key1.key1' in df.columns and df.loc[kr_idx, 'Hold_Time_ms'].isna().all():
+        if 'DU.key1.key1' in df.columns:
             df.loc[kr_idx, 'Hold_Time_ms'] = pd.to_numeric(df.loc[kr_idx, 'DU.key1.key1'], errors='coerce')
-
-        # Scale seconds to ms
-        flight_med = df.loc[kr_idx, 'Flight_DD_ms'].median()
-        if pd.notna(flight_med) and flight_med < 10:
-            df.loc[kr_idx, 'Flight_DD_ms'] *= 1000
             
-        hold_med = df.loc[kr_idx, 'Hold_Time_ms'].median()
-        if pd.notna(hold_med) and hold_med < 10:
-            df.loc[kr_idx, 'Hold_Time_ms'] *= 1000
+        # Scaling Failsafe
+        kr_f_med = df.loc[kr_idx, 'Flight_DD_ms'].median()
+        if pd.notna(kr_f_med) and kr_f_med < 10: df.loc[kr_idx, 'Flight_DD_ms'] *= 1000
+            
+        kr_h_med = df.loc[kr_idx, 'Hold_Time_ms'].median()
+        if pd.notna(kr_h_med) and kr_h_med < 10: df.loc[kr_idx, 'Hold_Time_ms'] *= 1000
 
-    # 4. Dynamic Typo Taxonomy
+    # 5. DYNAMIC TAXONOMY
+    df['Typo_Category'] = 'None'
     if 'Is_Typo' in df.columns:
-        if 'Typo_Category' in df.columns and df['Typo_Category'].dtype.name == 'category':
-            df['Typo_Category'] = df['Typo_Category'].astype(str)
-        else:
-            df['Typo_Category'] = 'None'
-            
-        spatial_mask = (df['Is_Typo'] == True) & (df['Flight_DD_ms'] < 400)
-        df.loc[spatial_mask, 'Typo_Category'] = 'Spatial'
-        
-        cognitive_mask = (df['Is_Typo'] == True) & (df['Flight_DD_ms'] >= 400)
-        df.loc[cognitive_mask, 'Typo_Category'] = 'Cognitive'
+        sp_mask = (df['Is_Typo'] == True) & (df['Flight_DD_ms'] < 400)
+        cg_mask = (df['Is_Typo'] == True) & (df['Flight_DD_ms'] >= 400)
+        df.loc[sp_mask, 'Typo_Category'] = 'Spatial'
+        df.loc[cg_mask, 'Typo_Category'] = 'Cognitive'
         
     return df
 
-with st.spinner("Initializing Cloud Master Matrix (Cache Cleared)..."):
-    # Call the new V2 function!
-    active_df = load_master_matrix_v2(master_path)
+with st.spinner("Initializing Cloud Master Matrix (V4 Architecture)..."):
+    active_df = load_master_matrix_v4(master_path)
+    if active_df.empty:
+        st.error("Master Dataset not found. Waiting for GitHub ETL pipeline to finish...")
     
     if active_df.empty:
         st.error("Master Dataset not found. Waiting for GitHub ETL pipeline to finish...")
