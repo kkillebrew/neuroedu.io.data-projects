@@ -3,8 +3,14 @@ name: Automated ETL Data Pipeline
 on:
   push:
     branches: [ main ]
-    # Also allows you to trigger it manually from the GitHub website
-  workflow_dispatch: 
+    # The pipeline will ONLY trigger if files in these paths are changed
+    paths:
+      - 'scripts/run_etl.py'
+      - 'loaders/typo_behavior_loader.py'
+      - 'documents/*.csv'
+      - 'documents/*.txt'
+  # Still allows manual clicking from the GitHub website
+  workflow_dispatch:
 
 jobs:
   crunch-data:
