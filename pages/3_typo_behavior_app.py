@@ -325,8 +325,8 @@ with tab1:
                 facet_col="Source_Dataset",
                 opacity=0.4,
                 title="Universal Keystroke Signatures (Hold vs. Flight)",
-                labels={"Hold_Time_ms": "Hold Time (ms)", "Flight_DD_ms": "Flight Time (ms)"}
-            )
+                labels={"Hold_Time_ms": "Hold Time (ms)", "Flight_DD_ms": "Flight Time (ms)"}
+            )
             fig_trellis.update_layout(showlegend=False, plot_bgcolor='rgba(0,0,0,0)')
             fig_trellis.update_xaxes(showgrid=True, gridcolor='rgba(128,128,128,0.2)')
             fig_trellis.update_yaxes(showgrid=True, gridcolor='rgba(128,128,128,0.2)')
