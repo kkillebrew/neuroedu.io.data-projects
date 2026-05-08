@@ -64,37 +64,35 @@ def load_master_matrix_v3(filepath):
     if is_cmu.any():
         cmu_idx = df.index[is_cmu]
         
-        # Aggregate Flight Times
+        # Aggregate Flight Times (Memory-safe column-by-column conversion)
         dd_cols = [c for c in df.columns if c.startswith('DD.') and c != 'Flight_DD_ms']
         if dd_cols:
-            cmu_flights = df.loc[cmu_idx, dd_cols].apply(pd.to_numeric, errors='coerce')
-            df.loc[cmu_idx, 'Flight_DD_ms'] = cmu_flights.mean(axis=1, skipna=True).astype('float32')
+            for c in dd_cols:
+                df[c] = pd.to_numeric(df[c], errors='coerce')
+            df.loc[cmu_idx, 'Flight_DD_ms'] = df.loc[cmu_idx, dd_cols].mean(axis=1, skipna=True).astype('float32')
             
-            # ---> CMU SCALING FIX 2: Auto-shrink if ETL multiplied this into millions
+            # Auto-Scale Fix: Simple if/elif prevents infinite loops
             cmu_med = df.loc[cmu_idx, 'Flight_DD_ms'].median()
             if pd.notna(cmu_med):
-                while cmu_med > 5000:
+                if cmu_med > 5000:
                     df.loc[cmu_idx, 'Flight_DD_ms'] /= 1000
-                    cmu_med /= 1000
-                while cmu_med > 0 and cmu_med < 10:
+                elif cmu_med > 0 and cmu_med < 10:
                     df.loc[cmu_idx, 'Flight_DD_ms'] *= 1000
-                    cmu_med *= 1000
 
-        # Aggregate Hold Times
+        # Aggregate Hold Times (Memory-safe column-by-column conversion)
         h_cols = [c for c in df.columns if c.startswith('H.') and c != 'Hold_Time_ms']
         if h_cols:
-            cmu_holds = df.loc[cmu_idx, h_cols].apply(pd.to_numeric, errors='coerce')
-            df.loc[cmu_idx, 'Hold_Time_ms'] = cmu_holds.mean(axis=1, skipna=True).astype('float32')
+            for c in h_cols:
+                df[c] = pd.to_numeric(df[c], errors='coerce')
+            df.loc[cmu_idx, 'Hold_Time_ms'] = df.loc[cmu_idx, h_cols].mean(axis=1, skipna=True).astype('float32')
             
-            # ---> CMU SCALING FIX 3: Auto-shrink Hold times
+            # Auto-Scale Fix: Simple if/elif prevents infinite loops
             cmu_h_med = df.loc[cmu_idx, 'Hold_Time_ms'].median()
             if pd.notna(cmu_h_med):
-                while cmu_h_med > 5000:
+                if cmu_h_med > 5000:
                     df.loc[cmu_idx, 'Hold_Time_ms'] /= 1000
-                    cmu_h_med /= 1000
-                while cmu_h_med > 0 and cmu_h_med < 10:
+                elif cmu_h_med > 0 and cmu_h_med < 10:
                     df.loc[cmu_idx, 'Hold_Time_ms'] *= 1000
-                    cmu_h_med *= 1000
 
         # Attempt Number for Decay Curve
         if 'sessionIndex' in df.columns and 'rep' in df.columns:
@@ -102,7 +100,7 @@ def load_master_matrix_v3(filepath):
             r_num = pd.to_numeric(df.loc[cmu_idx, 'rep'], errors='coerce').fillna(1)
             df.loc[cmu_idx, 'Attempt_Number'] = (((s_num - 1) * 50) + r_num).astype('float32')
         else:
-            # ---> CMU FALLBACK FIX 4: If session/rep columns are missing, auto-generate attempts so curve plots
+            # Fallback if session/rep columns are entirely missing
             df.loc[cmu_idx, 'Attempt_Number'] = np.arange(1, len(cmu_idx) + 1)
 
     # 3. KeyRecs Seconds to Milliseconds & Name Fallback
