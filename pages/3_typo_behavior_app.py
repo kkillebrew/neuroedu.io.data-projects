@@ -37,23 +37,36 @@ base_dir = os.path.join(os.path.dirname(__file__), '..', 'documents')
 master_path = os.path.join(base_dir, 'master_dataset.parquet')
 
 @st.cache_resource(show_spinner=False)
-def load_master_matrix_v4(filepath):
-    """ The V4 Bulletproof Loader: Rebuilds data identities using root Session_IDs. """
+def load_master_matrix_v5(filepath):
+    """ V5 Forensics Loader: Rebuilds data identities destroyed by the ETL. """
     if not os.path.exists(filepath):
         return pd.DataFrame()
         
     df = pd.read_parquet(filepath)
     
-    # 1. RESCUE SOURCE IDENTITIES (Bypass Corrupted Columns)
-    # We rebuild the 'Source_Dataset' column strictly from the indestructible Session_ID strings
-    if 'Session_ID' in df.columns:
-        s_id = df['Session_ID'].astype(str)
+    # 1. THE FORENSIC RECONSTRUCTION
+    # The ETL accidentally deleted the Source_Dataset column for CMU and Clarkson 
+    # when it dropped duplicated columns. We rebuild them using unique fingerprints.
+    if 'Source_Dataset' not in df.columns:
         df['Source_Dataset'] = 'Unknown'
-        df.loc[s_id.str.contains('Aalto', na=False, case=False), 'Source_Dataset'] = 'Aalto'
-        df.loc[s_id.str.contains('C1_', na=False), 'Source_Dataset'] = 'Clarkson_I'
-        df.loc[s_id.str.contains('CMU', na=False, case=False), 'Source_Dataset'] = 'CMU'
-        df.loc[s_id.str.contains('C2_', na=False), 'Source_Dataset'] = 'Clarkson_II'
-        df.loc[s_id.str.contains('KeyRecs', na=False, case=False), 'Source_Dataset'] = 'KeyRecs'
+    else:
+        df['Source_Dataset'] = df['Source_Dataset'].astype(str).replace(['nan', 'NaN'], 'Unknown')
+        
+    # CMU is the ONLY wide dataset; it uniquely contains the column DD.period.t
+    if 'DD.period.t' in df.columns:
+        df.loc[df['DD.period.t'].notna(), 'Source_Dataset'] = 'CMU'
+        
+    # Clarkson I and II have C1_ and C2_ in their Participant IDs
+    if 'Participant_ID' in df.columns:
+        pid = df['Participant_ID'].astype(str)
+        df.loc[pid.str.contains('C1_', na=False), 'Source_Dataset'] = 'Clarkson_I'
+        df.loc[pid.str.contains('C2_', na=False), 'Source_Dataset'] = 'Clarkson_II'
+        
+    # Aalto and KeyRecs have their names in the Session_ID
+    if 'Session_ID' in df.columns:
+        sid = df['Session_ID'].astype(str)
+        df.loc[sid.str.contains('Aalto', case=False, na=False), 'Source_Dataset'] = 'Aalto'
+        df.loc[sid.str.contains('KeyRecs', case=False, na=False), 'Source_Dataset'] = 'KeyRecs'
 
     # 2. INITIALIZE SAFE NUMERIC COLUMNS
     for col in ['Flight_DD_ms', 'Hold_Time_ms', 'Attempt_Number']:
@@ -61,31 +74,24 @@ def load_master_matrix_v4(filepath):
             df[col] = np.nan
         df[col] = pd.to_numeric(df[col], errors='coerce')
 
-    # 3. CMU RECONSTRUCTION & DECAY MATH
+    # 3. CMU WIDE-TO-LONG RECONSTRUCTION
     is_cmu = df['Source_Dataset'] == 'CMU'
     if is_cmu.any():
         cmu_idx = df.index[is_cmu]
         
-        # Aggregate Flight Times
         dd_cols = [c for c in df.columns if 'DD.' in c and c != 'Flight_DD_ms']
         if dd_cols:
             df.loc[cmu_idx, 'Flight_DD_ms'] = df.loc[cmu_idx, dd_cols].apply(pd.to_numeric, errors='coerce').mean(axis=1)
             
-        # Aggregate Hold Times
         h_cols = [c for c in df.columns if 'H.' in c and c != 'Hold_Time_ms']
         if h_cols:
             df.loc[cmu_idx, 'Hold_Time_ms'] = df.loc[cmu_idx, h_cols].apply(pd.to_numeric, errors='coerce').mean(axis=1)
             
-        # Attempt Number for Decay Curve
         if 'sessionIndex' in df.columns and 'rep' in df.columns:
             s_num = pd.to_numeric(df.loc[cmu_idx, 'sessionIndex'], errors='coerce').fillna(1)
             r_num = pd.to_numeric(df.loc[cmu_idx, 'rep'], errors='coerce').fillna(1)
             df.loc[cmu_idx, 'Attempt_Number'] = ((s_num - 1) * 50) + r_num
-        else:
-            # Failsafe if columns are entirely missing
-            df.loc[cmu_idx, 'Attempt_Number'] = df.loc[cmu_idx].groupby('Participant_ID').cumcount() + 1
             
-        # Scaling Failsafe
         cmu_med = df.loc[cmu_idx, 'Flight_DD_ms'].median()
         if pd.notna(cmu_med):
             if cmu_med > 10000: df.loc[cmu_idx, 'Flight_DD_ms'] /= 1000
@@ -98,7 +104,6 @@ def load_master_matrix_v4(filepath):
         if 'DU.key1.key1' in df.columns:
             df.loc[kr_idx, 'Hold_Time_ms'] = pd.to_numeric(df.loc[kr_idx, 'DU.key1.key1'], errors='coerce')
             
-        # Scaling Failsafe
         kr_f_med = df.loc[kr_idx, 'Flight_DD_ms'].median()
         if pd.notna(kr_f_med) and kr_f_med < 10: df.loc[kr_idx, 'Flight_DD_ms'] *= 1000
             
@@ -108,17 +113,19 @@ def load_master_matrix_v4(filepath):
     # 5. DYNAMIC TAXONOMY
     df['Typo_Category'] = 'None'
     if 'Is_Typo' in df.columns:
-        sp_mask = (df['Is_Typo'] == True) & (df['Flight_DD_ms'] < 400)
-        cg_mask = (df['Is_Typo'] == True) & (df['Flight_DD_ms'] >= 400)
+        is_typo_bool = df['Is_Typo'].fillna(False).astype(bool)
+        flight_valid = df['Flight_DD_ms'].notna()
+        
+        sp_mask = is_typo_bool & flight_valid & (df['Flight_DD_ms'] < 400)
+        cg_mask = is_typo_bool & flight_valid & (df['Flight_DD_ms'] >= 400)
+        
         df.loc[sp_mask, 'Typo_Category'] = 'Spatial'
         df.loc[cg_mask, 'Typo_Category'] = 'Cognitive'
         
     return df
 
-with st.spinner("Initializing Cloud Master Matrix (V4 Architecture)..."):
-    active_df = load_master_matrix_v4(master_path)
-    if active_df.empty:
-        st.error("Master Dataset not found. Waiting for GitHub ETL pipeline to finish...")
+with st.spinner("Initializing Cloud Master Matrix (V5 Forensics)..."):
+    active_df = load_master_matrix_v5(master_path)
     
     if active_df.empty:
         st.error("Master Dataset not found. Waiting for GitHub ETL pipeline to finish...")
@@ -395,7 +402,7 @@ with tab2:
             }
             df_timing['Description'] = df_timing['Source_Dataset'].astype(str).map(source_desc).fillna('Dataset')
             
-            # THE FIX: category_orders forces all 5 boxes to render with CMU in the exact middle
+            # THE FIX: category_orders forces all 5 boxes to render with CMU in the exact middle!
             fig_iki = px.box(
                 df_timing, 
                 x="Source_Dataset", y="Flight_DD_ms", color="Source_Dataset",
