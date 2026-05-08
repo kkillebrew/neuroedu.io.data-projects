@@ -68,8 +68,8 @@ def load_master_matrix_v3(filepath):
         dd_cols = [c for c in df.columns if c.startswith('DD.') and c != 'Flight_DD_ms']
         if dd_cols:
             for c in dd_cols:
-                df[c] = pd.to_numeric(df[c], errors='coerce')
-            df.loc[cmu_idx, 'Flight_DD_ms'] = df.loc[cmu_idx, dd_cols].mean(axis=1, skipna=True).astype('float32')
+                df.loc[cmu_idx, c] = pd.to_numeric(df.loc[cmu_idx, c], errors='coerce')
+                df.loc[cmu_idx, 'Flight_DD_ms'] = df.loc[cmu_idx, dd_cols].mean(axis=1, skipna=True).astype('float32')
             
             # Auto-Scale Fix: Simple if/elif prevents infinite loops
             cmu_med = df.loc[cmu_idx, 'Flight_DD_ms'].median()
@@ -83,8 +83,8 @@ def load_master_matrix_v3(filepath):
         h_cols = [c for c in df.columns if c.startswith('H.') and c != 'Hold_Time_ms']
         if h_cols:
             for c in h_cols:
-                df[c] = pd.to_numeric(df[c], errors='coerce')
-            df.loc[cmu_idx, 'Hold_Time_ms'] = df.loc[cmu_idx, h_cols].mean(axis=1, skipna=True).astype('float32')
+                df.loc[cmu_idx, c] = pd.to_numeric(df.loc[cmu_idx, c], errors='coerce')
+                df.loc[cmu_idx, 'Hold_Time_ms'] = df.loc[cmu_idx, h_cols].mean(axis=1, skipna=True).astype('float32')
             
             # Auto-Scale Fix: Simple if/elif prevents infinite loops
             cmu_h_med = df.loc[cmu_idx, 'Hold_Time_ms'].median()
@@ -305,7 +305,7 @@ with tab1:
                 valid_indices = active_df.index[mask]
                 
                 if len(valid_indices) > 0:
-                    sample_size = min(len(valid_indices), 2000)
+                    sample_size = min(len(valid_indices), 500)
                     sampled_indices = pd.Series(valid_indices).sample(n=sample_size, random_state=42).values
                     
                     # PERFORMANCE FIX: Only extract the 2 columns we actually need! (Saves massive RAM)
@@ -358,7 +358,8 @@ with tab1:
                             cat_counts, names='Category', values='Count', 
                             title=f"Typo Behavioral Taxonomy<br><sup>Total Categorized Typos: {total_typos:,}</sup>", 
                             hole=0.4, color_discrete_sequence=px.colors.sequential.Teal,
-                            custom_data=['Description']
+                            custom_data=['Description'],
+                            points="all" # <-- Enables the raw data points safely now
                         )
                         # 3. Format the Hover Bubble
                         fig_cat.update_traces(hovertemplate="<b>%{label} Error</b><br>Count: %{value:,}<br><i>%{customdata[0]}</i><extra></extra>")
