@@ -296,7 +296,6 @@ with tab1:
         for ds_list, name in target_datasets:
             if not active_df.empty and 'Flight_DD_ms' in active_df.columns and 'Hold_Time_ms' in active_df.columns:
                 
-                # MEMORY SAFE: Get indices first, do not copy dataframe
                 mask = (active_df['Source_Dataset'].isin(ds_list)) & \
                        (active_df['Flight_DD_ms'] > 0) & (active_df['Flight_DD_ms'] < 800) & \
                        (active_df['Hold_Time_ms'] > 0) & (active_df['Hold_Time_ms'] < 300)
@@ -304,17 +303,18 @@ with tab1:
                 valid_indices = active_df.index[mask]
                 
                 if len(valid_indices) > 0:
-                    # Sample directly from the indices, then extract ONLY those 2000 rows
                     sample_size = min(len(valid_indices), 2000)
                     sampled_indices = pd.Series(valid_indices).sample(n=sample_size, random_state=42).values
                     
-                    sampled = active_df.loc[sampled_indices].copy()
+                    # PERFORMANCE FIX: Only extract the 2 columns we actually need! (Saves massive RAM)
+                    sampled = active_df.loc[sampled_indices, ['Hold_Time_ms', 'Flight_DD_ms']].copy()
                     sampled['Source_Dataset'] = name
                     multiples_data.append(sampled)
         
         # Render the Plotly Facet Grid
         if multiples_data:
             combined_multiples = pd.concat(multiples_data, ignore_index=True)
+            # PERFORMANCE FIX: Removed trendline="ols" which causes the server to hang
             fig_trellis = px.scatter(
                 combined_multiples, 
                 x="Hold_Time_ms", 
@@ -323,8 +323,7 @@ with tab1:
                 facet_col="Source_Dataset",
                 opacity=0.4,
                 title="Universal Keystroke Signatures (Hold vs. Flight)",
-                labels={"Hold_Time_ms": "Hold Time (ms)", "Flight_DD_ms": "Flight Time (ms)"},
-                trendline="ols"
+                labels={"Hold_Time_ms": "Hold Time (ms)", "Flight_DD_ms": "Flight Time (ms)"}
             )
             fig_trellis.update_layout(showlegend=False, plot_bgcolor='rgba(0,0,0,0)')
             fig_trellis.update_xaxes(showgrid=True, gridcolor='rgba(128,128,128,0.2)')
@@ -374,7 +373,8 @@ with tab1:
                 
                 if len(flight_indices) > 0:
                     total_population = len(flight_indices)
-                    sample_size = min(total_population, 10000)
+                    # PERFORMANCE FIX: Dropped to 2,500 points to prevent Gateway Timeout on WebSocket serialization
+                    sample_size = min(total_population, 2500)
                     sampled_flight_idx = pd.Series(flight_indices).sample(n=sample_size, random_state=42).values
                     flight_df = active_df.loc[sampled_flight_idx, ['Flight_DD_ms', 'Is_Typo']].copy()
                     
@@ -390,19 +390,19 @@ with tab1:
                     # 2. Add Totals to Title, Inject Hover Data, & Enable Beeswarm
                     fig_flight = px.box(
                         flight_df, x='Event_Type', y='Flight_DD_ms', 
-                        title=f"Flight Time Latency: Valid vs. Typos<br><sup>Total Population: {total_population:,} (Visualizing 10k sample)</sup>", 
+                        title=f"Flight Time Latency: Valid vs. Typos<br><sup>Total Population: {total_population:,} (Visualizing 2.5k sample)</sup>", 
                         color='Event_Type', color_discrete_sequence=['#00e676', '#ff5252'],
                         custom_data=['Description'],
-                        points="all" # <-- Enables the raw data points
+                        points="all" # <-- Enables the raw data points safely now
                     )
                     
                     # 3. Format the Hover Bubble & Beeswarm Styling
                     fig_flight.update_traces(
                         hovertemplate="<b>%{x}</b><br>Speed: %{y} ms<br><i>%{customdata[0]}</i><extra></extra>",
-                        pointpos=0,  # Centers the swarm directly behind/on the box
-                        jitter=0.4,  # Spreads the swarm out horizontally for clarity
-                        marker=dict(color='lightgray', opacity=0.3, size=3), # Light gray & highly transparent
-                        fillcolor='rgba(0,0,0,0.5)' # Makes the boxes slightly transparent so the swarm is visible underneath
+                        pointpos=0,  
+                        jitter=0.4,  
+                        marker=dict(color='lightgray', opacity=0.3, size=3), 
+                        fillcolor='rgba(0,0,0,0.5)' 
                     )
                     
                     # 4. Calculate and Plot Explicit Stats (Medians) on the Graph
@@ -411,7 +411,7 @@ with tab1:
                         fig_flight.add_annotation(
                             x=event_name, y=medians[event_name],
                             text=f"Median: {medians[event_name]:.0f} ms",
-                            showarrow=False, yshift=-18, # Shifts text slightly below the median line
+                            showarrow=False, yshift=-18,
                             font=dict(color="white", size=11),
                             bgcolor="rgba(0,0,0,0.6)", borderpad=3
                         )
