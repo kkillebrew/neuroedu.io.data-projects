@@ -390,12 +390,12 @@ with tab1:
                     flight_df['Description'] = flight_df['Event_Type'].map(box_descs)
                     
                     # 2. Add Totals to Title, Inject Hover Data, & Enable Beeswarm
-                    fig_flight = px.box(
-                        flight_df, x='Event_Type', y='Flight_DD_ms', 
-                        title=f"Flight Time Latency: Valid vs. Typos<br><sup>Total Population: {total_population:,} (Visualizing 2.5k sample)</sup>", 
-                        color='Event_Type', color_discrete_sequence=['#00e676', '#ff5252'],
-                        custom_data=['Description']
-                    )
+                    fig_flight = px.box(
+                        flight_df, x='Event_Type', y='Flight_DD_ms',
+                        title=f"Flight Time Latency: Valid vs. Typos<br><sup>Total Population: {total_population:,} (Visualizing 2.5k sample)</sup>",
+                        color='Event_Type', color_discrete_sequence=['#00e676', '#ff5252'],
+                        custom_data=['Description']
+                    )
                     
                     # 3. Format the Hover Bubble & Beeswarm Styling
                     fig_flight.update_traces(
@@ -438,9 +438,9 @@ with tab2:
         valid_timing_idx = active_df.index[(active_df['Flight_DD_ms'] > 0) & (active_df['Flight_DD_ms'] < 1500)]
         
         if len(valid_timing_idx) > 0:
-            total_timing_pop = len(valid_timing_idx)
-            sample_size = min(total_timing_pop, 5000) 
-            sampled_idx = pd.Series(valid_timing_idx).sample(n=sample_size, random_state=42).values
+            total_timing_pop = len(valid_timing_idx)
+            sample_size = min(total_timing_pop, 5000)
+            sampled_idx = pd.Series(valid_timing_idx).sample(n=sample_size, random_state=42).values
             df_timing = active_df.loc[sampled_idx, ['Source_Dataset', 'Flight_DD_ms']].copy()
             
             source_desc = {
