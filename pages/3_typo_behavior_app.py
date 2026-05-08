@@ -180,14 +180,30 @@ if active_df is not None and not active_df.empty:
     with toggle_col:
         show_only_typos = st.checkbox("Show only flagged typos")
     
-    # --- MEMORY SAFE SLICING ---
-    if show_only_typos and 'Is_Typo' in active_df.columns:
-        # Find the exact index numbers of the typos first, slice ONLY the top 1000, 
-        # and then extract those specific rows. This entirely prevents the OOM crash!
-        typo_indices = active_df.index[active_df['Is_Typo'] == True][:1000]
-        display_df = active_df.loc[typo_indices]
+    # --- BALANCED DATASET SAMPLING (20% EACH) ---
+    sampled_chunks = []
+    datasets_to_sample = ['Aalto', 'Clarkson_I', 'Clarkson_II', 'CMU', 'KeyRecs']
+    
+    for ds_name in datasets_to_sample:
+        # Create a mask for the specific dataset
+        ds_mask = active_df['Source_Dataset'] == ds_name
+        
+        # Apply typo filter if checked
+        if show_only_typos and 'Is_Typo' in active_df.columns:
+            ds_mask = ds_mask & (active_df['Is_Typo'] == True)
+            
+        # Get the matching indices
+        valid_indices = active_df.index[ds_mask]
+        
+        if len(valid_indices) > 0:
+            # Grab up to 200 rows from each to ensure a 1000 row total (200 * 5)
+            chunk_indices = valid_indices[:200]
+            sampled_chunks.append(active_df.loc[chunk_indices])
+
+    if len(sampled_chunks) > 0:
+        display_df = pd.concat(sampled_chunks)
     else:
-        display_df = active_df.head(1000)
+        display_df = active_df.head(0) # Empty fallback
         
     # --- FIX THE 'NONE' APOCALYPSE ---
     # Hide the CMU-specific string columns so the UI only shows our clean, unified Master Schema
@@ -220,6 +236,7 @@ with tab1:
     st.write("Overview of the massive datasets downsampled via Colab and ingested as Parquet files.")
     
     # --- SCHEMA UNIFICATION PROOF ---
+    # --- SCHEMA UNIFICATION PROOF ---
     with st.expander("🔍 Verify Schema Unification"):
         st.markdown("Proof that disparate datasets were successfully normalized into the Master Data Schema:")
         
@@ -230,6 +247,7 @@ with tab1:
             'Is_Typo', 'Typo_Category'
         ]
         
+        # TOP ROW: Clarkson and Aalto
         schema_col1, schema_col2 = st.columns(2)
         with schema_col1:
             st.caption("Clarkson Dataset (Raw Keystrokes)")
@@ -244,6 +262,22 @@ with tab1:
                 df_aalto_sample = active_df[active_df['Source_Dataset'] == 'Aalto'].head(3)
                 display_cols = [c for c in core_cols if c in df_aalto_sample.columns]
                 st.dataframe(df_aalto_sample[display_cols], use_container_width=True)
+
+        # BOTTOM ROW: CMU and KeyRecs
+        schema_col3, schema_col4 = st.columns(2)
+        with schema_col3:
+            st.caption("CMU Dataset (Passwords)")
+            if not active_df.empty:
+                df_cmu_sample = active_df[active_df['Source_Dataset'] == 'CMU'].head(3)
+                display_cols = [c for c in core_cols if c in df_cmu_sample.columns]
+                st.dataframe(df_cmu_sample[display_cols], use_container_width=True)
+                
+        with schema_col4:
+            st.caption("KeyRecs Dataset (Digraphs)")
+            if not active_df.empty:
+                df_kr_sample = active_df[active_df['Source_Dataset'] == 'KeyRecs'].head(3)
+                display_cols = [c for c in core_cols if c in df_kr_sample.columns]
+                st.dataframe(df_kr_sample[display_cols], use_container_width=True)
 
         st.subheader("Microscopic Event Log: Master Matrix")
         st.markdown("Analyze raw chronologies, backspace footprints, and behavioral error classifications.")
