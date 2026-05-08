@@ -519,18 +519,15 @@ def generate_and_train_fan_classifier(df_goat, df_mvp, df_as_shares, df_jerseys)
     current_year = 2024
     
     # 1. GENERATE REGIONS FIRST (US Census Distribution)
-    # ---------------------------------------------------------
     regions = np.random.choice(['Northeast', 'Midwest', 'South', 'West'], size=n_samples, p=[0.18, 0.21, 0.38, 0.23])
     
     # 2. REGION-SPECIFIC DEMOGRAPHICS (NBA Adjusted)
-    # Order: ['Black', 'White', 'Hispanic', 'Asian']
     race_probs = {
         'Northeast': [0.25, 0.50, 0.15, 0.10], 
         'Midwest':   [0.20, 0.65, 0.10, 0.05],
         'South':     [0.35, 0.45, 0.15, 0.05],
         'West':      [0.15, 0.40, 0.30, 0.15]
     }
-    # Order: ['Low', 'Middle', 'High']
     ses_probs = {
         'Northeast': [0.30, 0.45, 0.25], 
         'Midwest':   [0.35, 0.55, 0.10],
@@ -538,32 +535,29 @@ def generate_and_train_fan_classifier(df_goat, df_mvp, df_as_shares, df_jerseys)
         'West':      [0.25, 0.50, 0.25]
     }
 
-    # Generate arrays based on the conditional regional probabilities
     races = [np.random.choice(['Black', 'White', 'Hispanic', 'Asian'], p=race_probs[r]) for r in regions]
     ses = [np.random.choice(['Low', 'Middle', 'High'], p=ses_probs[r]) for r in regions]
-
-    # Instead of a bell curve, we guarantee an equal number of fans of EVERY age from 15 to 85.
-    # This forces the ML model to learn the "Nostalgia" rules for classic players perfectly.
     ages = np.random.randint(15, 86, size=n_samples)
-    
     genders = np.random.choice(['Male', 'Female'], size=n_samples, p=[0.68, 0.32])
     fandom_level = np.random.choice(['Casual', 'Balanced', 'Hardcore'], size=n_samples, p=[0.50, 0.35, 0.15])
     
+    # ---> THIS WAS THE MISSING VARIABLE CAUSING THE ERROR! <---
+    df_fans = pd.DataFrame({
+        'Age': ages, 'Gender': genders, 'Race': races, 
+        'SES': ses, 'Region': regions, 'Fandom': fandom_level
+    })
+    
     # 3. PREP METADATA & Z-SCORES
-    # ---------------------------------------------------------
     # Guaranteed accurate eras using their ACTUAL historical game logs!
     true_peak_years = (df_goat.groupby('Player')['Year'].min() + 4).to_dict()
 
-    # Z-Score Popularity (All-Star Votes)
     as_stats = df_as_shares.groupby('Player')['Vote_Share'].mean()
     as_share_map = ((as_stats - as_stats.mean()) / as_stats.std()).to_dict()
 
-    # Z-Score MVP Shares
     mvp_raw = df_mvp.groupby('Player')['Share'].sum() if not df_mvp.empty else pd.Series(dtype=float)
     mvp_zero_z = (0 - mvp_raw.mean()) / mvp_raw.std() if not mvp_raw.empty else 0
     mvp_z_map = ((mvp_raw - mvp_raw.mean()) / mvp_raw.std()).to_dict() if not mvp_raw.empty else {}
 
-    # Z-Score Jersey Sales
     jersey_raw = df_jerseys.set_index('Player')['Top_10_Seasons'] if not df_jerseys.empty else pd.Series(dtype=float)
     jersey_zero_z = (0 - jersey_raw.mean()) / jersey_raw.std() if not jersey_raw.empty else 0
     jersey_z_map = ((jersey_raw - jersey_raw.mean()) / jersey_raw.std()).to_dict() if not jersey_raw.empty else {}
