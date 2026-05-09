@@ -337,7 +337,7 @@ if master_dfs:
     if not float_cols.empty:
         df_master[float_cols] = df_master[float_cols].astype('float32')
         
-    obj_cols = df_master.select_dtypes(include=['object']).columns
+    obj_cols = df_master.select_dtypes(include=['object', 'str']).columns
     if not obj_cols.empty:
         df_master[obj_cols] = df_master[obj_cols].astype('category')
         
