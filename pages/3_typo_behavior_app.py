@@ -623,21 +623,21 @@ with tab2:
         aalto_flights = active_df.loc[is_aalto, 'Flight_DD_ms']
         aalto_array = aalto_flights[(aalto_flights > 0) & (aalto_flights < 1000)].dropna()
         
-        # # ==========================================
-        # # 🚨 TEMPORARY DIAGNOSTIC HUD V2 🚨
-        # # ==========================================
-        # st.error("**Data Diagnostics V2 (Post-Sanitizer):**")
+        # ==========================================
+        # 🚨 TEMPORARY DIAGNOSTIC HUD V2 🚨
+        # ==========================================
+        st.error("**Data Diagnostics V2 (Post-Sanitizer):**")
         
-        # st.write(f"**CMU Dataset:**")
-        # st.write(f"- Total Rows: `{is_cmu.sum()}` | Blank (NaN) Rows: `{cmu_flights.isna().sum()}`")
-        # if not cmu_flights.dropna().empty:
-        #     st.write(f"- Valid Min: `{cmu_flights.min():.2f}` | Valid Max: `{cmu_flights.max():.2f}`")
+        st.write(f"**CMU Dataset:**")
+        st.write(f"- Total Rows: `{is_cmu.sum()}` | Blank (NaN) Rows: `{cmu_flights.isna().sum()}`")
+        if not cmu_flights.dropna().empty:
+            st.write(f"- Valid Min: `{cmu_flights.min():.2f}` | Valid Max: `{cmu_flights.max():.2f}`")
             
-        # st.write(f"**Aalto Dataset:**")
-        # st.write(f"- Total Rows: `{is_aalto.sum()}` | Blank (NaN) Rows: `{aalto_flights.isna().sum()}`")
-        # if not aalto_flights.dropna().empty:
-        #     st.write(f"- Valid Min: `{aalto_flights.min():.2f}` | Valid Max: `{aalto_flights.max():.2f}`")
-        # # ==========================================
+        st.write(f"**Aalto Dataset:**")
+        st.write(f"- Total Rows: `{is_aalto.sum()}` | Blank (NaN) Rows: `{aalto_flights.isna().sum()}`")
+        if not aalto_flights.dropna().empty:
+            st.write(f"- Valid Min: `{aalto_flights.min():.2f}` | Valid Max: `{aalto_flights.max():.2f}`")
+        # ==========================================
         
         if not aalto_array.empty and not cmu_array.empty:
             # 1. MATHEMATICAL PROOF (Your KPI Code)
