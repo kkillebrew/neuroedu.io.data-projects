@@ -624,6 +624,7 @@ with tab2:
         aalto_array = aalto_flights[(aalto_flights > 0) & (aalto_flights < 1000)].dropna()
         
         if not aalto_array.empty and not cmu_array.empty:
+            # 1. MATHEMATICAL PROOF (Your KPI Code)
             t_stat, p_val = stats.ttest_ind(aalto_array, cmu_array, equal_var=False)
             
             t_col1, t_col2, t_col3, t_col4 = st.columns(4)
@@ -645,6 +646,45 @@ with tab2:
                 st.success(f"**Conclusion:** The data proves a statistically significant boundary between motor execution and cognitive generation. Free-text typing requires significantly more mental overhead, resulting in an average latency penalty of **{penalty:.1f} ms** per keystroke.")
             else:
                 st.warning("**Conclusion:** No statistically significant difference found. Ensure dataset ingestion is fully complete.")
+
+            # 2. VISUAL PROOF (The Plotly Density Chart)
+            # Sample down to prevent browser crash (5,000 max per set)
+            sample_size = min(5000, len(cmu_array), len(aalto_array))
+            
+            df_plot = pd.DataFrame({
+                'Flight Latency (ms)': np.concatenate([
+                    cmu_array.sample(sample_size).values, 
+                    aalto_array.sample(sample_size).values
+                ]),
+                'Cognitive State': ['Muscle Memory (CMU)']*sample_size + ['Cognitive Load (Aalto)']*sample_size
+            })
+            
+            fig_boundary = px.histogram(
+                df_plot, 
+                x="Flight Latency (ms)", 
+                color="Cognitive State",
+                barmode="overlay", 
+                histnorm="probability density", # Normalizes the Y-axis
+                nbins=150,
+                title="Latency Distribution Divergence",
+                color_discrete_map={
+                    "Muscle Memory (CMU)": "#00e676", # Green
+                    "Cognitive Load (Aalto)": "#ff5252" # Red
+                }
+            )
+            
+            # Transparency for overlapping distributions
+            fig_boundary.update_traces(opacity=0.65)
+            # Add boundary marker
+            fig_boundary.add_vline(x=200, line_dash="dash", line_color="white", 
+                                   annotation_text="Theoretical Transition Boundary (~200ms)")
+            
+            st.plotly_chart(fig_boundary, use_container_width=True)
+
+        else:
+            st.warning("Insufficient data to run T-Test. CMU or Aalto datasets are missing valid ranges.")
+    else:
+        st.error("Missing columns for statistical testing.")
 
 # ---------------------------------------------------------------------
 # TAB 3: PHASES 3 & 4 (Taxonomy & Feature Engineering)
