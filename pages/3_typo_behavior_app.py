@@ -343,7 +343,7 @@ with tab1:
             # st.dataframe(trellis_df[['Source_Dataset', 'Hold_Time_ms', 'Flight_DD_ms', 'Is_Typo']].head())
             # st.markdown("---")
             # # ==========================================
-
+                
             # 1. MEMORY FIX: Isolate ONLY the 4 columns needed for the chart 
             # This prevents Pandas from duplicating the 54 other columns in RAM
             trellis_cols = ['Source_Dataset', 'Hold_Time_ms', 'Flight_DD_ms', 'Is_Typo']
@@ -622,22 +622,6 @@ with tab2:
         is_aalto = active_df['Source_Dataset'] == 'Aalto'
         aalto_flights = active_df.loc[is_aalto, 'Flight_DD_ms']
         aalto_array = aalto_flights[(aalto_flights > 0) & (aalto_flights < 1000)].dropna()
-        
-        # ==========================================
-        # 🚨 TEMPORARY DIAGNOSTIC HUD 🚨
-        # ==========================================
-        st.error("**Data Diagnostics:**")
-        
-        st.write(f"**CMU Dataset:**")
-        st.write(f"- Total Rows: `{len(cmu_flights)}` | Valid Rows (0-1000ms): `{len(cmu_array)}`")
-        if not cmu_flights.dropna().empty:
-            st.write(f"- Min Latency: `{cmu_flights.min():.2f}` | Max Latency: `{cmu_flights.max():.2f}`")
-            
-        st.write(f"**Aalto Dataset:**")
-        st.write(f"- Total Rows: `{len(aalto_flights)}` | Valid Rows (0-1000ms): `{len(aalto_array)}`")
-        if not aalto_flights.dropna().empty:
-            st.write(f"- Min Latency: `{aalto_flights.min():.2f}` | Max Latency: `{aalto_flights.max():.2f}`")
-        # ==========================================
         
         if not aalto_array.empty and not cmu_array.empty:
             # 1. MATHEMATICAL PROOF (Your KPI Code)
