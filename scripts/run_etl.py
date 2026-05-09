@@ -346,28 +346,30 @@ if master_dfs:
         df_master = df_master.sort_values(['Participant_ID', 'Timestamp_ms'])
 
     # =========================================================
-    # 🚨 FAILSAFE DATA SANITIZER (Add before saving Parquet) 🚨
+    # 🚨 FAILSAFE DATA SANITIZER (V2) 🚨
     # =========================================================
     print("Sanitizing timing metrics...")
     
-    # 1. Ensure Timestamps are standard numbers, NOT datetimes
+    # 1. Ensure Timestamps are standard numbers
     if 'Timestamp_ms' in df_master.columns:
         df_master['Timestamp_ms'] = pd.to_numeric(df_master['Timestamp_ms'], errors='coerce')
 
     # 2. Recalculate Aalto Flight Times correctly
     is_aalto = df_master['Source_Dataset'] == 'Aalto'
-    if is_aalto.any() and 'Timestamp_ms' in df_master.columns:
-        # Flight time is the difference between sequential keystrokes
-        df_master.loc[is_aalto, 'Flight_DD_ms'] = df_master[is_aalto].groupby('Participant_ID')['Timestamp_ms'].diff()
+    if is_aalto.any():
+        # Aalto's raw column is often PRESS_TIME. We must check for both.
+        time_col = 'PRESS_TIME' if 'PRESS_TIME' in df_master.columns else 'Timestamp_ms'
+        if time_col in df_master.columns:
+            df_master[time_col] = pd.to_numeric(df_master[time_col], errors='coerce')
+            df_master.loc[is_aalto, 'Flight_DD_ms'] = df_master[is_aalto].groupby('Participant_ID')[time_col].diff()
 
-    # 3. Nuke the 10^20 Overflow Bug & Enforce Statistical Boundaries
+    # 3. Nuke the Overflow Bug & Enforce Statistical Boundaries
     for col in ['Flight_DD_ms', 'Hold_Time_ms']:
         if col in df_master.columns:
             # Force raw float32
             df_master[col] = pd.to_numeric(df_master[col], errors='coerce').astype('float32')
             
-            # Wipe out the massive overflow numbers and impossible negative times
-            # Anything > 2000ms is not muscle memory anyway, so we safely drop it
+            # Wipe out impossible negative times and outliers > 2000ms
             df_master.loc[df_master[col] > 2000, col] = np.nan
             df_master.loc[df_master[col] < 0, col] = np.nan
     # =========================================================
