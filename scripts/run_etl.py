@@ -319,6 +319,10 @@ if __name__ == "__main__":
                 df_master.loc[df_master[col] > 2000, col] = np.nan
                 df_master.loc[df_master[col] < 0, col] = np.nan
 
+        # 4. Clean up legacy columns to prevent PyArrow mixed-type crashes
+        if 'User_ID' in df_master.columns:
+            df_master = df_master.drop(columns=['User_ID'])
+
         # Export final fused dataset
         df_master.to_parquet(master_out, index=False, compression='snappy')
         print(f"✅ Master Dataset Exported! Total rows: {len(df_master)}")
