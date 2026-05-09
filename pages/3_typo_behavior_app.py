@@ -323,43 +323,57 @@ with tab1:
         if multiples_data:
             combined_multiples = pd.concat(multiples_data, ignore_index=True)
             
-            # ==========================================
-            # 🚨 TEMPORARY DIAGNOSTIC HUD 🚨
-            # ==========================================
-            st.error("### Diagnostic Mode Active")
+            # # ==========================================
+            # # 🚨 TEMPORARY DIAGNOSTIC HUD 🚨
+            # # ==========================================
+            # st.error("### Diagnostic Mode Active")
             
-            # 1. Check the starting size of the dataframe
-            st.write(f"**1. Original Data Shape:** `{active_df.shape}`")
+            # # 1. Check the starting size of the dataframe
+            # st.write(f"**1. Original Data Shape:** `{active_df.shape}`")
             
-            # 2. Check the size AFTER we drop NaNs
-            trellis_df = active_df.dropna(subset=['Flight_DD_ms', 'Hold_Time_ms', 'Source_Dataset'])
-            st.write(f"**2. Shape after dropping NaNs:** `{trellis_df.shape}`")
+            # # 2. Check the size AFTER we drop NaNs
+            # trellis_df = active_df.dropna(subset=['Flight_DD_ms', 'Hold_Time_ms', 'Source_Dataset'])
+            # st.write(f"**2. Shape after dropping NaNs:** `{trellis_df.shape}`")
             
-            # 3. Check for hidden NaNs in the Is_Typo column (Plotly's color parameter hates NaNs)
-            st.write(f"**3. Null values in 'Is_Typo':** `{trellis_df['Is_Typo'].isna().sum()}`")
+            # # 3. Check for hidden NaNs in the Is_Typo column (Plotly's color parameter hates NaNs)
+            # st.write(f"**3. Null values in 'Is_Typo':** `{trellis_df['Is_Typo'].isna().sum()}`")
             
-            # 4. Prove the data actually exists by showing the first 5 rows
-            st.write("**4. First 5 valid rows sent to Plotly:**")
-            st.dataframe(trellis_df[['Source_Dataset', 'Hold_Time_ms', 'Flight_DD_ms', 'Is_Typo']].head())
-            st.markdown("---")
-            # ==========================================
+            # # 4. Prove the data actually exists by showing the first 5 rows
+            # st.write("**4. First 5 valid rows sent to Plotly:**")
+            # st.dataframe(trellis_df[['Source_Dataset', 'Hold_Time_ms', 'Flight_DD_ms', 'Is_Typo']].head())
+            # st.markdown("---")
+            # # ==========================================
                 
-            # PERFORMANCE FIX: Removed trendline="ols" which causes the server to hang
-            fig_trellis = px.scatter(
-                combined_multiples, 
-                x="Hold_Time_ms", 
-                y="Flight_DD_ms", 
-                color="Source_Dataset",
-                facet_col="Source_Dataset",
-                opacity=0.4,
-                title="Universal Keystroke Signatures (Hold vs. Flight)",
-                labels={"Hold_Time_ms": "Hold Time (ms)", "Flight_DD_ms": "Flight Time (ms)"}
-            )
-            fig_trellis.update_layout(showlegend=False, plot_bgcolor='rgba(0,0,0,0)')
-            fig_trellis.update_xaxes(showgrid=True, gridcolor='rgba(128,128,128,0.2)')
-            fig_trellis.update_yaxes(showgrid=True, gridcolor='rgba(128,128,128,0.2)')
-            st.plotly_chart(fig_trellis, use_container_width=True)
-            st.divider()
+            # 1. MEMORY FIX: Isolate ONLY the 4 columns needed for the chart 
+            # This prevents Pandas from duplicating the 54 other columns in RAM
+            trellis_cols = ['Source_Dataset', 'Hold_Time_ms', 'Flight_DD_ms', 'Is_Typo']
+            
+            # Check if columns exist to prevent KeyError
+            if all(col in active_df.columns for col in trellis_cols):
+                
+                # 2. Extract and drop NaNs on the tiny 4-column dataframe
+                trellis_df = active_df[trellis_cols].dropna()
+                
+                if not trellis_df.empty:
+                    # 3. Sample it immediately so Plotly doesn't crash the browser rendering millions of dots
+                    trellis_df = trellis_df.sample(n=min(10000, len(trellis_df)))
+                    
+                    # 4. Generate the Chart
+                    fig_trellis = px.scatter(
+                        trellis_df, 
+                        x="Hold_Time_ms", 
+                        y="Flight_DD_ms", 
+                        color="Is_Typo",
+                        facet_col="Source_Dataset", 
+                        facet_col_wrap=3,
+                        title="Hold vs Flight Latency Across Studies"
+                    )
+                    
+                    st.plotly_chart(fig_trellis, use_container_width=True)
+                else:
+                    st.warning("No complete keystroke pairs available to plot.")
+            else:
+                st.error("Missing required biometric columns in the dataset.")
 
         # Phase 1 Visual Analytics
         if 'Is_Typo' in active_df.columns and active_df['Is_Typo'].any():
