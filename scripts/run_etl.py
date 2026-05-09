@@ -109,9 +109,11 @@ if __name__ == "__main__":
         df_aalto = pd.read_parquet(aalto_source)
 
         # Rename to Master Schema naming convention
+        # We check for both 'Timestamp' (from Colab) and 'PRESS_TIME' (if raw)
         df_aalto = df_aalto.rename(columns={
             'PARTICIPANT_ID': 'Participant_ID',
-            'PRESS_TIME': 'Timestamp_ms'
+            'Timestamp': 'Timestamp_ms',   # <--- THE CRITICAL FIX
+            'PRESS_TIME': 'Timestamp_ms' 
         })
         
         # Aalto rows are already individual keypresses; we tag them as PRESS
