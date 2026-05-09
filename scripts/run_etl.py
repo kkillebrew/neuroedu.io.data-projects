@@ -302,13 +302,7 @@ if __name__ == "__main__":
         if 'Timestamp_ms' in df_master.columns:
             df_master['Timestamp_ms'] = pd.to_numeric(df_master['Timestamp_ms'], errors='coerce')
 
-        # 2. Recalculate Aalto Flight Times correctly
-        is_aalto = df_master['Source_Dataset'] == 'Aalto'
-        if is_aalto.any() and 'Timestamp_ms' in df_master.columns:
-            # Flight time is the difference between sequential keystrokes
-            df_master.loc[is_aalto, 'Flight_DD_ms'] = df_master[is_aalto].groupby('Participant_ID')['Timestamp_ms'].diff()
-
-        # 3. Nuke the 10^20 Overflow Bug & Enforce Statistical Boundaries
+        # 2. Nuke the 10^20 Overflow Bug & Enforce Statistical Boundaries
         for col in ['Flight_DD_ms', 'Hold_Time_ms']:
             if col in df_master.columns:
                 # Force raw float32
@@ -319,11 +313,11 @@ if __name__ == "__main__":
                 df_master.loc[df_master[col] > 2000, col] = np.nan
                 df_master.loc[df_master[col] < 0, col] = np.nan
 
-        # 4. Clean up legacy columns to prevent PyArrow mixed-type crashes
+        # 3. Clean up legacy columns to prevent PyArrow mixed-type crashes
         if 'User_ID' in df_master.columns:
             df_master = df_master.drop(columns=['User_ID'])
 
-        # Export final fused dataset
+        # 4. Export final fused dataset
         df_master.to_parquet(master_out, index=False, compression='snappy')
         print(f"✅ Master Dataset Exported! Total rows: {len(df_master)}")
     else:
