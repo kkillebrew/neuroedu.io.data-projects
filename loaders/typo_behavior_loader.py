@@ -356,13 +356,16 @@ def apply_historical_consistency_filter(df, consistency_threshold=0.8):
     words_df['Expected_Word'] = words_df['Submitted_Word'] 
 
     # 2. Count how many times the user made a specific exact error
-    error_counts = words_df.groupby(['User_ID', 'Expected_Word', 'Submitted_Word']).size().reset_index(name='Specific_Error_Count')
+    # Map dynamically to our standardized Participant_ID
+    user_col = 'Participant_ID' if 'Participant_ID' in words_df.columns else user_col
+    
+    error_counts = words_df.groupby([user_col, 'Expected_Word', 'Submitted_Word']).size().reset_index(name='Specific_Error_Count')
 
     # 3. Count total times the user attempted the intended word
-    total_attempts = words_df.groupby(['User_ID', 'Expected_Word']).size().reset_index(name='Total_Attempts')
+    total_attempts = words_df.groupby([user_col, 'Expected_Word']).size().reset_index(name='Total_Attempts')
 
     # 4. Merge to calculate the ratio
-    consistency_df = pd.merge(error_counts, total_attempts, on=['User_ID', 'Expected_Word'])
+    consistency_df = pd.merge(error_counts, total_attempts, on=[user_col, 'Expected_Word'])
     consistency_df['Error_Ratio'] = consistency_df['Specific_Error_Count'] / consistency_df['Total_Attempts']
 
     # 5. Create the filter mask (True = Consistent Misspelling/Recall Error)
@@ -370,7 +373,7 @@ def apply_historical_consistency_filter(df, consistency_threshold=0.8):
     consistency_df['Is_Recall_Error'] = (consistency_df['Expected_Word'] != consistency_df['Submitted_Word']) & (consistency_df['Error_Ratio'] >= consistency_threshold)
     
     # 6. Merge the flag back into the word dataframe, then back to the microscopic keystrokes
-    words_df = pd.merge(words_df, consistency_df[['User_ID', 'Expected_Word', 'Submitted_Word', 'Is_Recall_Error']], on=['User_ID', 'Expected_Word', 'Submitted_Word'], how='left')
+    words_df = pd.merge(words_df, consistency_df[[user_col, 'Expected_Word', 'Submitted_Word', 'Is_Recall_Error']], on=[user_col, 'Expected_Word', 'Submitted_Word'], how='left')
     
     df = pd.merge(df, words_df[['Session_ID', 'Word_ID', 'Is_Recall_Error']], on=['Session_ID', 'Word_ID'], how='left')
     
