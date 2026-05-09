@@ -164,6 +164,9 @@ if __name__ == "__main__":
     df_clarkson_raw = pd.concat([df_c1, df_c2], ignore_index=True)
 
     if not df_clarkson_raw.empty:
+        # 🛡️ THE FIX: Force Key_Code to be numbers. Turn letters like 'A' into safe NaNs.
+        df_clarkson_raw['Key_Code'] = pd.to_numeric(df_clarkson_raw['Key_Code'], errors='coerce')
+        
         # Separate and sort  
         presses = df_clarkson_raw[df_clarkson_raw['Action_Type'] == 'PRESS'].sort_values('Timestamp_ms')
         releases = df_clarkson_raw[df_clarkson_raw['Action_Type'] == 'RELEASE'].sort_values('Timestamp_ms')
