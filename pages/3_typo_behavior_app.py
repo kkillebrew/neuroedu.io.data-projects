@@ -323,27 +323,27 @@ with tab1:
         if multiples_data:
             combined_multiples = pd.concat(multiples_data, ignore_index=True)
             
-        # ==========================================
-        # 🚨 TEMPORARY DIAGNOSTIC HUD 🚨
-        # ==========================================
-        st.error("### Diagnostic Mode Active")
-        
-        # 1. Check the starting size of the dataframe
-        st.write(f"**1. Original Data Shape:** `{active_df.shape}`")
-        
-        # 2. Check the size AFTER we drop NaNs
-        trellis_df = active_df.dropna(subset=['Flight_DD_ms', 'Hold_Time_ms', 'Source_Dataset'])
-        st.write(f"**2. Shape after dropping NaNs:** `{trellis_df.shape}`")
-        
-        # 3. Check for hidden NaNs in the Is_Typo column (Plotly's color parameter hates NaNs)
-        st.write(f"**3. Null values in 'Is_Typo':** `{trellis_df['Is_Typo'].isna().sum()}`")
-        
-        # 4. Prove the data actually exists by showing the first 5 rows
-        st.write("**4. First 5 valid rows sent to Plotly:**")
-        st.dataframe(trellis_df[['Source_Dataset', 'Hold_Time_ms', 'Flight_DD_ms', 'Is_Typo']].head())
-        st.markdown("---")
-        # ==========================================
+            # ==========================================
+            # 🚨 TEMPORARY DIAGNOSTIC HUD 🚨
+            # ==========================================
+            st.error("### Diagnostic Mode Active")
             
+            # 1. Check the starting size of the dataframe
+            st.write(f"**1. Original Data Shape:** `{active_df.shape}`")
+            
+            # 2. Check the size AFTER we drop NaNs
+            trellis_df = active_df.dropna(subset=['Flight_DD_ms', 'Hold_Time_ms', 'Source_Dataset'])
+            st.write(f"**2. Shape after dropping NaNs:** `{trellis_df.shape}`")
+            
+            # 3. Check for hidden NaNs in the Is_Typo column (Plotly's color parameter hates NaNs)
+            st.write(f"**3. Null values in 'Is_Typo':** `{trellis_df['Is_Typo'].isna().sum()}`")
+            
+            # 4. Prove the data actually exists by showing the first 5 rows
+            st.write("**4. First 5 valid rows sent to Plotly:**")
+            st.dataframe(trellis_df[['Source_Dataset', 'Hold_Time_ms', 'Flight_DD_ms', 'Is_Typo']].head())
+            st.markdown("---")
+            # ==========================================
+                
             # PERFORMANCE FIX: Removed trendline="ols" which causes the server to hang
             fig_trellis = px.scatter(
                 combined_multiples, 
