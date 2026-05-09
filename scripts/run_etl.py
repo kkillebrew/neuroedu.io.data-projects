@@ -95,7 +95,8 @@ def ingest_clarkson_II(folder_path):
             if file_name.isdigit():
                 file_path = os.path.join(root, file_name)
                 # Use delim_whitespace and skip corrupted rows with extra columns
-                df = pd.read_csv(file_path, delim_whitespace=True, header=None, names=['Timestamp_Ticks', 'Action', 'Key_Code'], on_bad_lines='skip')
+                # Use the modern regex separator (\s+) and skip corrupted rows
+                df = pd.read_csv(file_path, sep=r'\s+', header=None, names=['Timestamp_Ticks', 'Action', 'Key_Code'], on_bad_lines='skip')
                 df['Participant_ID'] = f"C2_{file_name}"
                 df['Timestamp_ms'] = (df['Timestamp_Ticks'] - 116444736000000000) / 10000
                 df['Action_Type'] = df['Action'].map({1: 'PRESS', 0: 'RELEASE'})
