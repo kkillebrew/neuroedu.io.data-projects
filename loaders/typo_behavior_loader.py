@@ -386,9 +386,13 @@ def calculate_raw_digraphs(df):
     df = df.sort_values(['Participant_ID', 'Timestamp_ms'])
     
     # 1. Calculate Flight Time (Down-to-Down)
-    # The time difference between the current PRESS and the previous PRESS
-    press_mask = df['Action_Type'] == 'PRESS'
-    df.loc[press_mask, 'Flight_DD_ms'] = df[press_mask].groupby('Participant_ID')['Timestamp_ms'].diff()
+    # If Action_Type exists, use the mask. If not (like Aalto), process all rows.
+    if 'Action_Type' in df.columns:
+        press_mask = df['Action_Type'] == 'PRESS'
+        df.loc[press_mask, 'Flight_DD_ms'] = df[press_mask].groupby('Participant_ID')['Timestamp_ms'].diff()
+    else:
+        # Failsafe for Aalto/Macro datasets
+        df['Flight_DD_ms'] = df.groupby('Participant_ID')['Timestamp_ms'].diff()
     
     # 2. Calculate Hold Time (Dwell Time)
     # Calculate the raw time difference. 
