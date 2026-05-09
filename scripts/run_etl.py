@@ -355,14 +355,25 @@ if master_dfs:
     if 'Timestamp_ms' in df_master.columns:
         df_master['Timestamp_ms'] = pd.to_numeric(df_master['Timestamp_ms'], errors='coerce')
 
-    # 2. Recalculate Aalto Flight Times correctly
+    # 2. Recalculate Aalto Flight Times correctly (Schema-Safe)
     is_aalto = df_master['Source_Dataset'] == 'Aalto'
     if is_aalto.any():
-        # Aalto's raw column is often PRESS_TIME. We must check for both.
+        # Dynamically hunt for the correct column names (Handling Aalto's ALL CAPS raw format)
         time_col = 'PRESS_TIME' if 'PRESS_TIME' in df_master.columns else 'Timestamp_ms'
-        if time_col in df_master.columns:
+        user_col = 'PARTICIPANT_ID' if 'PARTICIPANT_ID' in df_master.columns else 'Participant_ID'
+        
+        if time_col in df_master.columns and user_col in df_master.columns:
+            # Force numeric conversion just in case it imported as strings
             df_master[time_col] = pd.to_numeric(df_master[time_col], errors='coerce')
-            df_master.loc[is_aalto, 'Flight_DD_ms'] = df_master[is_aalto].groupby('Participant_ID')[time_col].diff()
+            
+            # Sort chronologically to ensure diff() subtracts the correct adjacent keystrokes
+            df_master = df_master.sort_values([user_col, time_col])
+            
+            # Re-calculate the boolean mask after sorting
+            is_aalto = df_master['Source_Dataset'] == 'Aalto'
+            
+            # Calculate the Flight Time
+            df_master.loc[is_aalto, 'Flight_DD_ms'] = df_master[is_aalto].groupby(user_col)[time_col].diff()
 
     # 3. Nuke the Overflow Bug & Enforce Statistical Boundaries
     for col in ['Flight_DD_ms', 'Hold_Time_ms']:
