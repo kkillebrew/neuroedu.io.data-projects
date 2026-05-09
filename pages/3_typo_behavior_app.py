@@ -199,7 +199,8 @@ if active_df is not None and not active_df.empty:
         valid_indices = active_df.index[ds_mask]
         
         if len(valid_indices) > 0:
-            sample_size = min(len(valid_indices), 500)
+            # 200 rows * 5 datasets = 1000 total rows
+            sample_size = min(len(valid_indices), 200)
             sampled_indices = pd.Series(valid_indices).sample(n=sample_size, random_state=42).values
             
             # PERFORMANCE FIX: Extract only what the UI needs, but preserve metadata!
@@ -244,8 +245,10 @@ with tab1:
     st.write("Overview of the massive datasets downsampled via Colab and ingested as Parquet files.")
     
     # --- SCHEMA UNIFICATION PROOF ---
-    # --- SCHEMA UNIFICATION PROOF ---
     with st.expander("🔍 Verify Schema Unification"):
+        st.subheader("Microscopic Event Log: Master Matrix")
+        st.markdown("Analyze raw chronologies, backspace footprints, and behavioral error classifications.")
+
         st.markdown("Proof that disparate datasets were successfully normalized into the Master Data Schema:")
         
         # Only show the unified Master Schema columns
@@ -255,43 +258,34 @@ with tab1:
             'Is_Typo', 'Typo_Category'
         ]
         
-        # TOP ROW: Clarkson and Aalto
-        schema_col1, schema_col2 = st.columns(2)
+        # TOP ROW: 3 Columns for the Cognitive/Free-Text sets
+        schema_col1, schema_col2, schema_col3 = st.columns(3)
         with schema_col1:
-            st.caption("Clarkson Dataset (Raw Keystrokes)")
-            if not active_df.empty:
-                # 🛡️ THE FIX: Look for Clarkson_I OR Clarkson_II
-                clarkson_mask = active_df['Source_Dataset'].str.contains('Clarkson', na=False)
-                df_c2_sample = active_df[clarkson_mask].head(3)
-                
-                display_cols = [c for c in core_cols if c in df_c2_sample.columns]
-                st.dataframe(df_c2_sample[display_cols], use_container_width=True)
+            st.caption("Aalto (Free Text Baseline)")
+            df_sample = active_df[active_df['Source_Dataset'] == 'Aalto'].head(3)
+            st.dataframe(df_sample[[c for c in core_cols if c in df_sample.columns]], use_container_width=True)
                 
         with schema_col2:
-            st.caption("Aalto Dataset (Macro Baseline)")
-            if not active_df.empty:
-                df_aalto_sample = active_df[active_df['Source_Dataset'] == 'Aalto'].head(3)
-                display_cols = [c for c in core_cols if c in df_aalto_sample.columns]
-                st.dataframe(df_aalto_sample[display_cols], use_container_width=True)
+            st.caption("Clarkson I (Lab Cognitive)")
+            df_sample = active_df[active_df['Source_Dataset'] == 'Clarkson_I'].head(3)
+            st.dataframe(df_sample[[c for c in core_cols if c in df_sample.columns]], use_container_width=True)
 
-        # BOTTOM ROW: CMU and KeyRecs
-        schema_col3, schema_col4 = st.columns(2)
         with schema_col3:
-            st.caption("CMU Dataset (Passwords)")
-            if not active_df.empty:
-                df_cmu_sample = active_df[active_df['Source_Dataset'] == 'CMU'].head(3)
-                display_cols = [c for c in core_cols if c in df_cmu_sample.columns]
-                st.dataframe(df_cmu_sample[display_cols], use_container_width=True)
-                
-        with schema_col4:
-            st.caption("KeyRecs Dataset (Digraphs)")
-            if not active_df.empty:
-                df_kr_sample = active_df[active_df['Source_Dataset'] == 'KeyRecs'].head(3)
-                display_cols = [c for c in core_cols if c in df_kr_sample.columns]
-                st.dataframe(df_kr_sample[display_cols], use_container_width=True)
+            st.caption("Clarkson II (Wild Cognitive)")
+            df_sample = active_df[active_df['Source_Dataset'] == 'Clarkson_II'].head(3)
+            st.dataframe(df_sample[[c for c in core_cols if c in df_sample.columns]], use_container_width=True)
 
-        st.subheader("Microscopic Event Log: Master Matrix")
-        st.markdown("Analyze raw chronologies, backspace footprints, and behavioral error classifications.")
+        # BOTTOM ROW: 2 Columns for the Muscle/Repetitive sets
+        schema_col4, schema_col5 = st.columns(2)
+        with schema_col4:
+            st.caption("CMU Dataset (Passwords)")
+            df_sample = active_df[active_df['Source_Dataset'] == 'CMU'].head(3)
+            st.dataframe(df_sample[[c for c in core_cols if c in df_sample.columns]], use_container_width=True)
+                
+        with schema_col5:
+            st.caption("KeyRecs Dataset (Digraphs)")
+            df_sample = active_df[active_df['Source_Dataset'] == 'KeyRecs'].head(3)
+            st.dataframe(df_sample[[c for c in core_cols if c in df_sample.columns]], use_container_width=True)
         
         # --- SMALL MULTIPLES (TRELLIS) CORRELATION CHART ---
         st.markdown("### Cross-Dataset Biometric Correlations")
@@ -299,8 +293,10 @@ with tab1:
         
         multiples_data = []
         target_datasets = [
-            (['Clarkson_I', 'Clarkson_II'], "Clarkson (Cognitive)"),
             (['Aalto'], "Aalto (Macro)"),
+            (['Clarkson_I'], "Clarkson I (Lab)"),
+            (['Clarkson_II'], "Clarkson II (Wild)"),
+            (['CMU'], "CMU (Passwords)"),
             (['KeyRecs'], "KeyRecs (Digraph)")
         ]
         
@@ -505,7 +501,7 @@ with tab2:
                 x="Source_Dataset", y="Flight_DD_ms", color="Source_Dataset",
                 title=f"Macro Latency Benchmarks<br><sup>Total Population: {total_timing_pop:,} (Visualizing 5k sample)</sup>",
                 labels={'Flight_DD_ms': 'Flight Time (ms)', 'Source_Dataset': 'Study Source'},
-                category_orders={"Source_Dataset": ["Aalto", "Clarkson_I", "CMU", "Clarkson_II", "KeyRecs"]},
+                category_orders={"Source_Dataset": ["Aalto", "Clarkson_I", "Clarkson_II", "CMU", "KeyRecs"]},
                 custom_data=['Description']
             )
             
@@ -614,96 +610,58 @@ with tab2:
     # --- SECTION D: STATISTICAL BOUNDARIES (T-TEST) ---
     st.divider()
     st.subheader("4. Statistical Boundaries (Welch's T-Test)")
-    st.markdown("Mathematically proving the boundary between Muscle Memory (CMU) and Cognitive Load (Aalto).")
+    st.markdown("Mathematically proving the boundary between Muscle Memory (Passwords/Repetition) and Cognitive Load (Free-Text/Generation) across **ALL** pooled datasets.")
     
     if not active_df.empty and 'Flight_DD_ms' in active_df.columns:
-        # MEMORY SAFE: Extract just the 1D arrays of numbers directly
-        is_cmu = active_df['Source_Dataset'] == 'CMU'
-        cmu_flights = active_df.loc[is_cmu, 'Flight_DD_ms']
-        cmu_array = cmu_flights[(cmu_flights > 0) & (cmu_flights < 1000)].dropna()
+        # Define the super-pools
+        muscle_sources = ['CMU', 'KeyRecs'] 
+        cog_sources = ['Aalto', 'Clarkson_I', 'Clarkson_II']
+
+        is_muscle = active_df['Source_Dataset'].isin(muscle_sources)
+        is_cog = active_df['Source_Dataset'].isin(cog_sources)
+
+        # Extract valid arrays
+        muscle_flights = active_df.loc[is_muscle, 'Flight_DD_ms']
+        muscle_array = muscle_flights[(muscle_flights > 0) & (muscle_flights < 1000)].dropna()
         
-        is_aalto = active_df['Source_Dataset'] == 'Aalto'
-        aalto_flights = active_df.loc[is_aalto, 'Flight_DD_ms']
-        aalto_array = aalto_flights[(aalto_flights > 0) & (aalto_flights < 1000)].dropna()
+        cog_flights = active_df.loc[is_cog, 'Flight_DD_ms']
+        cog_array = cog_flights[(cog_flights > 0) & (cog_flights < 1000)].dropna()
         
-        # ==========================================
-        # 🚨 TEMPORARY DIAGNOSTIC HUD V2 🚨
-        # ==========================================
-        st.error("**Data Diagnostics V2 (Post-Sanitizer):**")
-        
-        st.write(f"**CMU Dataset:**")
-        st.write(f"- Total Rows: `{is_cmu.sum()}` | Blank (NaN) Rows: `{cmu_flights.isna().sum()}`")
-        if not cmu_flights.dropna().empty:
-            st.write(f"- Valid Min: `{cmu_flights.min():.2f}` | Valid Max: `{cmu_flights.max():.2f}`")
-            
-        st.write(f"**Aalto Dataset:**")
-        st.write(f"- Total Rows: `{is_aalto.sum()}` | Blank (NaN) Rows: `{aalto_flights.isna().sum()}`")
-        if not aalto_flights.dropna().empty:
-            st.write(f"- Valid Min: `{aalto_flights.min():.2f}` | Valid Max: `{aalto_flights.max():.2f}`")
-        # ==========================================
-        
-        if not aalto_array.empty and not cmu_array.empty:
-            # 1. MATHEMATICAL PROOF (Your KPI Code)
-            t_stat, p_val = stats.ttest_ind(aalto_array, cmu_array, equal_var=False)
+        if not cog_array.empty and not muscle_array.empty:
+            t_stat, p_val = stats.ttest_ind(cog_array, muscle_array, equal_var=False)
             
             t_col1, t_col2, t_col3, t_col4 = st.columns(4)
-            t_col1.metric("CMU Mean (Muscle)", f"{cmu_array.mean():.1f} ms")
-            t_col2.metric("Aalto Mean (Cognitive)", f"{aalto_array.mean():.1f} ms")
+            t_col1.metric("Pooled Muscle Mean", f"{muscle_array.mean():.1f} ms")
+            t_col2.metric("Pooled Cognitive Mean", f"{cog_array.mean():.1f} ms")
             t_col3.metric("T-Statistic", f"{t_stat:.2f}")
             
-            if p_val < 0.0001:
-                p_display = "< 0.0001"
-                significance = "Significant Boundary"
-            else:
-                p_display = f"{p_val:.4f}"
-                significance = "Not Significant" if p_val >= 0.05 else "Significant"
-                
+            p_display = "< 0.0001" if p_val < 0.0001 else f"{p_val:.4f}"
+            significance = "Significant Boundary" if p_val < 0.05 else "Not Significant"
             t_col4.metric("P-Value", p_display, delta=significance, delta_color="normal" if p_val < 0.05 else "inverse")
             
             if p_val < 0.05:
-                penalty = aalto_array.mean() - cmu_array.mean()
-                st.success(f"**Conclusion:** The data proves a statistically significant boundary between motor execution and cognitive generation. Free-text typing requires significantly more mental overhead, resulting in an average latency penalty of **{penalty:.1f} ms** per keystroke.")
-            else:
-                st.warning("**Conclusion:** No statistically significant difference found. Ensure dataset ingestion is fully complete.")
-
-            # 2. VISUAL PROOF (The Plotly Density Chart)
-            # Sample down to prevent browser crash (5,000 max per set)
-            sample_size = min(5000, len(cmu_array), len(aalto_array))
+                penalty = cog_array.mean() - muscle_array.mean()
+                st.success(f"**Conclusion:** The data proves a statistically significant boundary globally. Free-text typing requires significantly more mental overhead, resulting in an average latency penalty of **{penalty:.1f} ms** per keystroke.")
             
+            # Plot the overlay
+            sample_size = min(5000, len(muscle_array), len(cog_array))
             df_plot = pd.DataFrame({
                 'Flight Latency (ms)': np.concatenate([
-                    cmu_array.sample(sample_size).values, 
-                    aalto_array.sample(sample_size).values
+                    muscle_array.sample(sample_size, random_state=42).values, 
+                    cog_array.sample(sample_size, random_state=42).values
                 ]),
-                'Cognitive State': ['Muscle Memory (CMU)']*sample_size + ['Cognitive Load (Aalto)']*sample_size
+                'Cognitive State': ['Pooled Muscle Memory']*sample_size + ['Pooled Cognitive Load']*sample_size
             })
             
             fig_boundary = px.histogram(
-                df_plot, 
-                x="Flight Latency (ms)", 
-                color="Cognitive State",
-                barmode="overlay", 
-                histnorm="probability density", # Normalizes the Y-axis
-                nbins=150,
-                title="Latency Distribution Divergence",
-                color_discrete_map={
-                    "Muscle Memory (CMU)": "#00e676", # Green
-                    "Cognitive Load (Aalto)": "#ff5252" # Red
-                }
+                df_plot, x="Flight Latency (ms)", color="Cognitive State",
+                barmode="overlay", histnorm="probability density", nbins=150,
+                title="Latency Distribution Divergence (All Datasets)",
+                color_discrete_map={"Pooled Muscle Memory": "#00e676", "Pooled Cognitive Load": "#ff5252"}
             )
-            
-            # Transparency for overlapping distributions
             fig_boundary.update_traces(opacity=0.65)
-            # Add boundary marker
-            fig_boundary.add_vline(x=200, line_dash="dash", line_color="white", 
-                                   annotation_text="Theoretical Transition Boundary (~200ms)")
-            
+            fig_boundary.add_vline(x=200, line_dash="dash", line_color="white", annotation_text="Theoretical Transition (~200ms)")
             st.plotly_chart(fig_boundary, use_container_width=True)
-
-        else:
-            st.warning("Insufficient data to run T-Test. CMU or Aalto datasets are missing valid ranges.")
-    else:
-        st.error("Missing columns for statistical testing.")
 
 # ---------------------------------------------------------------------
 # TAB 3: PHASES 3 & 4 (Taxonomy & Feature Engineering)
