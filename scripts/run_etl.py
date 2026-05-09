@@ -88,15 +88,19 @@ def ingest_clarkson_I(tar_path):
 
 def ingest_clarkson_II(folder_path):
     dfs = []
-    for file_name in os.listdir(folder_path):
-        if file_name.isdigit():
-            file_path = os.path.join(folder_path, file_name)
-            df = pd.read_csv(file_path, sep='\t', header=None, names=['Timestamp_Ticks', 'Action', 'Key_Code'])
-            df['Participant_ID'] = f"C2_{file_name}"
-            df['Timestamp_ms'] = (df['Timestamp_Ticks'] - 116444736000000000) / 10000
-            df['Action_Type'] = df['Action'].map({1: 'PRESS', 0: 'RELEASE'})
-            df['Source_Dataset'] = 'Clarkson_II'
-            dfs.append(df)
+    # 🛡️ THE FIX: os.walk recursively hunts through any hidden nested subfolders
+    for root, dirs, files in os.walk(folder_path):
+        for file_name in files:
+            # Clarkson files are named purely with digits (e.g., '12345')
+            if file_name.isdigit():
+                file_path = os.path.join(root, file_name)
+                df = pd.read_csv(file_path, sep='\t', header=None, names=['Timestamp_Ticks', 'Action', 'Key_Code'])
+                df['Participant_ID'] = f"C2_{file_name}"
+                df['Timestamp_ms'] = (df['Timestamp_Ticks'] - 116444736000000000) / 10000
+                df['Action_Type'] = df['Action'].map({1: 'PRESS', 0: 'RELEASE'})
+                df['Source_Dataset'] = 'Clarkson_II'
+                dfs.append(df)
+                
     return pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
 
 

@@ -260,7 +260,10 @@ with tab1:
         with schema_col1:
             st.caption("Clarkson Dataset (Raw Keystrokes)")
             if not active_df.empty:
-                df_c2_sample = active_df[active_df['Source_Dataset'] == 'Clarkson_II'].head(3)
+                # 🛡️ THE FIX: Look for Clarkson_I OR Clarkson_II
+                clarkson_mask = active_df['Source_Dataset'].str.contains('Clarkson', na=False)
+                df_c2_sample = active_df[clarkson_mask].head(3)
+                
                 display_cols = [c for c in core_cols if c in df_c2_sample.columns]
                 st.dataframe(df_c2_sample[display_cols], use_container_width=True)
                 
