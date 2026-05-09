@@ -331,6 +331,11 @@ def apply_historical_consistency_filter(df, consistency_threshold=0.8):
     if df is None or df.empty or 'Word_ID' not in df.columns:
         return df
 
+    # --- SCHEMA ALIGNMENT FIX ---
+    # If the pipeline passes Participant_ID, map it so the historical logic works
+    if 'User_ID' not in df.columns and 'Participant_ID' in df.columns:
+        df['User_ID'] = df['Participant_ID']
+
     # 1. Reconstruct words to evaluate consistency
     # Safety Bypass: If the dataset only contains integer Key_Codes (like Clarkson)
     # or is missing the old User_ID format, we gracefully skip this filter.
