@@ -240,18 +240,26 @@ if __name__ == "__main__":
         # 🛡️ THE FIX: merge_asof requires strict chronological sorting across the entire dataframe
         presses = df_ub[df_ub['Action_Type'] == 'PRESS'].sort_values('Timestamp')
         releases = df_ub[df_ub['Action_Type'] == 'RELEASE'].sort_values('Timestamp')
-        
+
+
+        # 🛡️ Map the release time to a temporary join column
+        releases['Timestamp_ms_Release_Val'] = releases['Timestamp']
+
         # Merge asof requires sorting by the exact timestamp
         df_m3 = pd.merge_asof(
             presses, 
-            releases[['Participant_ID', 'Session_ID', 'Key_Code', 'Timestamp', 'Timestamp_ms_Release']], 
+            # 🛡️ THE FIX: Only select columns that actually exist in 'releases' at this moment
+            releases[['Participant_ID', 'Session_ID', 'Key_Code', 'Timestamp', 'Timestamp_ms_Release_Val']], 
             on='Timestamp', 
             by=['Participant_ID', 'Session_ID', 'Key_Code'], 
             direction='forward'
         )
         
-        # 3. Rename Timestamp back to Timestamp_ms to match the Master Pipeline
-        df_m3 = df_m3.rename(columns={'Timestamp': 'Timestamp_ms'})
+        # 3. Rename columns to Master Schema
+        df_m3 = df_m3.rename(columns={
+            'Timestamp': 'Timestamp_ms',
+            'Timestamp_ms_Release_Val': 'Timestamp_ms_Release'
+        })
         
         # Calculate Latencies
         df_m3['Hold_Time_ms'] = df_m3['Timestamp_ms_Release'] - df_m3['Timestamp_ms']
