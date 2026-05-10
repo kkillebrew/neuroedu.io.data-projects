@@ -183,36 +183,48 @@ if active_df is not None and not active_df.empty:
     with toggle_col:
         show_only_typos = st.checkbox("Show only flagged typos")
     
-    # --- BALANCED DATASET SAMPLING (20% EACH) ---
+    # --- BALANCED SAMPLING: 50 Valid & 50 Typos per Dataset (600 rows total) ---
     sampled_chunks = []
-    datasets_to_sample = ['Aalto', 'Clarkson_I', 'Clarkson_II', 'CMU', 'KeyRecs']
+    datasets_to_sample = ['Aalto', 'Clarkson_I', 'Clarkson_II', 'UB', 'CMU', 'KeyRecs']
     
     for ds_name in datasets_to_sample:
-        # Create a mask for the specific dataset
-        ds_mask = active_df['Source_Dataset'] == ds_name
+        base_mask = active_df['Source_Dataset'] == ds_name
         
-        # Apply typo filter if checked
-        if show_only_typos and 'Is_Typo' in active_df.columns:
-            ds_mask = ds_mask & (active_df['Is_Typo'] == True)
+        if show_only_typos:
+            # 🛡️ THE FIX: Only grab typos, up to 100 to keep the table size consistent
+            typo_mask = base_mask & (active_df['Is_Typo'] == True)
+            typo_indices = active_df.index[typo_mask]
             
-        # Get the matching indices
-        valid_indices = active_df.index[ds_mask]
-        
-        if len(valid_indices) > 0:
-            # 200 rows * 5 datasets = 1000 total rows
-            sample_size = min(len(valid_indices), 200)
-            sampled_indices = pd.Series(valid_indices).sample(n=sample_size, random_state=42).values
+            if len(typo_indices) > 0:
+                sample_typos = min(len(typo_indices), 100)
+                sampled_idx = pd.Series(typo_indices).sample(n=sample_typos, random_state=42).values
+                sampled_chunks.append(active_df.loc[sampled_idx].copy())
+                
+        else:
+            # 🛡️ THE 50/50 SPLIT: Independently sample valid vs typos
+            typo_mask = base_mask & (active_df['Is_Typo'] == True)
+            valid_mask = base_mask & (active_df['Is_Typo'] == False)
             
-            # PERFORMANCE FIX: Extract only what the UI needs, but preserve metadata!
-            sampled = active_df.loc[sampled_indices].copy()
+            typo_indices = active_df.index[typo_mask]
+            valid_indices = active_df.index[valid_mask]
             
-            # CRITICAL FIX: Actually append the chunk to our empty list
-            sampled_chunks.append(sampled)
+            # Safely grab up to 50 typos
+            if len(typo_indices) > 0:
+                sample_typos = min(len(typo_indices), 50)
+                sampled_typo_idx = pd.Series(typo_indices).sample(n=sample_typos, random_state=42).values
+                sampled_chunks.append(active_df.loc[sampled_typo_idx].copy())
+                
+            # Safely grab up to 50 valid keys
+            if len(valid_indices) > 0:
+                sample_norms = min(len(valid_indices), 50)
+                sampled_norm_idx = pd.Series(valid_indices).sample(n=sample_norms, random_state=42).values
+                sampled_chunks.append(active_df.loc[sampled_norm_idx].copy())
 
+    # 🛡️ BUG FIX: .reset_index(drop=True) prevents Streamlit from crashing on mixed indexes
     if len(sampled_chunks) > 0:
-        display_df = pd.concat(sampled_chunks)
+        display_df = pd.concat(sampled_chunks).reset_index(drop=True)
     else:
-        display_df = active_df.head(0) # Empty fallback
+        display_df = active_df.head(0)
         
     # --- FIX THE 'NONE' APOCALYPSE ---
     # Hide the CMU-specific string columns so the UI only shows our clean, unified Master Schema
@@ -275,8 +287,8 @@ with tab1:
             df_sample = active_df[active_df['Source_Dataset'] == 'Clarkson_II'].head(3)
             st.dataframe(df_sample[[c for c in core_cols if c in df_sample.columns]], use_container_width=True)
 
-        # BOTTOM ROW: 2 Columns for the Muscle/Repetitive sets
-        schema_col4, schema_col5 = st.columns(2)
+        # BOTTOM ROW: 3 Columns
+        schema_col4, schema_col5, schema_col6 = st.columns(3)
         with schema_col4:
             st.caption("CMU Dataset (Passwords)")
             df_sample = active_df[active_df['Source_Dataset'] == 'CMU'].head(3)
@@ -285,6 +297,11 @@ with tab1:
         with schema_col5:
             st.caption("KeyRecs Dataset (Digraphs)")
             df_sample = active_df[active_df['Source_Dataset'] == 'KeyRecs'].head(3)
+            st.dataframe(df_sample[[c for c in core_cols if c in df_sample.columns]], use_container_width=True)
+
+        with schema_col6:
+            st.caption("UB Dataset (Transcription/Free Text)")
+            df_sample = active_df[active_df['Source_Dataset'] == 'UB'].head(3)
             st.dataframe(df_sample[[c for c in core_cols if c in df_sample.columns]], use_container_width=True)
         
         # --- SMALL MULTIPLES (TRELLIS) CORRELATION CHART ---
@@ -296,6 +313,7 @@ with tab1:
             (['Aalto'], "Aalto (Macro)"),
             (['Clarkson_I'], "Clarkson I (Lab)"),
             (['Clarkson_II'], "Clarkson II (Wild)"),
+            (['UB'], "UB (Mixed Load)"),
             (['CMU'], "CMU (Passwords)"),
             (['KeyRecs'], "KeyRecs (Digraph)")
         ]
@@ -489,9 +507,10 @@ with tab2:
             
             source_desc = {
                 'Aalto': 'Free-text transcription (High Cognitive Load).',
-                'Clarkson_I': 'Cognitive free-text generation.',
+                'Clarkson_I': 'Lab free-text generation.',
+                'Clarkson_II': 'Wild free-text generation.',
+                'UB': 'Transcription & Free Text Generation.',
                 'CMU': 'Highly repetitive password typing (Pure Muscle Memory).',
-                'Clarkson_II': 'Cognitive free-text generation.',
                 'KeyRecs': 'Mixed digraph baseline.'
             }
             df_timing['Description'] = df_timing['Source_Dataset'].astype(str).map(source_desc).fillna('Dataset')
@@ -502,7 +521,7 @@ with tab2:
                 x="Source_Dataset", y="Flight_DD_ms", color="Source_Dataset",
                 title=f"Macro Latency Benchmarks<br><sup>Total Population: {total_timing_pop:,} (Visualizing 5k sample)</sup>",
                 labels={'Flight_DD_ms': 'Flight Time (ms)', 'Source_Dataset': 'Study Source'},
-                category_orders={"Source_Dataset": ["Aalto", "Clarkson_I", "Clarkson_II", "CMU", "KeyRecs"]},
+                category_orders={"Source_Dataset": ["Aalto", "Clarkson_I", "Clarkson_II", "UB", "CMU", "KeyRecs"]},
                 custom_data=['Description']
             )
             
@@ -574,12 +593,8 @@ with tab2:
     macro_stats = []
     # THE FIX: Added Clarkson I and Clarkson II to completely sync the bar chart with the box plot!
     comparison_targets = [
-        ('Aalto', "Aalto (Free Text)"), 
-        ('Clarkson_I', "Clarkson I (Cognitive)"),
-        ('CMU', "CMU (Passwords)"), 
-        ('Clarkson_II', "Clarkson II (Cognitive)"),
-        ('KeyRecs', "KeyRecs (Mixed)")
-    ]
+        ('Aalto', "Aalto"), ('Clarkson_I', "Clarkson I"), ('Clarkson_II', "Clarkson II"),
+        ('UB', "UB"), ('CMU', "CMU"), ('KeyRecs', "KeyRecs")
     
     for source_key, display_name in comparison_targets:
         mask = (active_df['Source_Dataset'] == source_key) & (active_df['Flight_DD_ms'] > 0) & (active_df['Flight_DD_ms'] < 1500)
@@ -616,7 +631,8 @@ with tab2:
     if not active_df.empty and 'Flight_DD_ms' in active_df.columns:
         # Define the super-pools
         muscle_sources = ['CMU', 'KeyRecs'] 
-        cog_sources = ['Aalto', 'Clarkson_I', 'Clarkson_II']
+        # Add UB to the Cognitive Pool
+        cog_sources = ['Aalto', 'Clarkson_I', 'Clarkson_II', 'UB']
 
         is_muscle = active_df['Source_Dataset'].isin(muscle_sources)
         is_cog = active_df['Source_Dataset'].isin(cog_sources)
