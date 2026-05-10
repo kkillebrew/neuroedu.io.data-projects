@@ -237,10 +237,10 @@ if __name__ == "__main__":
         df_ub['Device_Type'] = 'desktop'
         
         # 2. Merge Presses and Releases to calculate Latencies
-        presses = df_ub[df_ub['Action_Type'] == 'PRESS'].sort_values(['Participant_ID', 'Session_ID', 'Timestamp'])
-        releases = df_ub[df_ub['Action_Type'] == 'RELEASE'].sort_values(['Participant_ID', 'Session_ID', 'Timestamp'])
-        releases['Timestamp_ms_Release'] = releases['Timestamp']
-
+        # 🛡️ THE FIX: merge_asof requires strict chronological sorting across the entire dataframe
+        presses = df_ub[df_ub['Action_Type'] == 'PRESS'].sort_values('Timestamp')
+        releases = df_ub[df_ub['Action_Type'] == 'RELEASE'].sort_values('Timestamp')
+        
         # Merge asof requires sorting by the exact timestamp
         df_m3 = pd.merge_asof(
             presses, 
