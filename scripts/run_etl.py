@@ -225,13 +225,14 @@ if __name__ == "__main__":
 
     
     # ==========================================
-    # 2C. PROCESS UB (University at Buffalo)
+    # 3. PROCESS UB (University at Buffalo)
     # ==========================================
     if os.path.exists(ub_source):
         print("Processing UB Dataset...")
         df_ub = pd.read_parquet(ub_source)
         
         # 1. Map to Master Schema formats
+        df_ub = df_ub.rename(columns={'PARTICIPANT_ID': 'Participant_ID'}) # 🛡️ THE FIX: Convert to Title Case
         df_ub['Source_Dataset'] = 'UB'
         df_ub['Device_Type'] = 'desktop'
         
@@ -267,7 +268,7 @@ if __name__ == "__main__":
         print(f"✅ Saved UB: {len(df_m3)} rows to {os.path.basename(ub_out)}")
 
     # ==========================================
-    # 3. PROCESS CMU
+    # 4. PROCESS CMU
     # ==========================================
     # --- CMU (Seconds to Milliseconds & ID Alignment) ---
     if os.path.exists(cmu_source):
@@ -300,7 +301,7 @@ if __name__ == "__main__":
         print(f"❌ ERROR: {cmu_source} not found. Baseline must be present.")
 
     # ==========================================
-    # 4. PROCESS KEYRECS
+    # 5. PROCESS KEYRECS
     # ==========================================
     if os.path.exists(keyrecs_source):
         # --- KEYRECS SOURCE PROTECTION ---
@@ -324,7 +325,7 @@ if __name__ == "__main__":
         print(f"❌ ERROR: {keyrecs_source} not found.")
 
     # ==========================================
-    # 5. BUILD THE UNIFIED MASTER DATASET
+    # 6. BUILD THE UNIFIED MASTER DATASET
     # ==========================================
     print("Combining all datasets into Master Matrix...")
     master_dfs = []
