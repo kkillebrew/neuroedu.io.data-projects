@@ -27,6 +27,7 @@ cmu_source = os.path.join(base_dir, 'cmu_baseline.parquet')
 keyrecs_source = os.path.join(base_dir, 'keyrecs_micro.parquet') 
 clarkson_1_source = os.path.join(base_dir, 'Clarkson-I-2014.tar.gz')
 clarkson_2_source = os.path.join(base_dir, 'clarkson-II-2018-filtered_dataset.zip')
+ub_source = os.path.join(base_dir, 'ub_macro.parquet')
 
 # OUTPUTS (The ONLY files this script is allowed to write)
 aalto_out = os.path.join(base_dir, 'aalto_processed.parquet')
@@ -34,6 +35,7 @@ cmu_out = os.path.join(base_dir, 'cmu_processed.parquet')
 keyrecs_out = os.path.join(base_dir, 'keyrecs_processed.parquet')
 clarkson_1_out = os.path.join(base_dir, 'clarkson_1_processed.parquet')
 clarkson_2_out = os.path.join(base_dir, 'clarkson_2_processed.parquet')
+ub_out = os.path.join(base_dir, 'ub_processed.parquet')
 master_out = os.path.join(base_dir, 'master_dataset.parquet')
 
 
@@ -221,6 +223,49 @@ if __name__ == "__main__":
         df_m2.to_parquet(clarkson_2_out, index=False)
         print(f"✅ Saved Clarkson II: {len(df_m2)} rows to {os.path.basename(clarkson_2_out)}")
 
+    
+    # ==========================================
+    # 2C. PROCESS UB (University at Buffalo)
+    # ==========================================
+    if os.path.exists(ub_source):
+        print("Processing UB Dataset...")
+        df_ub = pd.read_parquet(ub_source)
+        
+        # 1. Map to Master Schema formats
+        df_ub['Source_Dataset'] = 'UB'
+        df_ub['Device_Type'] = 'desktop'
+        
+        # 2. Merge Presses and Releases to calculate Latencies
+        presses = df_ub[df_ub['Action_Type'] == 'PRESS'].sort_values(['Participant_ID', 'Session_ID', 'Timestamp'])
+        releases = df_ub[df_ub['Action_Type'] == 'RELEASE'].sort_values(['Participant_ID', 'Session_ID', 'Timestamp'])
+        releases['Timestamp_ms_Release'] = releases['Timestamp']
+
+        # Merge asof requires sorting by the exact timestamp
+        df_m3 = pd.merge_asof(
+            presses, 
+            releases[['Participant_ID', 'Session_ID', 'Key_Code', 'Timestamp', 'Timestamp_ms_Release']], 
+            on='Timestamp', 
+            by=['Participant_ID', 'Session_ID', 'Key_Code'], 
+            direction='forward'
+        )
+        
+        # 3. Rename Timestamp back to Timestamp_ms to match the Master Pipeline
+        df_m3 = df_m3.rename(columns={'Timestamp': 'Timestamp_ms'})
+        
+        # Calculate Latencies
+        df_m3['Hold_Time_ms'] = df_m3['Timestamp_ms_Release'] - df_m3['Timestamp_ms']
+        df_m3 = df_m3.sort_values(by=['Participant_ID', 'Timestamp_ms'])
+        df_m3['Flight_DD_ms'] = df_m3.groupby(['Participant_ID', 'Session_ID'])['Timestamp_ms'].diff().fillna(0)
+        
+        # 4. Route through Phase 1 Taxonomy
+        df_m3 = apply_typo_taxonomy(df_m3)
+        df_m3 = build_word_boundaries(df_m3)
+        df_m3 = apply_historical_consistency_filter(df_m3)
+
+        df_m3 = optimize_memory(df_m3)
+        df_m3.to_parquet(ub_out, index=False)
+        print(f"✅ Saved UB: {len(df_m3)} rows to {os.path.basename(ub_out)}")
+
     # ==========================================
     # 3. PROCESS CMU
     # ==========================================
@@ -285,7 +330,7 @@ if __name__ == "__main__":
     master_dfs = []
     
     # Strictly pull only from the immutable `_processed` files we just built
-    for out_path, name in [(aalto_out, 'Aalto'), (clarkson_1_out, 'Clarkson_I'), (clarkson_2_out, 'Clarkson_II'), (cmu_out, 'CMU'), (keyrecs_out, 'KeyRecs')]:
+    for out_path, name in [(aalto_out, 'Aalto'), (clarkson_1_out, 'Clarkson_I'), (clarkson_2_out, 'Clarkson_II'), (ub_out, 'UB'), (cmu_out, 'CMU'), (keyrecs_out, 'KeyRecs')]:
         if os.path.exists(out_path):
             df_temp = pd.read_parquet(out_path)
             
