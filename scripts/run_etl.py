@@ -46,7 +46,11 @@ def optimize_memory(df):
         if df[col].dtype == 'float64':
             df[col] = df[col].astype('float32')
         elif df[col].dtype == 'int64':
-            df[col] = df[col].astype('Int32')
+            # 🛡️ THE FIX: Try to downcast, but safely skip if the numbers are too massive
+            try:
+                df[col] = df[col].astype('Int32')
+            except TypeError:
+                pass
         elif df[col].dtype == 'object':
             df[col] = df[col].astype('category')
     return df
@@ -105,6 +109,7 @@ def ingest_clarkson_II(folder_path):
                 # 🛡️ FIX: 0 is Press, 1 is Release. Force Key_Code to string.
                 df['Action_Type'] = df['Action'].map({0: 'PRESS', 1: 'RELEASE'})
                 df['Key_Code'] = df['Key_Code'].astype(str).str.strip()
+                df = df.drop(columns=['Timestamp_Ticks', 'Action'], errors='ignore')
                 df['Source_Dataset'] = 'Clarkson_II'
                 dfs.append(df)
                 
