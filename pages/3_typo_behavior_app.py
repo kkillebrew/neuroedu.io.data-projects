@@ -595,6 +595,7 @@ with tab2:
     comparison_targets = [
         ('Aalto', "Aalto"), ('Clarkson_I', "Clarkson I"), ('Clarkson_II', "Clarkson II"),
         ('UB', "UB"), ('CMU', "CMU"), ('KeyRecs', "KeyRecs")
+    ]
     
     for source_key, display_name in comparison_targets:
         mask = (active_df['Source_Dataset'] == source_key) & (active_df['Flight_DD_ms'] > 0) & (active_df['Flight_DD_ms'] < 1500)
