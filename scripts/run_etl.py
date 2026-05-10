@@ -287,7 +287,14 @@ if __name__ == "__main__":
     # Strictly pull only from the immutable `_processed` files we just built
     for out_path, name in [(aalto_out, 'Aalto'), (clarkson_1_out, 'Clarkson_I'), (clarkson_2_out, 'Clarkson_II'), (cmu_out, 'CMU'), (keyrecs_out, 'KeyRecs')]:
         if os.path.exists(out_path):
-            master_dfs.append(pd.read_parquet(out_path))
+            df_temp = pd.read_parquet(out_path)
+            
+            # 🛡️ THE FIX: Cap massive datasets at 100k rows to prevent Streamlit RAM Gateway Timeouts
+            if len(df_temp) > 100000:
+                print(f"     Capping {name} from {len(df_temp)} down to 100,000 rows...")
+                df_temp = df_temp.sample(n=100000, random_state=42)
+                
+            master_dfs.append(df_temp)
             print(f"  -> Loaded {name} for Fusion.")
 
     if master_dfs:
