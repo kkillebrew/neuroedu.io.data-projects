@@ -335,10 +335,13 @@ if __name__ == "__main__":
         # 3. Clean up legacy columns to prevent PyArrow mixed-type crashes
         if 'User_ID' in df_master.columns:
             df_master = df_master.drop(columns=['User_ID'])
+            
+        # 🛡️ THE FIX: Force Key_Code to be a pure string so PyArrow doesn't panic on mixed types
+        if 'Key_Code' in df_master.columns:
+            df_master['Key_Code'] = df_master['Key_Code'].astype(str)
 
         # 4. Export final fused dataset
         df_master.to_parquet(master_out, index=False, compression='snappy')
-        print(f"✅ Master Dataset Exported! Total rows: {len(df_master)}")
     else:
         print("❌ CRITICAL: No processed files found for fusion.")
         sys.exit(1)
