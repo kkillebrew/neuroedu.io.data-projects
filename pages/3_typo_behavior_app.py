@@ -310,7 +310,8 @@ with tab1:
                 valid_indices = active_df.index[mask]
                 
                 if len(valid_indices) > 0:
-                    sample_size = min(len(valid_indices), 500)
+                    # 5 datasets * 200 rows = 1000 perfectly balanced rows
+                    sample_size = min(len(valid_indices), 200)
                     sampled_indices = pd.Series(valid_indices).sample(n=sample_size, random_state=42).values
                     
                     # PERFORMANCE FIX: Only extract the 2 columns we actually need! (Saves massive RAM)

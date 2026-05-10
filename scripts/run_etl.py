@@ -32,7 +32,8 @@ clarkson_2_source = os.path.join(base_dir, 'clarkson-II-2018-filtered_dataset.zi
 aalto_out = os.path.join(base_dir, 'aalto_processed.parquet')
 cmu_out = os.path.join(base_dir, 'cmu_processed.parquet')
 keyrecs_out = os.path.join(base_dir, 'keyrecs_processed.parquet')
-clarkson_out = os.path.join(base_dir, 'clarkson_processed.parquet')
+clarkson_1_out = os.path.join(base_dir, 'clarkson_1_processed.parquet')
+clarkson_2_out = os.path.join(base_dir, 'clarkson_2_processed.parquet')
 master_out = os.path.join(base_dir, 'master_dataset.parquet')
 
 
@@ -70,11 +71,12 @@ def ingest_clarkson_I(tar_path):
                                 parts = event.split(':')
                                 if len(parts) >= 3 and parts[0].isdigit():
                                     try:
+                                        # 🛡️ FIX: Force Key_Code to be a string so it doesn't crash on Hex values like '4c'
                                         action_type = 'PRESS' if parts[0] == '0' else 'RELEASE'
                                         parsed_data.append({
                                             'Timestamp_ms': float(parts[2]),
                                             'Action_Type': action_type,
-                                            'Key_Code': int(parts[1]),
+                                            'Key_Code': str(parts[1]).strip(),
                                             'Task_Type': task_id
                                         })
                                     except ValueError:
@@ -99,7 +101,10 @@ def ingest_clarkson_II(folder_path):
                 df = pd.read_csv(file_path, sep=r'\s+', header=None, names=['Timestamp_Ticks', 'Action', 'Key_Code'], on_bad_lines='skip')
                 df['Participant_ID'] = f"C2_{file_name}"
                 df['Timestamp_ms'] = (df['Timestamp_Ticks'] - 116444736000000000) / 10000
-                df['Action_Type'] = df['Action'].map({1: 'PRESS', 0: 'RELEASE'})
+                
+                # 🛡️ FIX: 0 is Press, 1 is Release. Force Key_Code to string.
+                df['Action_Type'] = df['Action'].map({0: 'PRESS', 1: 'RELEASE'})
+                df['Key_Code'] = df['Key_Code'].astype(str).str.strip()
                 df['Source_Dataset'] = 'Clarkson_II'
                 dfs.append(df)
                 
@@ -144,68 +149,67 @@ if __name__ == "__main__":
         print("Raw Aalto file not found.")
 
     # ==========================================
-    # 2. PROCESS CLARKSON I & II
+    # 2A. PROCESS CLARKSON I (Lab Cognitive)
     # ==========================================
-    print("Processing Clarkson Datasets...")
-
-    # --- CLARKSON I (Reads directly from tarball) ---
+    print("Processing Clarkson I...")
     df_c1 = ingest_clarkson_I(clarkson_1_source) if os.path.exists(clarkson_1_source) else pd.DataFrame()
     
-    # --- CLARKSON II (Requires extracted folder) ---
+    if not df_c1.empty:
+        presses = df_c1[df_c1['Action_Type'] == 'PRESS'].sort_values('Timestamp_ms')
+        releases = df_c1[df_c1['Action_Type'] == 'RELEASE'].sort_values('Timestamp_ms')
+        releases['Timestamp_ms_Release'] = releases['Timestamp_ms']
+
+        df_m1 = pd.merge_asof(presses, releases[['Participant_ID', 'Key_Code', 'Timestamp_ms', 'Timestamp_ms_Release']], 
+                              on='Timestamp_ms', by=['Participant_ID', 'Key_Code'], direction='forward')
+        
+        df_m1['Device_Type'] = 'desktop' 
+        df_m1['Session_ID'] = df_m1['Source_Dataset'] + '_' + df_m1['Participant_ID'].astype(str)
+        df_m1['Hold_Time_ms'] = df_m1['Timestamp_ms_Release'] - df_m1['Timestamp_ms']
+        
+        df_m1 = df_m1.sort_values(by=['Participant_ID', 'Timestamp_ms'])
+        df_m1['Flight_DD_ms'] = df_m1.groupby('Participant_ID')['Timestamp_ms'].diff().fillna(0)
+        
+        df_m1 = apply_typo_taxonomy(df_m1)
+        df_m1 = build_word_boundaries(df_m1)
+        df_m1 = apply_historical_consistency_filter(df_m1)
+
+        df_m1 = optimize_memory(df_m1)
+        df_m1.to_parquet(clarkson_1_out, index=False)
+        print(f"✅ Saved Clarkson I: {len(df_m1)} rows to {os.path.basename(clarkson_1_out)}")
+
+    # ==========================================
+    # 2B. PROCESS CLARKSON II (Wild Cognitive)
+    # ==========================================
+    print("Processing Clarkson II...")
     clarkson_ii_folder = os.path.join(base_dir, 'clarkson_2_extracted') 
     if not os.path.exists(clarkson_ii_folder) and os.path.exists(clarkson_2_source):
-        print(f"Extracting {clarkson_2_source}...")
         with zipfile.ZipFile(clarkson_2_source, 'r') as zip_ref:
             zip_ref.extractall(path=clarkson_ii_folder) 
             
     df_c2 = ingest_clarkson_II(clarkson_ii_folder) if os.path.exists(clarkson_ii_folder) else pd.DataFrame()
 
-    # Combine all raw Clarkson data
-    df_clarkson_raw = pd.concat([df_c1, df_c2], ignore_index=True)
-
-    if not df_clarkson_raw.empty:
-        # 🛡️ THE FIX: Force Key_Code to be numbers. Turn letters like 'A' into safe NaNs.
-        df_clarkson_raw['Key_Code'] = pd.to_numeric(df_clarkson_raw['Key_Code'], errors='coerce')
-        
-        # Separate and sort  
-        presses = df_clarkson_raw[df_clarkson_raw['Action_Type'] == 'PRESS'].sort_values('Timestamp_ms')
-        releases = df_clarkson_raw[df_clarkson_raw['Action_Type'] == 'RELEASE'].sort_values('Timestamp_ms')
-
-        # Explicitly duplicate the timestamp so it survives the merge as a data column
+    if not df_c2.empty:
+        presses = df_c2[df_c2['Action_Type'] == 'PRESS'].sort_values('Timestamp_ms')
+        releases = df_c2[df_c2['Action_Type'] == 'RELEASE'].sort_values('Timestamp_ms')
         releases['Timestamp_ms_Release'] = releases['Timestamp_ms']
 
-        # Heavy ETL Merge
-        print("Running merge_asof matrix operation for Clarkson...")
-        # merge_asof requires both dataframes to be sorted by the timestamp
-        df_merged = pd.merge_asof(
-            presses, 
-            releases[['Participant_ID', 'Key_Code', 'Timestamp_ms', 'Timestamp_ms_Release']], 
-            on='Timestamp_ms', 
-            by=['Participant_ID', 'Key_Code'], 
-            direction='forward'
-        )
+        df_m2 = pd.merge_asof(presses, releases[['Participant_ID', 'Key_Code', 'Timestamp_ms', 'Timestamp_ms_Release']], 
+                              on='Timestamp_ms', by=['Participant_ID', 'Key_Code'], direction='forward')
         
-        # Map to Master Schema
-        df_merged['Device_Type'] = 'desktop' 
-        df_merged['Session_ID'] = df_merged['Source_Dataset'] + '_' + df_merged['Participant_ID'].astype(str)
+        df_m2['Device_Type'] = 'desktop' 
+        df_m2['Session_ID'] = df_m2['Source_Dataset'] + '_' + df_m2['Participant_ID'].astype(str)
+        df_m2['Hold_Time_ms'] = df_m2['Timestamp_ms_Release'] - df_m2['Timestamp_ms']
         
-        # Calculate Latencies using our new standardized names
-        df_merged['Hold_Time_ms'] = df_merged['Timestamp_ms_Release'] - df_merged['Timestamp_ms']
+        df_m2 = df_m2.sort_values(by=['Participant_ID', 'Timestamp_ms'])
+        df_m2['Flight_DD_ms'] = df_m2.groupby('Participant_ID')['Timestamp_ms'].diff().fillna(0)
         
-        df_merged = df_merged.sort_values(by=['Participant_ID', 'Timestamp_ms'])
-        df_merged['Flight_DD_ms'] = df_merged.groupby('Participant_ID')['Timestamp_ms'].diff().fillna(0)
-        
-        # Route through Phase 1 Taxonomy
-        df_merged = apply_typo_taxonomy(df_merged)
-        df_merged = build_word_boundaries(df_merged)
-        df_merged = apply_historical_consistency_filter(df_merged)
+        df_m2 = apply_typo_taxonomy(df_m2)
+        df_m2 = build_word_boundaries(df_m2)
+        df_m2 = apply_historical_consistency_filter(df_m2)
 
-        # Apply to Clarkson before saving
-        df_merged = optimize_memory(df_merged)
-        
-        # Save as Combined Clarkson processed file
-        df_merged.to_parquet(clarkson_out, index=False)
-        print(f"✅ Saved Clarkson Combined: {len(df_merged)} rows to {os.path.basename(clarkson_out)}")
+        df_m2 = optimize_memory(df_m2)
+        df_m2.to_parquet(clarkson_2_out, index=False)
+        print(f"✅ Saved Clarkson II: {len(df_m2)} rows to {os.path.basename(clarkson_2_out)}")
 
     # ==========================================
     # 3. PROCESS CMU
@@ -271,7 +275,7 @@ if __name__ == "__main__":
     master_dfs = []
     
     # Strictly pull only from the immutable `_processed` files we just built
-    for out_path, name in [(aalto_out, 'Aalto'), (clarkson_out, 'Clarkson'), (cmu_out, 'CMU'), (keyrecs_out, 'KeyRecs')]:
+    for out_path, name in [(aalto_out, 'Aalto'), (clarkson_1_out, 'Clarkson_I'), (clarkson_2_out, 'Clarkson_II'), (cmu_out, 'CMU'), (keyrecs_out, 'KeyRecs')]:
         if os.path.exists(out_path):
             master_dfs.append(pd.read_parquet(out_path))
             print(f"  -> Loaded {name} for Fusion.")
