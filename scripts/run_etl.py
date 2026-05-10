@@ -212,6 +212,11 @@ if __name__ == "__main__":
         df_m2 = build_word_boundaries(df_m2)
         df_m2 = apply_historical_consistency_filter(df_m2)
 
+        # 🛡️ THE FIX: Extract a 5% random sample for frontend stability (~700k rows)
+        # We do this AFTER all the math is calculated so the metrics remain 100% accurate.
+        print("Extracting 5% sample for Streamlit frontend stability...")
+        df_m2 = df_m2.sample(frac=0.05, random_state=42)
+
         df_m2 = optimize_memory(df_m2)
         df_m2.to_parquet(clarkson_2_out, index=False)
         print(f"✅ Saved Clarkson II: {len(df_m2)} rows to {os.path.basename(clarkson_2_out)}")
