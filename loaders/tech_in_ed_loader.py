@@ -72,4 +72,19 @@ def calculate_correlations(df, target_country='USA'):
     # Filter for the specific country
     df_iso = df[df['Country'] == target_country]
     
-    # Select only the numeric columns
+    # Select only the numeric columns relevant to our thesis
+    cols_to_correlate = [
+        'Internet_Penetration', 
+        'Secondary_Enrollment', 
+        'Curriculum_Complexity_Index', 
+        'Learning_Efficiency_Score',
+        'Knowledge_Gap'
+    ]
+    
+    # Ensure the columns actually exist in the dataframe before correlating
+    valid_cols = [c for c in cols_to_correlate if c in df_iso.columns]
+    
+    # Calculate the correlation matrix and defensively fill NaNs (which happen if variance is 0)
+    corr_matrix = df_iso[valid_cols].corr().fillna(0)
+    
+    return corr_matrix

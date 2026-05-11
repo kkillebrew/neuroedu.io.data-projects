@@ -26,6 +26,13 @@ if not os.path.exists(pisa_source) or not os.path.exists(wbes_source):
 df_pisa = pd.read_parquet(pisa_source)
 df_wbes = pd.read_parquet(wbes_source)
 
+df_pisa = df_pisa.rename(columns={'CNT': 'Country', 'YEAR': 'Year'})
+df_wbes = df_wbes.rename(columns={'economy': 'Country', 'time': 'Year'})
+
+# Clean the WBES 'YR2010' string format into pure numbers if necessary
+if 'Year' in df_wbes.columns and df_wbes['Year'].dtype == 'object':
+    df_wbes['Year'] = df_wbes['Year'].astype(str).str.replace('YR', '', regex=False)
+
 # 🐛 THE FIX 1: Aggressively scrub keys to guarantee matches
 for df in [df_pisa, df_wbes]:
     if 'Country' in df.columns:
