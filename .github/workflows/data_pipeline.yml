@@ -41,11 +41,13 @@ jobs:
       - name: Run Keystroke/Typo ETL Script
         env:
           PYTHONPATH: .
+        continue-on-error: true  # Prevents a crash here from stopping the next script
         run: python scripts/run_etl.py
 
       - name: Run EdTech Paradox ETL Script
         env:
           PYTHONPATH: .
+        continue-on-error: true
         run: python scripts/tech_in_ed_etl.py
 
       - name: Commit Processed Data Back to Repo

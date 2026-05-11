@@ -1,5 +1,5 @@
 # =====================================================================
-# MODULE: loaders/tech_in_edu_loader.py (The Model)
+# MODULE: loaders/tech_in_ed_loader.py (The Model)
 # PURPOSE: Data loading, memory caching, and mathematical transformations.
 # STRICT DECOUPLING: No Streamlit UI rendering commands permitted here.
 # =====================================================================
@@ -19,14 +19,15 @@ def load_edtech_master(base_dir):
     """ 
     Loads the unified master dataset into RAM from the compiled Parquet file. 
     """
-    master_path = os.path.join(base_dir, 'master_dataset.parquet')
+    # 🎯 THE FIX: Target the newly namespaced parquet file
+    master_path = os.path.join(base_dir, 'tech_in_ed_master_dataset.parquet')
     
     if os.path.exists(master_path):
         return pd.read_parquet(master_path)
     else:
         # Failsafe error that the UI will catch and display to the user
         raise FileNotFoundError(
-            "Master dataset not found. Ensure you have run 'scripts/tech_in_ed_etl.py' "
+            "EdTech master dataset not found. Ensure you have run 'scripts/tech_in_ed_etl.py' "
             "to compile the raw Colab outputs."
         )
 
@@ -71,16 +72,4 @@ def calculate_correlations(df, target_country='USA'):
     # Filter for the specific country
     df_iso = df[df['Country'] == target_country]
     
-    # Select only the numeric columns relevant to our thesis
-    cols_to_correlate = [
-        'Internet_Penetration', 
-        'Secondary_Enrollment', 
-        'Curriculum_Complexity_Index', 
-        'Learning_Efficiency_Score',
-        'Knowledge_Gap'
-    ]
-    
-    # Calculate the correlation matrix
-    corr_matrix = df_iso[cols_to_correlate].corr()
-    
-    return corr_matrix
+    # Select only the numeric columns
