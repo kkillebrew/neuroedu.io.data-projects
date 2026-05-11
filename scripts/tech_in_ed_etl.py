@@ -26,12 +26,16 @@ if not os.path.exists(pisa_source) or not os.path.exists(wbes_source):
 df_pisa = pd.read_parquet(pisa_source)
 df_wbes = pd.read_parquet(wbes_source)
 
-# 🛡️ ARCHITECTURE ALIGNMENT: Map raw source columns to Master Schema keys
-# This ensures the 'on=['Country', 'Year']' merge actually finds matches.
-df_pisa = df_pisa.rename(columns={'CNT': 'Country', 'YEAR': 'Year'})
-df_wbes = df_wbes.rename(columns={'economy': 'Country', 'time': 'Year'})
+print(f"📊 DIAGNOSTIC PRE-MAP: WBES Cols: {list(df_wbes.columns)} | PISA Cols: {list(df_pisa.columns)}")
 
-# Clean WBES 'YR2010' string format into integers
+# 🛡️ FOOLPROOF ALIGNMENT: Force all raw columns to UPPERCASE before mapping
+# This completely ignores capitalization differences from the Kaggle/WB APIs
+df_pisa.columns = [str(c).strip().upper() for c in df_pisa.columns]
+df_wbes.columns = [str(c).strip().upper() for c in df_wbes.columns]
+
+df_pisa = df_pisa.rename(columns={'CNT': 'Country', 'YEAR': 'Year'})
+df_wbes = df_wbes.rename(columns={'ECONOMY': 'Country', 'TIME': 'Year'})
+
 if 'Year' in df_wbes.columns and df_wbes['Year'].dtype == 'object':
     df_wbes['Year'] = df_wbes['Year'].astype(str).str.replace('YR', '', regex=False)
 
@@ -102,9 +106,13 @@ for col in df_master.columns:
 df_master = df_master.dropna(subset=['Country', 'Year'])
 
 # ---------------------------------------------------------
-# PHASE 5: EXPORT
+# PHASE 5: EXPORT & FAILSAFE
 # ---------------------------------------------------------
+if len(df_master) == 0:
+    print("❌ FATAL ERROR: The Master Dataset collapsed to 0 rows!")
+    print("👉 Look higher in these logs for 'DIAGNOSTIC PRE-MAP' to see what the source columns actually were.")
+    sys.exit(1) # Stops the Action from writing a corrupt 4-byte file
+
 df_master.to_parquet(master_output, engine='fastparquet', index=False)
 
 print(f"✅ Master ETL Complete! Target Schema built with {len(df_master)} rows.")
-print(f"💾 Deployed strictly to: {master_output}")
