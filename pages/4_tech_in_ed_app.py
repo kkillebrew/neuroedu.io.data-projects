@@ -14,7 +14,7 @@ import os
 # It allows this script (inside /pages) to see the root folders (/loaders).
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from loaders.tech_in_edu_loader import load_edtech_master, calculate_knowledge_gap, calculate_correlations
+from loaders.tech_in_ed_loader import load_edtech_master, calculate_knowledge_gap, calculate_correlations
 from data_projects_sidebar import apply_global_settings, render_sidebar
 
 # ---------------------------------------------------------------------
