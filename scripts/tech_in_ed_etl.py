@@ -26,17 +26,16 @@ if not os.path.exists(pisa_source) or not os.path.exists(wbes_source):
 df_pisa = pd.read_parquet(pisa_source)
 df_wbes = pd.read_parquet(wbes_source)
 
-# 🛡️ ARCHITECTURE ALIGNMENT: Standardize raw source columns to the Master Schema keys
-# PISA uses 'CNT' and 'YEAR'; World Bank uses 'economy' and 'time'
+# 🛡️ ARCHITECTURE ALIGNMENT: Map raw source columns to Master Schema keys
+# This ensures the 'on=['Country', 'Year']' merge actually finds matches.
 df_pisa = df_pisa.rename(columns={'CNT': 'Country', 'YEAR': 'Year'})
 df_wbes = df_wbes.rename(columns={'economy': 'Country', 'time': 'Year'})
 
-# Clean the WBES 'YR2010' string format into pure numbers if they haven't been processed yet
+# Clean WBES 'YR2010' string format into integers
 if 'Year' in df_wbes.columns and df_wbes['Year'].dtype == 'object':
     df_wbes['Year'] = df_wbes['Year'].astype(str).str.replace('YR', '', regex=False)
 
 # 🐛 THE FIX 1: Aggressively scrub keys to guarantee matches
-for df in [df_pisa, df_wbes]:
 for df in [df_pisa, df_wbes]:
     if 'Country' in df.columns:
         df['Country'] = df['Country'].astype(str).str.strip().str.upper()
@@ -55,7 +54,11 @@ if 'Math_Score' in df_pisa.columns:
 print(f"📊 Diagnostic: WBES Rows={len(df_wbes)}, PISA Rows={len(df_pisa)}")
 
 print("🔄 Merging into Master Schema...")
-df_master = pd.merge(df_wbes, df_pisa, on=['Country', 'Year'], how='outer')
+# Use 'left' or 'outer' to ensure we don't drop rows if one side is missing
+df_master = pd.merge(df_wbes, df_pisa, on=['Country', 'Year'], how='left')
+
+# 📊 DIAGNOSTIC: This will show up in your GitHub Action logs
+print(f"✅ Merge Complete. Rows in Master: {len(df_master)}")
 
 # Safely filter years without destroying valid data
 df_master = df_master[df_master['Year'] > 0] 
