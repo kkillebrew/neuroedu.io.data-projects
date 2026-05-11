@@ -12,7 +12,9 @@ print("🚀 Starting EdTech Master ETL Pipeline...")
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'documents'))
 pisa_source = os.path.join(base_dir, 'PISA_macro.parquet')
 wbes_source = os.path.join(base_dir, 'WBES_macro.parquet')
-master_output = os.path.join(base_dir, 'master_dataset.parquet')
+
+# 🐛 THE FIX: Namespace the output to prevent overwriting the Keystroke project
+master_output = os.path.join(base_dir, 'tech_in_ed_master_dataset.parquet')
 
 # ---------------------------------------------------------
 # PHASE 1: LOAD SOURCE FILES
