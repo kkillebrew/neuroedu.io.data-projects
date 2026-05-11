@@ -143,7 +143,8 @@ def render_sidebar():
         st.page_link("data_projects_app.py", label="Data Projects Hub (Home)", icon=None)
         st.page_link("pages/1_oil_predictor_app.py", label="What affects gas prices?", icon=None)
         st.page_link("pages/2_NBA_GOAT_predictor_app.py", label="Who is the real NBA GOAT?", icon=None)
-        st.page_link("pages/3_typo_behavior_app.py", label="Why do we make typos?", icon=None)        
+        st.page_link("pages/3_typo_behavior_app.py", label="Why do we make typos?", icon=None)
+        st.page_link("pages/4_tech_in_ed_app.py", label="Does tech really make us smarter?", icon=None)        
 
         st.divider()
 
