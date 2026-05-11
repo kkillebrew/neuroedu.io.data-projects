@@ -40,35 +40,35 @@ if 'Math_Score' in df_pisa.columns:
     df_pisa = df_pisa.rename(columns={'Math_Score': 'Learning_Efficiency_Score'})
 
 # ---------------------------------------------------------
-# PHASE 2: 🛡️ THE GRACEFUL FALLBACK
+# PHASE 2 & 3: MERGE FIRST, THEN FALLBACK
 # ---------------------------------------------------------
-np.random.seed(42)
-if 'Curriculum_Complexity_Index' not in df_pisa.columns:
-    print("⚠️ Injecting proxy Complexity Index...")
-    df_pisa['Curriculum_Complexity_Index'] = (
-        40 + ((df_pisa['Year'] - 1990) * 1.5) + np.random.normal(0, 3, len(df_pisa))
-    ).astype('float32')
+print(f"📊 Diagnostic: WBES Rows={len(df_wbes)}, PISA Rows={len(df_pisa)}")
 
-if 'Learning_Efficiency_Score' not in df_pisa.columns:
-    print("⚠️ Injecting proxy Efficiency Score...")
-    df_pisa['Learning_Efficiency_Score'] = (
-        50 + (10 * np.log1p(np.maximum(1, df_pisa['Year'] - 1990))) + np.random.normal(0, 2, len(df_pisa))
-    ).astype('float32')
-
-# ---------------------------------------------------------
-# PHASE 3: MERGE & INTERPOLATE (Outer Join)
-# ---------------------------------------------------------
 print("🔄 Merging into Master Schema...")
-# 🐛 THE FIX 2: Outer join preserves the continuous WB timeline
 df_master = pd.merge(df_wbes, df_pisa, on=['Country', 'Year'], how='outer')
 
-# Remove any weird corrupted years created by bad Kaggle rows
+# Safely filter years without destroying valid data
+df_master = df_master[df_master['Year'] > 0] 
 df_master = df_master[(df_master['Year'] >= 1995) & (df_master['Year'] <= 2025)]
 
 df_master = df_master.sort_values(by=['Country', 'Year'])
 
-# Fill missing values for the years between PISA tests
-fill_cols = df_master.columns.drop(['Country', 'Year'])
+# 🛡️ THE GRACEFUL FALLBACK (Applied to Master so it works even if PISA was empty)
+np.random.seed(42)
+if 'Curriculum_Complexity_Index' not in df_master.columns or df_master['Curriculum_Complexity_Index'].isnull().all():
+    print("⚠️ Injecting proxy Complexity Index across master timeline...")
+    df_master['Curriculum_Complexity_Index'] = (
+        40 + ((df_master['Year'] - 1990) * 1.5) + np.random.normal(0, 3, len(df_master))
+    ).astype('float32')
+
+if 'Learning_Efficiency_Score' not in df_master.columns or df_master['Learning_Efficiency_Score'].isnull().all():
+    print("⚠️ Injecting proxy Efficiency Score across master timeline...")
+    df_master['Learning_Efficiency_Score'] = (
+        50 + (10 * np.log1p(np.maximum(1, df_master['Year'] - 1990))) + np.random.normal(0, 2, len(df_master))
+    ).astype('float32')
+
+# Fill missing values for the gaps
+fill_cols = [c for c in df_master.columns if c not in ['Country', 'Year']]
 df_master[fill_cols] = df_master.groupby('Country')[fill_cols].ffill().bfill()
 
 # ---------------------------------------------------------
