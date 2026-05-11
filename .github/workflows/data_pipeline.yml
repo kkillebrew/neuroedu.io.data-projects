@@ -3,12 +3,19 @@ name: Automated ETL Data Pipeline
 on:
   push:
     branches: [ main ]
-    # The pipeline will ONLY trigger if files in these paths are changed
+    # The pipeline will trigger if files for ANY of the data projects change
     paths:
+      # --- Keystroke/Typo Project Triggers ---
       - 'scripts/run_etl.py'
       - 'loaders/typo_behavior_loader.py'
       - 'documents/*.csv'
       - 'documents/*.txt'
+      # --- EdTech Paradox Project Triggers ---
+      - 'scripts/tech_in_ed_etl.py'
+      - 'loaders/tech_in_ed_loader.py'
+      # --- Shared Triggers ---
+      - 'documents/*.parquet'
+      
   # Still allows manual clicking from the GitHub website
   workflow_dispatch:
 
@@ -27,18 +34,24 @@ jobs:
           python-version: '3.11'
 
       - name: Install Data Science Libraries
+        # Added wbgapi for EdTech, kept all the original ones for the Typo project
         run: |
-          pip install pandas pyarrow fastparquet scipy streamlit
+          pip install pandas pyarrow fastparquet scipy streamlit wbgapi
 
-      - name: Run ETL Script
+      - name: Run Keystroke/Typo ETL Script
         env:
           PYTHONPATH: .
         run: python scripts/run_etl.py
+
+      - name: Run EdTech Paradox ETL Script
+        env:
+          PYTHONPATH: .
+        run: python scripts/tech_in_ed_etl.py
 
       - name: Commit Processed Data Back to Repo
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action ETL"
           git add documents/*.parquet
-          git commit -m "Automated ETL processing" || echo "No changes to commit"
+          git commit -m "Automated Multi-Project ETL processing" || echo "No changes to commit"
           git push
