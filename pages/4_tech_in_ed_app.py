@@ -1,6 +1,7 @@
 # =====================================================================
 # STREAMLIT APP: pages/4_tech_in_edu_app.py (The View)
 # =====================================================================
+pip install statsmodels -q
 import streamlit as st
 import pandas as pd  # <--- ADD THIS LINE
 import plotly.express as px
@@ -219,6 +220,100 @@ with tab1:
             )
             
             st.plotly_chart(fig_line, use_container_width=True)
+
+    #########################################################
+    #  Phase 4: Factor Correlation & Impact Analysis        #
+    #########################################################
+    st.markdown("---")
+    st.header("Phase 4: Global Factor & Impact Analysis")
+    st.write("Explore how socio-economic factors and technology access impact student performance globally.")
+
+    # --- UI: DOUBLE DROPDOWN ---
+    col_sel1, col_sel2 = st.columns(2)
+
+    with col_sel1:
+        factor_map = {
+            'GDP per Capita (Wealth)': 'GDP_per_Capita',
+            'Internet Penetration (%)': 'Internet_Penetration',
+            'Student-Teacher Ratio': 'Student_Teacher_Ratio',
+            'ICT Use: Entertainment': 'ICT_Entertainment',
+            'ICT Use: School/Academic': 'ICT_School_Use',
+            'Knowledge Gap (Inequity)': 'Knowledge_Gap'
+        }
+        selected_factor_label = st.selectbox("Select Independent Factor (X-Axis):", list(factor_map.keys()))
+        selected_factor = factor_map[selected_factor_label]
+
+    with col_sel2:
+        subject_map = {
+            'Math (Learning Efficiency)': 'Learning_Efficiency_Score',
+            'Reading Proficiency': 'Reading_Proficiency_Score',
+            'Science Proficiency': 'Science_Proficiency_Score'
+        }
+        selected_sub_label = st.selectbox("Select Dependent Subject (Y-Axis):", list(subject_map.keys()))
+        selected_sub = subject_map[selected_sub_label]
+
+    # --- DATA PREP ---
+    # We use the full macro dataset (df) here so we have enough data points for a real trendline
+    # Drop rows where either the selected factor or the selected score is missing
+    df_plot = df.dropna(subset=[selected_factor, selected_sub]).copy()
+
+    # Create the two columns for our side-by-side plots
+    col_scatter, col_bar = st.columns(2)
+
+    # --- COLUMN 1: CORRELATION SCATTER PLOT ---
+    with col_scatter:
+        if not df_plot.empty:
+            fig_scatter = px.scatter(
+                df_plot,
+                x=selected_factor,
+                y=selected_sub,
+                color='Year',           # Colors the dots by year to show time progression
+                hover_data=['Country'], # Shows which country the dot belongs to when hovered
+                trendline='ols',        # Draws the line of best fit!
+                trendline_color_override="red",
+                title=f"Trendline: {selected_factor_label} vs {selected_sub_label.split(' ')[0]}"
+            )
+            fig_scatter.update_layout(height=500, xaxis_title=selected_factor_label, yaxis_title="PISA Score")
+            st.plotly_chart(fig_scatter, use_container_width=True)
+        else:
+            st.warning("Insufficient data to plot correlation.")
+
+    # --- COLUMN 2: BINNED BAR CHART ---
+    with col_bar:
+        if not df_plot.empty:
+            try:
+                # pd.qcut automatically finds the 33% and 66% percentiles to make 3 perfectly even buckets
+                df_plot['Factor_Bin'] = pd.qcut(df_plot[selected_factor], q=3, labels=['Low', 'Medium', 'High'])
+                
+                # Calculate the grand average score for each bucket
+                df_bar = df_plot.groupby('Factor_Bin', observed=True)[selected_sub].mean().reset_index()
+
+                fig_bar = px.bar(
+                    df_bar,
+                    x='Factor_Bin',
+                    y=selected_sub,
+                    color='Factor_Bin',
+                    color_discrete_map={'Low': '#EF553B', 'Medium': '#FFA15A', 'High': '#00CC96'},
+                    text_auto='.1f', # Prints the exact score on top of the bar
+                    title=f"Average Score by {selected_factor_label} Tier"
+                )
+                
+                # Zoom the Y-Axis: Because PISA scores are between 300-600, starting at 0 hides the differences.
+                y_min = df_bar[selected_sub].min() * 0.90
+                y_max = df_bar[selected_sub].max() * 1.05
+                
+                fig_bar.update_layout(
+                    xaxis_title=f"{selected_factor_label} Tier",
+                    yaxis_title="Average PISA Score",
+                    showlegend=False,
+                    height=500,
+                    yaxis=dict(range=[y_min, y_max]) # Applies the zoom
+                )
+                st.plotly_chart(fig_bar, use_container_width=True)
+                
+            except Exception as e:
+                # qcut will fail if too many values are perfectly identical (e.g., if many countries have exactly 0)
+                st.warning(f"Not enough variance in {selected_factor_label} to calculate Low/Medium/High tiers.")
 
 # ---------------------------------------------------------------------
 # REMAINING TABS (Keep your existing logic here)
