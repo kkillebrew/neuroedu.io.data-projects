@@ -130,52 +130,66 @@ with tab1:
     ################################
     #  3: Longitudinal Tech Trends #
     ################################
-    st.header("Phase 3: Longitudinal Tech-Impact Trends")
-    st.write("Shaded regions indicate the projected margin of influence from Internet Penetration and Tech Usage on local scores.")
+    st.header("Phase 3: Longitudinal Subject Convergence")
+    st.write("Comparing Math, Science, and Reading trends within each benchmark country. Shaded regions indicate the projected margin of influence from Internet Penetration.")
 
-    # Iterate using our dictionary values so the line graphs plot correctly
-    for label, sub_col in subject_map.items():
-        fig_line = go.Figure()
-        
-        # Color map for the 5 countries
-        colors = {'USA': '#EF553B', 'JPN': '#636EFA', 'DEU': '#00CC96', 'ARG': '#AB63FA', 'JOR': '#FFA15A'}
-        
-        for country in ['USA', 'JPN', 'DEU', 'ARG', 'JOR']:
-            df_c = df_bench[df_bench['Country'] == country]
-            
-            # 1. Shaded Region (The 'Benefit Range')
-            # Safely fill NaNs in Internet Penetration to avoid math errors in early years
-            tech_variance = df_c['INTERNET_PENETRATION'].fillna(0) / 500
-            upper_bound = df_c[sub_col] * (1 + tech_variance)
-            lower_bound = df_c[sub_col] * (1 - tech_variance)
-            
-            # The 'Shade' trace
-            fig_line.add_trace(go.Scatter(
-                x=pd.concat([df_c['Year'], df_c['Year'][::-1]]),
-                y=pd.concat([upper_bound, lower_bound[::-1]]),
-                fill='toself',
-                fillcolor=colors[country],
-                opacity=0.15,
-                line=dict(color='rgba(255,255,255,0)'),
-                name=f"{country} Tech Range",
-                showlegend=False
-            ))
-            
-            # 2. The Main Score Line
-            fig_line.add_trace(go.Scatter(
-                x=df_c['Year'], y=df_c[sub_col],
-                name=country,
-                line=dict(color=colors[country], width=3),
-                mode='lines+markers'
-            ))
+    # Define strict colors so subjects are instantly recognizable across all plots
+    subject_colors = {
+        'Math (Learning Efficiency)': '#EF553B',  # Red
+        'Science Proficiency': '#00CC96',         # Green
+        'Reading Proficiency': '#636EFA'          # Blue
+    }
 
-        fig_line.update_layout(
-            title=f"Evolution of {label} (2000-2022)",
-            xaxis_title="Year",
-            yaxis_title="PISA Score",
-            hovermode="x unified"
-        )
-        st.plotly_chart(fig_line, use_container_width=True)
+    bench_list = ['USA', 'JPN', 'DEU', 'ARG', 'JOR']
+
+    # To keep the UI clean and prevent endless scrolling, we put the 5 countries into Streamlit Tabs
+    country_tabs = st.tabs([f"🌍 {c}" for c in bench_list])
+
+    # Iterate through the countries and generate a plot for each tab
+    for i, country in enumerate(bench_list):
+        with country_tabs[i]:
+            fig_line = go.Figure()
+            df_c = df_bench[df_bench['Country'] == country].sort_values('Year')
+            
+            # Now iterate through the 3 subjects to plot them on the SAME graph
+            for label, sub_col in subject_map.items():
+                
+                # 1. Calculate Shaded Region (Tech Benefit Variance)
+                tech_variance = df_c['INTERNET_PENETRATION'].fillna(0) / 500
+                upper_bound = df_c[sub_col] * (1 + tech_variance)
+                lower_bound = df_c[sub_col] * (1 - tech_variance)
+                
+                # 2. Add the 'Shade' trace for this specific subject
+                fig_line.add_trace(go.Scatter(
+                    x=pd.concat([df_c['Year'], df_c['Year'][::-1]]),
+                    y=pd.concat([upper_bound, lower_bound[::-1]]),
+                    fill='toself',
+                    fillcolor=subject_colors[label],
+                    opacity=0.15,
+                    line=dict(color='rgba(255,255,255,0)'),
+                    name=f"{label} Tech Range",
+                    showlegend=False
+                ))
+                
+                # 3. Add the Main Score Line for this specific subject
+                fig_line.add_trace(go.Scatter(
+                    x=df_c['Year'], 
+                    y=df_c[sub_col],
+                    name=label,
+                    line=dict(color=subject_colors[label], width=3),
+                    mode='lines+markers'
+                ))
+
+            # Style the layout for this country's specific graph
+            fig_line.update_layout(
+                title=f"Cognitive Domain Divergence in {country} (2000-2022)",
+                xaxis_title="Year",
+                yaxis_title="PISA Score",
+                hovermode="x unified",
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+            )
+            
+            st.plotly_chart(fig_line, use_container_width=True)
 
 # ---------------------------------------------------------------------
 # REMAINING TABS (Keep your existing logic here)
