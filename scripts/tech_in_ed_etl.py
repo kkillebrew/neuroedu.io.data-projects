@@ -137,6 +137,7 @@ if len(df_master) == 0:
     print("FATAL ERROR: The Master Dataset collapsed to 0 rows!")
     sys.exit(1)
 
-df_master.to_parquet(master_output, engine='fastparquet', index=False)
+# Switching to pyarrow engine to fix the UTF8/Arrow string conflict
+df_master.to_parquet(master_output, engine='pyarrow', index=False)
 
 print(f"Master ETL Complete! Target Schema built with {len(df_master)} rows.")
