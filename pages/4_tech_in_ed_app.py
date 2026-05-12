@@ -10,7 +10,13 @@ import os
 # --- PATH CONFIGURATION ---
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from loaders.tech_in_ed_loader import load_edtech_master, calculate_knowledge_gap, calculate_correlations, get_pisa_snapshots, get_benchmark_comparison_data
+from loaders.tech_in_ed_loader import (
+    load_edtech_master, 
+    calculate_knowledge_gap, 
+    calculate_correlations, 
+    get_pisa_grid_samples,          # FIXED: Was get_pisa_snapshots
+    get_benchmark_comparison_data   # ADDED: Required for Phase 2 and 3
+)
 from data_projects_sidebar import apply_global_settings, render_sidebar
 
 # --- SETTINGS & SIDEBAR ---

@@ -108,12 +108,14 @@ def get_country_summary(df, country_code):
     
     return summary
 
+# ---------------------------------------------------------------------
+# PHASE 3: UI HELPER FUNCTIONS (Filtering & Sampling)
+# ---------------------------------------------------------------------
 def get_pisa_grid_samples(df, rows_per_year=10):
     """
     Randomly samples one row for each of the 10 target countries per year.
     Returns a dictionary of dataframes for the 4x2 grid.
     """
-    # Target countries: USA, Mexico, Argentina, Brazil, Germany, UK, Japan, China, Jordan, Morocco
     targets = ['USA', 'MEX', 'ARG', 'BRA', 'DEU', 'GBR', 'JPN', 'CHN', 'JOR', 'MAR']
     
     snapshots = {}
@@ -121,10 +123,8 @@ def get_pisa_grid_samples(df, rows_per_year=10):
     
     for year in unique_years:
         year_data = df[df['Year'] == year]
-        # Filter for our specific 10 countries
         sampled_rows = year_data[year_data['Country'].isin(targets)]
         
-        # Randomly shuffle and take 10 rows to ensure variety on each load
         if len(sampled_rows) > rows_per_year:
             snapshots[year] = sampled_rows.sample(n=rows_per_year).sort_values('Country')
         else:
@@ -134,7 +134,7 @@ def get_pisa_grid_samples(df, rows_per_year=10):
 
 def get_benchmark_comparison_data(df):
     """
-    Filters for the 5 longitudinal benchmark countries.
+    Filters for the 5 longitudinal benchmark countries for the distribution trends.
     """
     benchmarks = ['USA', 'JPN', 'DEU', 'ARG', 'JOR']
     return df[df['Country'].isin(benchmarks)].sort_values(['Country', 'Year'])
