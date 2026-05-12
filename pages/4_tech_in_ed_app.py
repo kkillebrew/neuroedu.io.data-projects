@@ -2,6 +2,7 @@
 # STREAMLIT APP: pages/4_tech_in_edu_app.py (The View)
 # =====================================================================
 import streamlit as st
+import pandas as pd  # <--- ADD THIS LINE
 import plotly.express as px
 import plotly.graph_objects as go
 import sys
