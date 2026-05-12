@@ -75,15 +75,19 @@ for df in [df_pisa, df_wbes]:
 
 print(f"Diagnostic: WBES Rows={len(df_wbes)}, PISA Combined Rows={len(df_pisa)}")
 
-# Ensure PISA is unique per country/year before merge
-df_pisa = df_pisa.drop_duplicates(subset=['Country', 'Year'])
+# Use uppercase keys because of the earlier .upper() transformation
+df_pisa = df_pisa.drop_duplicates(subset=['COUNTRY', 'YEAR'])
 
 print("Merging PISA and WBES into Master Schema...")
-df_master = pd.merge(df_wbes, df_pisa, on=['Country', 'Year'], how='outer')
+# Match the uppercase keys here as well
+df_master = pd.merge(df_wbes, df_pisa, on=['COUNTRY', 'YEAR'], how='outer')
 
 # Standardize column naming for key EdTech metrics
 if 'TECH_USAGE' in df_master.columns:
     df_master = df_master.rename(columns={'TECH_USAGE': 'Curriculum_Complexity_Index'})
+
+# Rename back to standard Title Case for the rest of the pipeline
+df_master = df_master.rename(columns={'COUNTRY': 'Country', 'YEAR': 'Year'})
 
 # ---------------------------------------------------------
 # PHASE 3: GRACEFUL FALLBACKS & GAP FILLING
