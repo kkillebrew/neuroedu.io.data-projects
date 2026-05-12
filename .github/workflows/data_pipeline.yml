@@ -4,6 +4,7 @@ on:
   push:
     branches: [ main ]
     paths:
+      - '.github/workflows/**'   # <--- ADD THIS LINE
       # --- Keystroke/Typo Project Triggers ---
       - 'scripts/run_etl.py'
       - 'loaders/typo_behavior_loader.py'
