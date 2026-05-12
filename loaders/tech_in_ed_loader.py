@@ -32,31 +32,27 @@ def load_edtech_master(base_dir):
 def calculate_knowledge_gap(df):
     """
     Calculates the delta between curriculum requirements and human learning efficiency.
-    Utilizes vectorization to handle the 22-year timeline.
     """
     df_calc = df.copy()
     
-    # Ensure our required columns exist. We prioritize the composite 
-    # 'Learning_Efficiency_Score' created during ETL.
     required_cols = ['Curriculum_Complexity_Index', 'Learning_Efficiency_Score']
     for col in required_cols:
         if col not in df_calc.columns:
-            # If the column is missing, we initialize it as NaN to prevent crash
             df_calc[col] = np.nan
 
     # 1. Calculate the core gap (Complexity vs. Efficiency)
     df_calc['Knowledge_Gap'] = df_calc['Curriculum_Complexity_Index'] - df_calc['Learning_Efficiency_Score']
     
     # 2. Calculate the Velocity (First Derivative) of the Gap
-    # Grouping by Country ensures the time-series continuity is preserved per-nation.
     df_calc['Gap_Velocity'] = df_calc.groupby('Country')['Knowledge_Gap'].diff().fillna(0)
     
-    # 3. New: Subject-Specific Gains (Math vs. Science vs. Reading)
-    # This tracks if certain cognitive domains are accelerating faster than others.
-    scores = ['Math_Score', 'Reading_Score', 'Science_Score']
+    # 3. FIXED: Use the actual mapped column names for Subject Velocities
+    scores = ['Learning_Efficiency_Score', 'Reading_Proficiency_Score', 'Science_Proficiency_Score']
     for score in scores:
         if score in df_calc.columns:
-            df_calc[f'{score}_Velocity'] = df_calc.groupby('Country')[score].diff().fillna(0)
+            # Extract just the first word (Learning, Reading, Science) for the velocity column name
+            prefix = score.split('_')[0] 
+            df_calc[f'{prefix}_Velocity'] = df_calc.groupby('Country')[score].diff().fillna(0)
 
     return df_calc
 

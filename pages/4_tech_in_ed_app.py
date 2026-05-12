@@ -93,17 +93,24 @@ with tab1:
     ################################
     # Filter data
     df_bench = get_benchmark_comparison_data(df)
-    subjects = ['Math_Score', 'Reading_Score', 'Science_Score']
+    
+    # DICTIONARY MAP: User-friendly labels -> Actual DataFrame Columns
+    subject_map = {
+        'Math (Learning Efficiency)': 'Learning_Efficiency_Score',
+        'Reading Proficiency': 'Reading_Proficiency_Score',
+        'Science Proficiency': 'Science_Proficiency_Score'
+    }
 
     st.header("Phase 2: Distribution Trends (Box & Whisker)")
-    selected_sub = st.selectbox("Select Subject for Distribution:", subjects)
+    selected_label = st.selectbox("Select Subject for Distribution:", list(subject_map.keys()))
+    selected_sub = subject_map[selected_label] # Gets the actual column name
 
     # Row 1: USA (Top Row)
     row1_col = st.columns(1)[0]
     with row1_col:
         fig_usa = px.box(df_bench[df_bench['Country'] == 'USA'], 
                          x='Year', y=selected_sub, points="all",
-                         title=f"USA {selected_sub} Distribution Over Time",
+                         title=f"USA {selected_label} Distribution Over Time",
                          color_discrete_sequence=['#EF553B'])
         st.plotly_chart(fig_usa, use_container_width=True)
 
@@ -116,17 +123,18 @@ with tab1:
         with grid_cols[col_idx]:
             fig_bench = px.box(df_bench[df_bench['Country'] == country], 
                                x='Year', y=selected_sub, points="all",
-                               title=f"{country} {selected_sub} Distribution",
+                               title=f"{country} {selected_label} Distribution",
                                color_discrete_sequence=['#00CC96'])
             st.plotly_chart(fig_bench, use_container_width=True)
 
     ################################
-    #  3: Logitudinal Tech Trends  #
+    #  3: Longitudinal Tech Trends #
     ################################
     st.header("Phase 3: Longitudinal Tech-Impact Trends")
     st.write("Shaded regions indicate the projected margin of influence from Internet Penetration and Tech Usage on local scores.")
 
-    for sub in subjects:
+    # Iterate using our dictionary values so the line graphs plot correctly
+    for label, sub_col in subject_map.items():
         fig_line = go.Figure()
         
         # Color map for the 5 countries
@@ -136,9 +144,10 @@ with tab1:
             df_c = df_bench[df_bench['Country'] == country]
             
             # 1. Shaded Region (The 'Benefit Range')
-            # We assume a +/- 5% variance based on Tech Adoption for the shade
-            upper_bound = df_c[sub] * (1 + (df_c['Internet_Penetration'] / 500))
-            lower_bound = df_c[sub] * (1 - (df_c['Internet_Penetration'] / 500))
+            # Safely fill NaNs in Internet Penetration to avoid math errors in early years
+            tech_variance = df_c['INTERNET_PENETRATION'].fillna(0) / 500
+            upper_bound = df_c[sub_col] * (1 + tech_variance)
+            lower_bound = df_c[sub_col] * (1 - tech_variance)
             
             # The 'Shade' trace
             fig_line.add_trace(go.Scatter(
@@ -154,14 +163,14 @@ with tab1:
             
             # 2. The Main Score Line
             fig_line.add_trace(go.Scatter(
-                x=df_c['Year'], y=df_c[sub],
+                x=df_c['Year'], y=df_c[sub_col],
                 name=country,
                 line=dict(color=colors[country], width=3),
                 mode='lines+markers'
             ))
 
         fig_line.update_layout(
-            title=f"Evolution of {sub.replace('_', ' ')} (2000-2022)",
+            title=f"Evolution of {label} (2000-2022)",
             xaxis_title="Year",
             yaxis_title="PISA Score",
             hovermode="x unified"
