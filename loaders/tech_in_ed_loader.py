@@ -6,6 +6,7 @@
 import pandas as pd
 import numpy as np
 import streamlit as st
+import glob
 import os
 
 # ---------------------------------------------------------------------
@@ -134,3 +135,45 @@ def get_benchmark_comparison_data(df):
     """
     benchmarks = ['USA', 'JPN', 'DEU', 'ARG', 'JOR']
     return df[df['Country'].isin(benchmarks)].sort_values(['Country', 'Year'])
+
+# Load raw micro data filtered by country
+def get_micro_cloud_data(base_dir, target_countries, sample_per_group=500):
+    """
+    Loads raw student micro-data, filters for benchmark countries, 
+    and samples the points to prevent browser memory crashes during plotting.
+    """
+    pisa_raw_dir = os.path.join(base_dir, 'PSA_Outputs')
+    micro_files = glob.glob(os.path.join(pisa_raw_dir, "PISA_*_micro.parquet"))
+
+    if not micro_files:
+        return pd.DataFrame()
+
+    all_micro = []
+    for f in micro_files:
+        try:
+            df_m = pd.read_parquet(f)
+            # Filter for target countries
+            df_m = df_m[df_m['Country'].isin(target_countries)]
+            
+            # Sample heavily to keep the UI snappy (e.g., 500 points per country per year)
+            # 'observed=True' handles categorical groupings safely
+            df_m = df_m.groupby('Country', observed=True).sample(
+                n=min(len(df_m), sample_per_group), 
+                replace=True, # Allows sampling even if a country has fewer rows
+                random_state=42
+            )
+            all_micro.append(df_m)
+        except Exception as e:
+            print(f"Skipping micro file {f}: {e}")
+
+    if all_micro:
+        df_cloud = pd.concat(all_micro, ignore_index=True)
+        # Re-map the Colab output names to our Master ETL schema names
+        df_cloud = df_cloud.rename(columns={
+            'Math_Score': 'Learning_Efficiency_Score',
+            'Reading_Score': 'Reading_Proficiency_Score',
+            'Science_Score': 'Science_Proficiency_Score'
+        })
+        return df_cloud
+        
+    return pd.DataFrame()

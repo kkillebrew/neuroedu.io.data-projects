@@ -15,8 +15,9 @@ from loaders.tech_in_ed_loader import (
     load_edtech_master, 
     calculate_knowledge_gap, 
     calculate_correlations, 
-    get_pisa_grid_samples,          # FIXED: Was get_pisa_snapshots
-    get_benchmark_comparison_data   # ADDED: Required for Phase 2 and 3
+    get_pisa_grid_samples,
+    get_benchmark_comparison_data,
+    get_micro_cloud_data   # <--- ADDED THIS
 )
 from data_projects_sidebar import apply_global_settings, render_sidebar
 
@@ -93,51 +94,67 @@ with tab1:
     ################################
     #  2: Raw Data Distributions   #
     ################################
-    # Filter data
+    # Filter macro data
     df_bench = get_benchmark_comparison_data(df)
+    bench_list = ['USA', 'JPN', 'DEU', 'ARG', 'JOR']
     
-    # DICTIONARY MAP: User-friendly labels -> Actual DataFrame Columns
+    # Load and sample micro data for the cloud
+    df_micro = get_micro_cloud_data(base_dir, target_countries=bench_list, sample_per_group=500)
+    
     subject_map = {
         'Math (Learning Efficiency)': 'Learning_Efficiency_Score',
         'Reading Proficiency': 'Reading_Proficiency_Score',
         'Science Proficiency': 'Science_Proficiency_Score'
     }
 
-    st.header("Phase 2: Distribution Trends (Box & Whisker Overlay)")
-    st.write("Comparing the statistical spread of student scores across all benchmark nations simultaneously.")
+    st.header("Phase 2: Distribution Trends & Data Clouds")
+    st.write("Comparing the macroscopic statistical spread (left) against the raw student population cloud (right).")
     
     selected_label = st.selectbox("Select Subject for Distribution:", list(subject_map.keys()))
-    selected_sub = subject_map[selected_label] # Gets the actual column name
+    selected_sub = subject_map[selected_label] 
 
-    # Standardized color map so countries look consistent across the dashboard
     country_colors = {
-        'USA': '#EF553B', 
-        'JPN': '#636EFA', 
-        'DEU': '#00CC96', 
-        'ARG': '#AB63FA', 
-        'JOR': '#FFA15A'
+        'USA': '#EF553B', 'JPN': '#636EFA', 'DEU': '#00CC96', 
+        'ARG': '#AB63FA', 'JOR': '#FFA15A'
     }
 
-    # Generate a single grouped box plot
-    fig_box = px.box(
-        df_bench, 
-        x='Year', 
-        y=selected_sub, 
-        color='Country',       # This groups the boxes side-by-side per year
-        points="all",          # Keeps the 'butterfly' scatter effect
-        color_discrete_map=country_colors,
-        title=f"Global {selected_label} Distribution Over Time"
-    )
+    # --- SIDE BY SIDE LAYOUT ---
+    col_box, col_cloud = st.columns(2)
 
-    fig_box.update_layout(
-        xaxis_title="Year",
-        yaxis_title="PISA Score",
-        boxmode="group",       # Ensures boxes for the same year sit next to each other
-        legend_title="Nation",
-        height=600             # Gives the grouped chart enough vertical breathing room
-    )
+    # LEFT COLUMN: The Grouped Box Plot
+    with col_box:
+        fig_box = px.box(
+            df_bench, 
+            x='Year', y=selected_sub, color='Country',
+            points=False, # Turned off the butterfly effect here so it doesn't clash with the cloud next to it
+            color_discrete_map=country_colors,
+            title=f"Statistical Spread: {selected_label}"
+        )
+        fig_box.update_layout(
+            xaxis_title="Year", yaxis_title="PISA Score", 
+            boxmode="group", legend_title="Nation", height=600
+        )
+        st.plotly_chart(fig_box, use_container_width=True)
 
-    st.plotly_chart(fig_box, use_container_width=True)
+    # RIGHT COLUMN: The Strip Plot (Data Cloud)
+    with col_cloud:
+        if not df_micro.empty and selected_sub in df_micro.columns:
+            fig_cloud = px.strip(
+                df_micro, 
+                x='Year', y=selected_sub, color='Country',
+                color_discrete_map=country_colors,
+                stripmode='group',
+                title=f"Raw Population Cloud: {selected_label}"
+            )
+            # The 'Cloud' effect: Tiny dots, high transparency, wide horizontal jitter
+            fig_cloud.update_traces(marker=dict(size=3, opacity=0.35), jitter=0.8)
+            fig_cloud.update_layout(
+                xaxis_title="Year", yaxis_title="", # Keep y-axis clean since it matches the left
+                legend_title="Nation", height=600
+            )
+            st.plotly_chart(fig_cloud, use_container_width=True)
+        else:
+            st.warning("Micro-data files not found or still processing. Cannot render Data Cloud.")
 
     ################################
     #  3: Longitudinal Tech Trends #
