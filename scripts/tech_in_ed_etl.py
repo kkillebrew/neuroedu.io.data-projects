@@ -13,7 +13,8 @@ print("Starting EdTech Master ETL Pipeline...")
 
 # Directory configuration based on your repo structure
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'documents'))
-pisa_raw_dir = os.path.join(base_dir, 'pisa_raw') 
+# Updated to match your actual folder name
+pisa_raw_dir = os.path.join(base_dir, 'PSA_Outputs')
 wbes_source = os.path.join(base_dir, 'WBES_macro.parquet')
 master_output = os.path.join(base_dir, 'tech_in_ed_master_dataset.parquet')
 
