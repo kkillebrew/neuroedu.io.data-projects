@@ -108,19 +108,28 @@ def get_country_summary(df, country_code):
     
     return summary
 
-def get_pisa_snapshots(df, rows=10):
+def get_pisa_grid_samples(df, rows_per_year=10):
     """
-    Groups the master dataframe by Year and returns a dictionary 
-    of the first N rows for each unique PISA cycle.
+    Randomly samples one row for each of the 10 target countries per year.
+    Returns a dictionary of dataframes for the 4x2 grid.
     """
+    # Target countries: USA, Mexico, Argentina, Brazil, Germany, UK, Japan, China, Jordan, Morocco
+    targets = ['USA', 'MEX', 'ARG', 'BRA', 'DEU', 'GBR', 'JPN', 'CHN', 'JOR', 'MAR']
+    
     snapshots = {}
-    # Ensure we only look at years that actually exist in the data
     unique_years = sorted(df['Year'].unique())
     
     for year in unique_years:
-        # Filter and take the top N rows
-        snapshots[year] = df[df['Year'] == year].head(rows)
+        year_data = df[df['Year'] == year]
+        # Filter for our specific 10 countries
+        sampled_rows = year_data[year_data['Country'].isin(targets)]
         
+        # Randomly shuffle and take 10 rows to ensure variety on each load
+        if len(sampled_rows) > rows_per_year:
+            snapshots[year] = sampled_rows.sample(n=rows_per_year).sort_values('Country')
+        else:
+            snapshots[year] = sampled_rows.sort_values('Country')
+            
     return snapshots
 
 def get_benchmark_comparison_data(df):

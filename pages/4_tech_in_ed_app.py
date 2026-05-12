@@ -51,37 +51,35 @@ tab1, tab2, tab3, tab4 = st.tabs([
 with tab1:
     st.header("Pipeline Integrity Verification")
     st.write("""
-    This view confirms the successful ingestion and harmonization of the eight major PISA cycles. 
-    Each table displays a 10-row snapshot of the processed variables (Country and core Scores) 
-    to verify that legacy text files and modern SPSS records have aligned correctly.
+    **Verification Strategy:** Randomly sampling 1 student record from 10 benchmark nations 
+    across 4 continents. This confirms that all metadata columns (Scores, Tech Usage, and Identifiers) 
+    have successfully mapped into the master schema.
     """)
 
     ################################
     #      1: Raw data tables      #
     ################################
-    # Get our snapshots from the loader
-    snapshots = get_pisa_snapshots(df, rows=10)
+    # Get randomized samples (1 row each for 10 target countries)
+    snapshots = get_pisa_grid_samples(df, rows_per_year=10)
     years = sorted(snapshots.keys())
 
-    # Create the 4x2 Grid using two rows of four columns
-    for row_idx in range(2): # Two rows
+    # 4x2 Grid Implementation
+    for row_idx in range(2): 
         cols = st.columns(4)
-        for col_idx in range(4): # Four columns per row
+        for col_idx in range(4):
             year_idx = (row_idx * 4) + col_idx
             if year_idx < len(years):
                 year = years[year_idx]
                 with cols[col_idx]:
-                    st.subheader(f"📅 {year} Cycle")
+                    st.markdown(f"#### 📅 {year} Dataset")
                     
-                    # Select specific columns to keep the mini-tables clean
-                    # We use a fallback check in case a specific score isn't in that year
-                    display_cols = ['Country', 'Math_Score', 'Reading_Score', 'Science_Score']
-                    available_cols = [c for c in display_cols if c in snapshots[year].columns]
-                    
+                    # Displaying ALL columns with a height of 160 (approx 3.5 rows)
+                    # This forces a vertical scrollbar for the remaining 7 countries
                     st.dataframe(
-                        snapshots[year][available_cols],
+                        snapshots[year],
                         hide_index=True,
-                        use_container_width=True
+                        use_container_width=True,
+                        height=160
                     )
 
     ################################
