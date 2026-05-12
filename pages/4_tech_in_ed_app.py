@@ -102,31 +102,41 @@ with tab1:
         'Science Proficiency': 'Science_Proficiency_Score'
     }
 
-    st.header("Phase 2: Distribution Trends (Box & Whisker)")
+    st.header("Phase 2: Distribution Trends (Box & Whisker Overlay)")
+    st.write("Comparing the statistical spread of student scores across all benchmark nations simultaneously.")
+    
     selected_label = st.selectbox("Select Subject for Distribution:", list(subject_map.keys()))
     selected_sub = subject_map[selected_label] # Gets the actual column name
 
-    # Row 1: USA (Top Row)
-    row1_col = st.columns(1)[0]
-    with row1_col:
-        fig_usa = px.box(df_bench[df_bench['Country'] == 'USA'], 
-                         x='Year', y=selected_sub, points="all",
-                         title=f"USA {selected_label} Distribution Over Time",
-                         color_discrete_sequence=['#EF553B'])
-        st.plotly_chart(fig_usa, use_container_width=True)
+    # Standardized color map so countries look consistent across the dashboard
+    country_colors = {
+        'USA': '#EF553B', 
+        'JPN': '#636EFA', 
+        'DEU': '#00CC96', 
+        'ARG': '#AB63FA', 
+        'JOR': '#FFA15A'
+    }
 
-    # Rows 2 & 3: The other 4 countries (2x2 grid)
-    countries_left = ['JPN', 'DEU', 'ARG', 'JOR']
-    grid_cols = st.columns(2)
+    # Generate a single grouped box plot
+    fig_box = px.box(
+        df_bench, 
+        x='Year', 
+        y=selected_sub, 
+        color='Country',       # This groups the boxes side-by-side per year
+        points="all",          # Keeps the 'butterfly' scatter effect
+        color_discrete_map=country_colors,
+        title=f"Global {selected_label} Distribution Over Time"
+    )
 
-    for i, country in enumerate(countries_left):
-        col_idx = i % 2
-        with grid_cols[col_idx]:
-            fig_bench = px.box(df_bench[df_bench['Country'] == country], 
-                               x='Year', y=selected_sub, points="all",
-                               title=f"{country} {selected_label} Distribution",
-                               color_discrete_sequence=['#00CC96'])
-            st.plotly_chart(fig_bench, use_container_width=True)
+    fig_box.update_layout(
+        xaxis_title="Year",
+        yaxis_title="PISA Score",
+        boxmode="group",       # Ensures boxes for the same year sit next to each other
+        legend_title="Nation",
+        height=600             # Gives the grouped chart enough vertical breathing room
+    )
+
+    st.plotly_chart(fig_box, use_container_width=True)
 
     ################################
     #  3: Longitudinal Tech Trends #
