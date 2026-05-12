@@ -25,7 +25,8 @@ apply_global_settings("Neuro-Edu | The EdTech Paradox")
 render_sidebar()
 
 # --- DATA INGESTION ---
-base_dir = os.path.join(os.path.dirname(__file__), '..', 'documents')
+# ADDED os.path.abspath to make the path strictly absolute regardless of where Streamlit is launched
+base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'documents'))
 
 try:
     df_raw = load_edtech_master(base_dir)

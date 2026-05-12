@@ -68,6 +68,9 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add documents/**/*.parquet documents/**/*.csv
+          
+          # The -f flag FORCES Git to track the file even if .gitignore says no
+          git add -f documents/tech_in_ed_master_dataset.parquet
+          
           git commit -m "Auto-update processed master datasets" || echo "No changes to commit"
           git push
