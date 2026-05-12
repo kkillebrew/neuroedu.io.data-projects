@@ -107,3 +107,25 @@ def get_country_summary(df, country_code):
     }
     
     return summary
+
+def get_pisa_snapshots(df, rows=10):
+    """
+    Groups the master dataframe by Year and returns a dictionary 
+    of the first N rows for each unique PISA cycle.
+    """
+    snapshots = {}
+    # Ensure we only look at years that actually exist in the data
+    unique_years = sorted(df['Year'].unique())
+    
+    for year in unique_years:
+        # Filter and take the top N rows
+        snapshots[year] = df[df['Year'] == year].head(rows)
+        
+    return snapshots
+
+def get_benchmark_comparison_data(df):
+    """
+    Filters for the 5 longitudinal benchmark countries.
+    """
+    benchmarks = ['USA', 'JPN', 'DEU', 'ARG', 'JOR']
+    return df[df['Country'].isin(benchmarks)].sort_values(['Country', 'Year'])
