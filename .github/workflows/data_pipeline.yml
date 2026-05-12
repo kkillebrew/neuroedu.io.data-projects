@@ -3,19 +3,18 @@ name: Automated ETL Data Pipeline
 on:
   push:
     branches: [ main ]
-    # The pipeline will trigger if files for ANY of the data projects change
     paths:
       # --- Keystroke/Typo Project Triggers ---
       - 'scripts/run_etl.py'
       - 'loaders/typo_behavior_loader.py'
-      - 'documents/*.csv'
-      - 'documents/*.txt'
+      - 'documents/**/*.csv'     # ADDED ** to catch subfolders
+      - 'documents/**/*.txt'     # ADDED ** to catch subfolders
       # --- EdTech Paradox Project Triggers ---
       - 'scripts/tech_in_ed_etl.py'
       - 'loaders/tech_in_ed_loader.py'
-      - 'documents/*.parquet'
+      # --- Shared Triggers ---
+      - 'documents/**/*.parquet' # ADDED ** to catch PSA_Outputs/
       
-  # Still allows manual clicking from the GitHub website
   workflow_dispatch:
 
 jobs:
@@ -27,7 +26,6 @@ jobs:
         with:
           lfs: true
 
-      # --- NEW LOGIC: Map changed files to specific projects ---
       - name: Check which project files changed
         uses: dorny/paths-filter@v2
         id: filter
@@ -36,12 +34,12 @@ jobs:
             typo_project:
               - 'scripts/run_etl.py'
               - 'loaders/typo_behavior_loader.py'
-              - 'documents/*.csv'
-              - 'documents/*.txt'
+              - 'documents/**/*.csv'
+              - 'documents/**/*.txt'
             edtech_project:
               - 'scripts/tech_in_ed_etl.py'
               - 'loaders/tech_in_ed_loader.py'
-              - 'documents/*.parquet'
+              - 'documents/**/*.parquet' # ADDED ** here too
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -52,7 +50,6 @@ jobs:
         run: |
           pip install pandas pyarrow fastparquet scipy streamlit wbgapi
 
-      # --- CONDITIONAL STEP: Only run if Typo files changed (or if run manually) ---
       - name: Run Keystroke/Typo ETL Script
         if: steps.filter.outputs.typo_project == 'true' || github.event_name == 'workflow_dispatch'
         env:
@@ -60,7 +57,6 @@ jobs:
         continue-on-error: true
         run: python scripts/run_etl.py
 
-      # --- CONDITIONAL STEP: Only run if EdTech files changed (or if run manually) ---
       - name: Run EdTech Paradox ETL Script
         if: steps.filter.outputs.edtech_project == 'true' || github.event_name == 'workflow_dispatch'
         env:
@@ -72,7 +68,6 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add documents/*.parquet documents/*.csv
-          # The '|| echo' prevents the pipeline from failing if there are no changes to commit
+          git add documents/**/*.parquet documents/**/*.csv
           git commit -m "Auto-update processed master datasets" || echo "No changes to commit"
           git push
