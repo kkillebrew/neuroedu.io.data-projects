@@ -277,19 +277,40 @@ with tab1:
     # Create the two columns for our side-by-side plots
     col_scatter, col_bar = st.columns(2)
 
-    # --- COLUMN 1: CORRELATION SCATTER PLOT ---
+    # --- COLUMN 1: CORRELATION & TRAJECTORY PLOT ---
     with col_scatter:
         if not df_plot.empty:
-            fig_scatter = px.scatter(
-                df_plot,
-                x=selected_factor,
-                y=selected_sub,
-                color='Year',           # Colors the dots by year to show time progression
-                hover_data=['Country'], # Shows which country the dot belongs to when hovered
-                trendline='ols',        # Draws the line of best fit!
-                trendline_color_override="red",
-                title=f"Trendline: {selected_factor_label} vs {selected_sub_label.split(' ')[0]}"
-            )
+            # Sort chronologically so the trajectory lines draw forward in time
+            df_plot = df_plot.sort_values(by=['Country', 'Yeart'])
+            
+            # Add a UI toggle to let the user choose the view
+            show_trajectory = st.checkbox("Show Country Trajectories (Connect dots over time)")
+
+            if show_trajectory:
+                # TRAJECTORY VIEW: Connected Scatter Plot
+                fig_scatter = px.line(
+                    df_plot,
+                    x=selected_factor,
+                    y=selected_sub,
+                    color='Country',       # Each country gets a distinct colored line
+                    line_group='Country',  # Connects dots belonging to the same country
+                    markers=True,          # Keeps the dots visible
+                    hover_data=['Yeart'],  # Shows the year when you hover over a dot
+                    title=f"Time Trajectories: {selected_factor_label} vs {selected_sub_label.split(' ')[0]}"
+                )
+            else:
+                # GLOBAL TREND VIEW: Original Scatter with OLS line
+                fig_scatter = px.scatter(
+                    df_plot,
+                    x=selected_factor,
+                    y=selected_sub,
+                    color='Yeart',          
+                    hover_data=['Country'], 
+                    trendline='ols',        
+                    trendline_color_override="red",
+                    title=f"Global Trend: {selected_factor_label} vs {selected_sub_label.split(' ')[0]}"
+                )
+                
             fig_scatter.update_layout(height=500, xaxis_title=selected_factor_label, yaxis_title="PISA Score")
             st.plotly_chart(fig_scatter, use_container_width=True)
         else:
