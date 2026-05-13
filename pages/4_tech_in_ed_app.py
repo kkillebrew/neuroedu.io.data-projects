@@ -164,9 +164,9 @@ with tab1:
 
     # Define strict colors so subjects are instantly recognizable across all plots
     subject_colors = {
-        'Math (Learning Efficiency)': '#EF553B',  # Red
-        'Science Efficiency': '#00CC96',         # Green
-        'Reading Efficiency': '#636EFA'          # Blue
+        'Math (Learning Efficiency)': '#EF553B', 
+        'Science Proficiency': '#00CC96',        # Match the new label
+        'Reading Proficiency': '#636EFA'         # Match the new label
     }
 
     bench_list = ['USA', 'JPN', 'DEU', 'ARG', 'JOR']
@@ -243,10 +243,10 @@ with tab1:
         selected_factor = factor_map[selected_factor_label]
 
     with col_sel2:
-        subject_map = {
+        subject_map_sandbox = { # Renamed slightly to avoid conflict
             'Math (Learning Efficiency)': 'Learning_Efficiency_Score',
-            'Reading Efficiency': 'Reading_Efficiency_Score',
-            'Science Efficiency': 'Science_Efficiency_Score'
+            'Reading Proficiency': 'Reading_Proficiency_Score',
+            'Science Proficiency': 'Science_Proficiency_Score'
         }
         selected_sub_label = st.selectbox("Select Dependent Subject (Y-Axis):", list(subject_map.keys()))
         selected_sub = subject_map[selected_sub_label]
