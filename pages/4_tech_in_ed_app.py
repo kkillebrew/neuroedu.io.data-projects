@@ -251,13 +251,14 @@ with tab1:
         selected_sub_label = st.selectbox("Select Dependent Subject (Y-Axis):", list(subject_map.keys()))
         selected_sub = subject_map[selected_sub_label]
 
+
+    # ADD THIS TEMPORARY DEBUG LINE:
+    st.write("AVAILABLE COLUMNS:", df.columns.tolist())
+
     # --- DATA PREP ---
     # We use the full macro dataset (df) here so we have enough data points for a real trendline
     # Drop rows where either the selected factor or the selected score is missing
     df_plot = df.dropna(subset=[selected_factor, selected_sub]).copy()
-
-    # ADD THIS TEMPORARY DEBUG LINE:
-    st.write("AVAILABLE COLUMNS:", df.columns.tolist())
 
     # Create the two columns for our side-by-side plots
     col_scatter, col_bar = st.columns(2)
