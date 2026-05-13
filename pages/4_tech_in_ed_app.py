@@ -41,7 +41,7 @@ except Exception as e:
 st.title("🎓 The EdTech Paradox: Mastery vs. Overload")
 st.markdown("""
 ### Analyzing 22 Years of Global Educational Evolution
-Does the rapid adoption of classroom technology correlate with higher student proficiency, 
+Does the rapid adoption of classroom technology correlate with higher student Efficiency, 
 or has the digital age simply increased the complexity of what students are expected to manage? 
 By fusing **OECD PISA** datasets with **World Bank** economic indicators, we visualize the 
 shifting boundary between human cognitive capacity and academic demand.
@@ -103,8 +103,8 @@ with tab1:
     
     subject_map = {
         'Math (Learning Efficiency)': 'Learning_Efficiency_Score',
-        'Reading Proficiency': 'Reading_Proficiency_Score',
-        'Science Proficiency': 'Science_Proficiency_Score'
+        'Reading Efficiency': 'Reading_Efficiency_Score',
+        'Science Efficiency': 'Science_Efficiency_Score'
     }
 
     st.header("Phase 2: Distribution Trends & Data Clouds")
@@ -165,8 +165,8 @@ with tab1:
     # Define strict colors so subjects are instantly recognizable across all plots
     subject_colors = {
         'Math (Learning Efficiency)': '#EF553B',  # Red
-        'Science Proficiency': '#00CC96',         # Green
-        'Reading Proficiency': '#636EFA'          # Blue
+        'Science Efficiency': '#00CC96',         # Green
+        'Reading Efficiency': '#636EFA'          # Blue
     }
 
     bench_list = ['USA', 'JPN', 'DEU', 'ARG', 'JOR']
@@ -245,8 +245,8 @@ with tab1:
     with col_sel2:
         subject_map = {
             'Math (Learning Efficiency)': 'Learning_Efficiency_Score',
-            'Reading Proficiency': 'Reading_Proficiency_Score',
-            'Science Proficiency': 'Science_Proficiency_Score'
+            'Reading Efficiency': 'Reading_Efficiency_Score',
+            'Science Efficiency': 'Science_Efficiency_Score'
         }
         selected_sub_label = st.selectbox("Select Dependent Subject (Y-Axis):", list(subject_map.keys()))
         selected_sub = subject_map[selected_sub_label]
