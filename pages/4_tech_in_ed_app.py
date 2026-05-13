@@ -256,6 +256,9 @@ with tab1:
     # Drop rows where either the selected factor or the selected score is missing
     df_plot = df.dropna(subset=[selected_factor, selected_sub]).copy()
 
+    # ADD THIS TEMPORARY DEBUG LINE:
+    st.write("AVAILABLE COLUMNS:", df.columns.tolist())
+
     # Create the two columns for our side-by-side plots
     col_scatter, col_bar = st.columns(2)
 
