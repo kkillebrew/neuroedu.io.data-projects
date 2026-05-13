@@ -233,7 +233,7 @@ with tab1:
     with col_sel1:
         factor_map = {
             'GDP per Capita (Wealth)': 'GDP_PER_CAPITA',
-            'Internet Penetration (%)': 'INTERNET_PARTICIPATION',
+            'Internet Penetration (%)': 'INTERNET_PENETRATION',
             'Student-Teacher Ratio': 'Student_Teacher_Ratio',
             'ICT Use: Entertainment': 'ICT_Entertainment',
             'ICT Use: School/Academic': 'ICT_School_Use',
@@ -368,7 +368,7 @@ with tab2:
 
     # --- DATA PREP: BUCKETING GDP ---
     # Using your exact column names to prevent KeyErrors
-    df_tab2 = df.dropna(subset=['GDP_PER_CAPITA', 'INTERNET_PARTICIPATION']).copy()
+    df_tab2 = df.dropna(subset=['GDP_PER_CAPITA', 'INTERNET_PENETRATION']).copy()
     
     # Create 3 distinct GDP Tiers (Poor, Moderate, Wealthy) based on statistical percentiles
     try:
@@ -397,7 +397,7 @@ with tab2:
     if not df_tab2_clean.empty:
         fig_facet = px.scatter(
             df_tab2_clean,
-            x='INTERNET_PARTICIPATION',
+            x='INTERNET_PENETRATION',
             y=selected_sub_t2,
             facet_col='Wealth_Tier',      # Splits the graph into 3 side-by-side panels
             color='Year',                # Using the exact spelling from your previous debug output
@@ -405,7 +405,7 @@ with tab2:
             trendline='ols',              # Draws the line of best fit for EACH panel
             trendline_color_override="red",
             title=f"Impact of Internet on {selected_sub_label_t2.split(' ')[0]} by National Wealth Tier",
-            labels={'INTERNET_PARTICIPATION': 'Internet Penetration (%)', selected_sub_t2: 'PISA Score'}
+            labels={'INTERNET_PENETRATION': 'Internet Penetration (%)', selected_sub_t2: 'PISA Score'}
         )
         
         # Make the layout look clean and uniform
