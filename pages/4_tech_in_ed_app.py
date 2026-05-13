@@ -103,8 +103,8 @@ with tab1:
     
     subject_map = {
         'Math (Learning Efficiency)': 'Learning_Efficiency_Score',
-        'Reading Efficiency': 'Reading_Efficiency_Score',
-        'Science Efficiency': 'Science_Efficiency_Score'
+        'Reading Proficiency': 'Reading_Proficiency_Score',
+        'Science Proficiency': 'Science_Proficiency_Score'
     }
 
     st.header("Phase 2: Distribution Trends & Data Clouds")
@@ -233,7 +233,7 @@ with tab1:
     with col_sel1:
         factor_map = {
             'GDP per Capita (Wealth)': 'GDP_PER_CAPITA',
-            'Internet Penetration (%)': 'INTERNET_PENETRATION',
+            'Internet Penetration (%)': 'Internet_Penetration',
             'Student-Teacher Ratio': 'Student_Teacher_Ratio',
             'ICT Use: Entertainment': 'ICT_Entertainment',
             'ICT Use: School/Academic': 'ICT_School_Use',
@@ -383,8 +383,8 @@ with tab2:
     # --- UI: SUBJECT SELECTOR ---
     subject_map_t2 = {
         'Math Scores': 'Learning_Efficiency_Score',          
-        'Reading Scores': 'Reading_Efficiency_Score',
-        'Science Scores': 'Science_Efficiency_Score'
+        'Reading Scores': 'Reading_Proficiency_Score',
+        'Science Scores': 'Science_Proficiency_Score'
     }
     
     selected_sub_label_t2 = st.selectbox("Select Subject to Analyze:", list(subject_map_t2.keys()))
