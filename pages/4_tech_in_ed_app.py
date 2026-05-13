@@ -233,10 +233,10 @@ with tab1:
     with col_sel1:
         factor_map = {
             'GDP per Capita (Wealth)': 'GDP_PER_CAPITA',
-            'Internet Penetration (%)': 'INTERNET_PENETRATION',
-            'Student-Teacher Ratio': 'STUDENT_TEACHER_RATIO',
-            'ICT Use: Entertainment': 'ICT_ENTERTAINMENT',
-            'ICT Use: School/Academic': 'ICT_SCHOOL_USE',
+            'Internet Penetration (%)': 'INTERNET_PARTICIPATION',
+            'Student-Teacher Ratio': 'Student_Teacher_Ratio',
+            'ICT Use: Entertainment': 'ICT_Entertainment',
+            'ICT Use: School/Academic': 'ICT_School_Use',
             'Knowledge Gap (Inequity)': 'Knowledge_Gap'
         }
         selected_factor_label = st.selectbox("Select Independent Factor (X-Axis):", list(factor_map.keys()))
@@ -251,14 +251,28 @@ with tab1:
         selected_sub_label = st.selectbox("Select Dependent Subject (Y-Axis):", list(subject_map.keys()))
         selected_sub = subject_map[selected_sub_label]
 
+    # --- UI: COUNTRY MULTI-SELECT ---
+    # Get all unique countries from the dataset and sort them alphabetically
+    all_countries = sorted(df['Country'].dropna().unique().tolist())
+    
+    # Define your standard 5 countries here
+    default_targets = ['USA', 'JPN', 'DEU', 'ARG', 'JOR'] 
+    
+    # Safety check: Ensure our defaults actually exist in the data to prevent Streamlit errors
+    valid_defaults = [c for c in default_targets if c in all_countries]
 
-    # # ADD THIS TEMPORARY DEBUG LINE:
-    # st.write("AVAILABLE COLUMNS:", df.columns.tolist())
+    selected_countries = st.multiselect(
+        "Filter by Country (Add or remove to compare):",
+        options=all_countries,
+        default=valid_defaults
+    )
 
     # --- DATA PREP ---
-    # We use the full macro dataset (df) here so we have enough data points for a real trendline
-    # Drop rows where either the selected factor or the selected score is missing
+    # 1. Drop rows where either the selected factor or the selected score is missing
     df_plot = df.dropna(subset=[selected_factor, selected_sub]).copy()
+    
+    # 2. Filter the dataset to ONLY include the countries chosen in the multiselect box
+    df_plot = df_plot[df_plot['Country'].isin(selected_countries)]
 
     # Create the two columns for our side-by-side plots
     col_scatter, col_bar = st.columns(2)
