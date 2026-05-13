@@ -382,9 +382,9 @@ with tab2:
 
     # --- UI: SUBJECT SELECTOR ---
     subject_map_t2 = {
-        'Math Scores': 'Math_Score',          
-        'Reading Scores': 'Reading_Score',
-        'Science Scores': 'Science_Score'
+        'Math Scores': 'Learning_Efficiency_Score',          
+        'Reading Scores': 'Reading_Efficiency_Score',
+        'Science Scores': 'Science_Efficiency_Score'
     }
     
     selected_sub_label_t2 = st.selectbox("Select Subject to Analyze:", list(subject_map_t2.keys()))
