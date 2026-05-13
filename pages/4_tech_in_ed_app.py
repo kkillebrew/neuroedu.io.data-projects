@@ -232,11 +232,11 @@ with tab1:
 
     with col_sel1:
         factor_map = {
-            'GDP per Capita (Wealth)': 'GDP_per_Capita',
-            'Internet Penetration (%)': 'Internet_Penetration',
-            'Student-Teacher Ratio': 'Student_Teacher_Ratio',
-            'ICT Use: Entertainment': 'ICT_Entertainment',
-            'ICT Use: School/Academic': 'ICT_School_Use',
+            'GDP per Capita (Wealth)': 'GDP_PER_CAPITA',
+            'Internet Penetration (%)': 'INTERNET_PENETRATION',
+            'Student-Teacher Ratio': 'STUDENT_TEACHER_RATIO',
+            'ICT Use: Entertainment': 'ICT_ENTERTAINMENT',
+            'ICT Use: School/Academic': 'ICT_SCHOOL_USE',
             'Knowledge Gap (Inequity)': 'Knowledge_Gap'
         }
         selected_factor_label = st.selectbox("Select Independent Factor (X-Axis):", list(factor_map.keys()))
@@ -252,8 +252,8 @@ with tab1:
         selected_sub = subject_map[selected_sub_label]
 
 
-    # ADD THIS TEMPORARY DEBUG LINE:
-    st.write("AVAILABLE COLUMNS:", df.columns.tolist())
+    # # ADD THIS TEMPORARY DEBUG LINE:
+    # st.write("AVAILABLE COLUMNS:", df.columns.tolist())
 
     # --- DATA PREP ---
     # We use the full macro dataset (df) here so we have enough data points for a real trendline
