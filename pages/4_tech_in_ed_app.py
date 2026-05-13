@@ -354,11 +354,73 @@ with tab1:
                 st.warning(f"Not enough variance in {selected_factor_label} to calculate Low/Medium/High tiers.")
 
 # ---------------------------------------------------------------------
-# REMAINING TABS (Keep your existing logic here)
+# TAB 2: Tab 2: How Tech Effects Populations Differently 
 # ---------------------------------------------------------------------
 with tab2:
-    st.header("Phase 2: Subject-Specific Divergence")
-    # ... (Your existing Tab 2 logic)
+    st.header("How Tech Effects Populations Differently ")
+    
+    st.markdown("""
+    **Why do we see stronger effects in certain subjects?** Historical data suggests that internet access strongly facilitates self-teaching in logic-based subjects like **Math and Science**, where concepts can be broken down step-by-step via video tutorials. However, the internet often promotes "skimming" behavior, which does not necessarily improve the deep cognitive stamina required for **Reading Comprehension**.
+    
+    **The Leapfrog Effect:** Does technology help poor nations more than rich ones? By splitting our global data into three wealth tiers, we can observe the marginal utility of the internet.
+    """)
+
+    st.markdown("---")
+
+    # --- DATA PREP: BUCKETING GDP ---
+    # We must drop NaNs in GDP first to ensure qcut works accurately
+    df_tab2 = df.dropna(subset=['GDP_PER_CAPITA', 'INTERNET_PARTICIPATION']).copy()
+    
+    # Create 3 distinct GDP Tiers (Poor, Moderate, Wealthy) based on statistical percentiles
+    df_tab2['Wealth_Tier'] = pd.qcut(
+        df_tab2['GDP_PER_CAPITA'], 
+        q=3, 
+        labels=['Lower Income', 'Middle Income', 'High Income']
+    )
+
+    # --- UI: SUBJECT SELECTOR ---
+    subject_map_t2 = {
+        'Math Scores': 'Math_Score',          # Update these if your columns are named differently!
+        'Reading Scores': 'Reading_Score',
+        'Science Scores': 'Science_Score'
+    }
+    
+    selected_sub_label_t2 = st.selectbox("Select Subject to Analyze:", list(subject_map_t2.keys()))
+    selected_sub_t2 = subject_map_t2[selected_sub_label_t2]
+
+    # Drop rows where the specific subject score is missing
+    df_tab2_clean = df_tab2.dropna(subset=[selected_sub_t2])
+
+    # --- COLUMN 1: THE FACETED PLOT ---
+    if not df_tab2_clean.empty:
+        fig_facet = px.scatter(
+            df_tab2_clean,
+            x='INTERNET_PARTICIPATION',
+            y=selected_sub_t2,
+            facet_col='Wealth_Tier',      # Splits the graph into 3 side-by-side panels!
+            color='Yeart',                # Color maps to time progression
+            hover_data=['Country'],
+            trendline='ols',              # Draws the line of best fit for EACH panel
+            trendline_color_override="red",
+            title=f"Impact of Internet on {selected_sub_label_t2.split(' ')[0]} by National Wealth Tier",
+            labels={'INTERNET_PARTICIPATION': 'Internet Penetration (%)', selected_sub_t2: 'PISA Score'}
+        )
+        
+        # Make the layout look clean and uniform
+        fig_facet.update_layout(height=500)
+        # Ensure the Y-axis isn't locked to 0 so we can see the data spread clearly
+        fig_facet.update_yaxes(matches=None, showticklabels=True) 
+        
+        st.plotly_chart(fig_facet, use_container_width=True)
+    else:
+        st.warning("Insufficient data to plot this relationship.")
+
+    # --- DYNAMIC ANALYTICAL INSIGHT BOX ---
+    st.info("""
+    **How to read this chart:** Look at the red trendlines in each panel. 
+    * If the line is **steeper** in the 'Lower Income' tier, it means a 10% increase in internet access creates a massive jump in scores for developing nations. 
+    * If the line is **flat** in the 'High Income' tier, it indicates diminishing returns—adding more internet to an already wealthy country doesn't move the needle much.
+    """)
 
 with tab3:
     st.header("Phase 3: Digital Literacy & Correlation")
