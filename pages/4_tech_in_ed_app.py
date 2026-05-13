@@ -281,7 +281,7 @@ with tab1:
     with col_scatter:
         if not df_plot.empty:
             # Sort chronologically so the trajectory lines draw forward in time
-            df_plot = df_plot.sort_values(by=['Country', 'Yeart'])
+            df_plot = df_plot.sort_values(by=['Country', 'Year'])
             
             # Add a UI toggle to let the user choose the view
             show_trajectory = st.checkbox("Show Country Trajectories (Connect dots over time)")
@@ -295,7 +295,7 @@ with tab1:
                     color='Country',       # Each country gets a distinct colored line
                     line_group='Country',  # Connects dots belonging to the same country
                     markers=True,          # Keeps the dots visible
-                    hover_data=['Yeart'],  # Shows the year when you hover over a dot
+                    hover_data=['Year'],  # Shows the year when you hover over a dot
                     title=f"Time Trajectories: {selected_factor_label} vs {selected_sub_label.split(' ')[0]}"
                 )
             else:
@@ -304,7 +304,7 @@ with tab1:
                     df_plot,
                     x=selected_factor,
                     y=selected_sub,
-                    color='Yeart',          
+                    color='Year',          
                     hover_data=['Country'], 
                     trendline='ols',        
                     trendline_color_override="red",
@@ -358,7 +358,6 @@ with tab1:
 # ---------------------------------------------------------------------
 with tab2:
     st.header("How Tech Effects Populations Differently ")
-    
     st.markdown("""
     **Why do we see stronger effects in certain subjects?** Historical data suggests that internet access strongly facilitates self-teaching in logic-based subjects like **Math and Science**, where concepts can be broken down step-by-step via video tutorials. However, the internet often promotes "skimming" behavior, which does not necessarily improve the deep cognitive stamina required for **Reading Comprehension**.
     
@@ -368,19 +367,22 @@ with tab2:
     st.markdown("---")
 
     # --- DATA PREP: BUCKETING GDP ---
-    # We must drop NaNs in GDP first to ensure qcut works accurately
+    # Using your exact column names to prevent KeyErrors
     df_tab2 = df.dropna(subset=['GDP_PER_CAPITA', 'INTERNET_PARTICIPATION']).copy()
     
     # Create 3 distinct GDP Tiers (Poor, Moderate, Wealthy) based on statistical percentiles
-    df_tab2['Wealth_Tier'] = pd.qcut(
-        df_tab2['GDP_PER_CAPITA'], 
-        q=3, 
-        labels=['Lower Income', 'Middle Income', 'High Income']
-    )
+    try:
+        df_tab2['Wealth_Tier'] = pd.qcut(
+            df_tab2['GDP_PER_CAPITA'], 
+            q=3, 
+            labels=['Lower Income', 'Middle Income', 'High Income']
+        )
+    except Exception as e:
+        st.error("Not enough variance in GDP data to create wealth tiers. Check your master dataset.")
 
     # --- UI: SUBJECT SELECTOR ---
     subject_map_t2 = {
-        'Math Scores': 'Math_Score',          # Update these if your columns are named differently!
+        'Math Scores': 'Math_Score',          
         'Reading Scores': 'Reading_Score',
         'Science Scores': 'Science_Score'
     }
@@ -397,8 +399,8 @@ with tab2:
             df_tab2_clean,
             x='INTERNET_PARTICIPATION',
             y=selected_sub_t2,
-            facet_col='Wealth_Tier',      # Splits the graph into 3 side-by-side panels!
-            color='Yeart',                # Color maps to time progression
+            facet_col='Wealth_Tier',      # Splits the graph into 3 side-by-side panels
+            color='Year',                # Using the exact spelling from your previous debug output
             hover_data=['Country'],
             trendline='ols',              # Draws the line of best fit for EACH panel
             trendline_color_override="red",
