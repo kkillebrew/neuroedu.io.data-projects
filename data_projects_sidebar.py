@@ -72,23 +72,17 @@ def render_sidebar():
             color: #38BDF8 !important; /* Sky Blue Accent */
         }
         
-        .masthead-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-top: -40px; 
-            margin-bottom: 30px;
-        }
-        .masthead-text { line-height: 1.2; }
-        .masthead-title {
-            font-size: 1.1rem;
+        .sidebar-text-container { line-height: 1.25; }
+        .sidebar-name {
+            font-size: 1.15rem;
             font-weight: bold;
-            color: #F8FAFC;
+            color: #F8FAFC !important;
+            margin-bottom: 4px;
         }
-        .masthead-blurb {
-            font-size: 0.8rem;
-            color: #94A3B8; 
-            margin-top: 5px;
+        .sidebar-subtitle {
+            font-size: 0.75rem; 
+            color: #94A3B8 !important; 
+            line-height: 1.3;
         }
         
         .presence-bar {
@@ -130,9 +124,9 @@ def render_sidebar():
             
         with col2:
              st.markdown("""
-                <div class="masthead-text">
-                    <div class="masthead-name">Data Projects Hub</div>
-                    <div class="masthead-title">Passion-driven, exploratory data science & interactive modeling.</div>
+                <div class="sidebar-text-container">
+                    <div class="sidebar-name">Data Projects Hub</div>
+                    <div class="sidebar-subtitle">Passion-driven, exploratory data science & interactive modeling.</div>
                 </div>
             """, unsafe_allow_html=True)
 
@@ -169,6 +163,6 @@ def render_sidebar():
         st.markdown("""
             <div class="sidebar-footer">
                 © 2026 Kyle W. Killebrew.<br>
-                Data, models, and resume entirely self-authored.
+                Code, models, and resume entirely self-authored.
             </div>
         """, unsafe_allow_html=True)
