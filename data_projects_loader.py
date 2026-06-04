@@ -45,7 +45,7 @@ def get_project_descriptions():
         {
             "title": "Does more tech really increase test scores?",
             "desc": "Data-driven evaluation of technological availability in learning environments and their effects on educational outcomes around the world.",
-            "status": "development", 
+            "status": "active", 
             "page": "pages/4_tech_ed_app.py",
             "button_text": "Launch Tech in Education"
         }
