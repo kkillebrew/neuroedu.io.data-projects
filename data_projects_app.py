@@ -20,6 +20,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from data_projects_loader import get_data_bio_metadata, get_project_descriptions
 from pages.components.genealogy_web_demo import render_genealogy_web # <-- NEW IMPORT
+from pages.components.migration_map_demo import render_migration_map # <-- ADD THIS LINE
 
 from data_projects_sidebar import apply_global_settings, render_sidebar
 
@@ -143,7 +144,8 @@ tree_view = st.radio(
 if tree_view == "Ancestral Tree":
     render_genealogy_web()
 elif tree_view == "Migration Journeys":
-    st.info("Migration maps pipeline is currently in development. Please check back later.")
+    # --- REPLACED PLACEHOLDER WITH NEW COMPONENT ---
+    render_migration_map()
 elif tree_view == "DNA Evidence":
     st.info("DNA sequencing and genomic variance module is currently in development.")
 
