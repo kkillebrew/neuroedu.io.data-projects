@@ -86,8 +86,8 @@ def render_genealogy_web():
                     { id: "Leonard V.", group: 2, radius: 12, desc: "1895 - 1989" },
                     { id: "Edwin DeVries V.", group: 2, radius: 12, desc: "1848 - 1923" },
                     { id: "William A. V.", group: 2, radius: 14, desc: "~1816 - 1893" },
-                    { id: "Beulah Salisbury", group: 2, radius: 14, desc: "1814 - 1892" }
-                    { id: "Marie Emilie Ibe", group: 4, radius: 12, desc: "Unknown"}
+                    { id: "Beulah Salisbury", group: 2, radius: 14, desc: "1814 - 1892" },
+                    { id: "Marie Emilie Ibe", group: 4, radius: 12, desc: "Unknown"},
                     { id: "G. Heinrich L. Lieber", group: 4, radius: 12, desc: "Unkown"}
                 ],
                 links: [
@@ -110,8 +110,8 @@ def render_genealogy_web():
                     { source: "John O. Vanderhoop", target: "Leonard V." },
                     { source: "Leonard V.", target: "Edwin DeVries V." },
                     { source: "Edwin DeVries V.", target: "William A. V." },
-                    { source: "Edwin DeVries V.", target: "Beulah Salisbury" }
-                    { source: "Waltrud M. Lieber", target: "Marie Emilie Ibe"}
+                    { source: "Edwin DeVries V.", target: "Beulah Salisbury" },
+                    { source: "Waltrud M. Lieber", target: "Marie Emilie Ibe"},
                     { source: "Waltrud M. Lieber", target: "G. Heinrich L. Lieber"}
                 ]
             };
