@@ -72,7 +72,7 @@ def render_genealogy_web():
                     { id: "Robert Killebrew", group: 1, radius: 15, desc: "1930 - 2017" },
                     { id: "Bonnie Rasmussen", group: 3, radius: 15, desc: "1934 - 2020" },
                     { id: "John O. Vanderhoop", group: 2, radius: 15, desc: "1934 - 2022" },
-                    { id: "Gaby Lieber", group: 4, radius: 15, desc: "1934 - 2022" },
+                    { id: "Waltrud M. Lieber", group: 4, radius: 15, desc: "1934 - 2022" },
                     { id: "William H. K.", group: 1, radius: 12, desc: "1898 - 1970" },
                     { id: "Daniel Boone K.", group: 1, radius: 12, desc: "1860 - 1939" },
                     { id: "George W. K.", group: 1, radius: 12, desc: "1812 - 1871" },
@@ -87,6 +87,8 @@ def render_genealogy_web():
                     { id: "Edwin DeVries V.", group: 2, radius: 12, desc: "1848 - 1923" },
                     { id: "William A. V.", group: 2, radius: 14, desc: "~1816 - 1893" },
                     { id: "Beulah Salisbury", group: 2, radius: 14, desc: "1814 - 1892" }
+                    { id: "Marie Emilie Ibe", group: 4, radius: 12, desc: "Unknown"}
+                    { id: "G. Heinrich L. Lieber", group: 4, radius: 12, desc: "Unkown"}
                 ],
                 links: [
                     { source: "Kyle Killebrew", target: "Eric Killebrew" },
@@ -109,6 +111,8 @@ def render_genealogy_web():
                     { source: "Leonard V.", target: "Edwin DeVries V." },
                     { source: "Edwin DeVries V.", target: "William A. V." },
                     { source: "Edwin DeVries V.", target: "Beulah Salisbury" }
+                    { source: "Waltrud M. Lieber", target: "Marie Emilie Ibe"}
+                    { source: "Waltrud M. Lieber", target: "G. Heinrich L. Lieber"}
                 ]
             };
 
@@ -155,7 +159,10 @@ def render_genealogy_web():
                                     ]}
                                 ]}
                             ]},
-                            { name: "Gaby Lieber", year: 1934, group: 4, desc: "Grandmother" }
+                            { name: "Gaby Lieber", year: 1934, group: 4, desc: "Grandmother", children: [
+                                { name: "Marie Emilie Ibe", year: 1900, group: 4 },
+                                { name: "G. Heinrich L. Lieber", year: 1900, group: 4 }
+                            ]}
                         ]
                     }
                 ]
