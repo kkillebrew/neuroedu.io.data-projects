@@ -88,7 +88,7 @@ def render_genealogy_web():
                     { id: "William A. V.", group: 2, radius: 14, desc: "~1816 - 1893" },
                     { id: "Beulah Salisbury", group: 2, radius: 14, desc: "1814 - 1892" },
                     { id: "Marie Emilie Ibe", group: 4, radius: 12, desc: "Unknown"},
-                    { id: "G. Heinrich L. Lieber", group: 4, radius: 12, desc: "Unkown"}
+                    { id: "G. Heinrich L. Lieber", group: 4, radius: 12, desc: "Unknown"}
                 ],
                 links: [
                     { source: "Kyle Killebrew", target: "Eric Killebrew" },
@@ -96,7 +96,7 @@ def render_genealogy_web():
                     { source: "Eric Killebrew", target: "Robert Killebrew" },
                     { source: "Eric Killebrew", target: "Bonnie Rasmussen" },
                     { source: "Christina Vanderhoop", target: "John O. Vanderhoop" },
-                    { source: "Christina Vanderhoop", target: "Gaby Lieber" },
+                    { source: "Christina Vanderhoop", target: "Waltrud M. Lieber" },
                     { source: "Robert Killebrew", target: "William H. K." },
                     { source: "William H. K.", target: "Daniel Boone K." },
                     { source: "Daniel Boone K.", target: "George W. K." },
