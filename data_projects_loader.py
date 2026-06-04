@@ -29,22 +29,22 @@ def get_project_descriptions():
     """
     return [
         {
-            "title": "🛢️ Macro Oil Predictor",
-            "desc": "Predictive modeling of crude oil prices using macroeconomic indicators, FRED API integrations, and Random Forest classifiers.",
+            "title": "What effects the price of gas?",
+            "desc": "Predictive modeling of crude oil prices using macroeconomic indicators, FRED API integrations, and random forest classifiers.",
             "status": "active",
             "page": "pages/1_oil_predictor_app.py",
             "button_text": "Launch Oil Predictor"
         },
         {
-            "title": "🏀 NBA GOAT Predictor",
-            "desc": "Statistical analysis and machine learning models weighing historical player metrics to evaluate the 'Greatest of All Time' debate.",
+            "title": "Who's the real NBA GOAT?",
+            "desc": "Statistical analysis and machine learning models weighing historical player metrics to settle the 'Greatest of All Time' debate.",
             "status": "active", 
             "page": "pages/2_nba_goat_predictor_app.py",
             "button_text": "Launch NBA GOAT Predictor"
         },
         {
-            "title": "💻 Tech in Education",
-            "desc": "Data-driven evaluation of technological interventions in learning environments and their effects on educational outcomes.",
+            "title": "Does more tech really increase test scores?",
+            "desc": "Data-driven evaluation of technological availability in learning environments and their effects on educational outcomes around the world.",
             "status": "development", 
             "page": "pages/3_tech_education_app.py",
             "button_text": "Coming Soon"
