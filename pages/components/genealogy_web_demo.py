@@ -36,11 +36,11 @@ def render_genealogy_web():
             .node { cursor: pointer; stroke: #0F172A; stroke-width: 1.5px; transition: stroke-width 0.2s; }
             .node:hover { stroke: #F8FAFC; stroke-width: 4px; }
             
-            /* Differentiated Link Styles (Thickness Doubled) */
+            /* LINK STYLES: Main lines are thick (5px), Leaf/Lateral lines are ~2/3rds smaller (1.5px) */
             .link-main { fill: none; stroke: #475569; stroke-opacity: 0.6; stroke-width: 5px; }
             .link-marriage { fill: none; stroke: #94A3B8; stroke-opacity: 0.4; stroke-width: 3px; stroke-dasharray: 6,6; }
-            .link-leaf { fill: none; stroke: #475569; stroke-opacity: 0.8; stroke-width: 3px; }
-            .link-inlaw { fill: none; stroke: #64748B; stroke-opacity: 0.6; stroke-width: 2px; stroke-dasharray: 4,4; }
+            .link-leaf { fill: none; stroke: #475569; stroke-opacity: 0.8; stroke-width: 1.5px; }
+            .link-inlaw { fill: none; stroke: #64748B; stroke-opacity: 0.6; stroke-width: 1.5px; stroke-dasharray: 4,4; }
             
             .tree-link { fill: none; stroke: #334155; stroke-width: 3px; }
             .grid-line { stroke: #1E293B; stroke-width: 1px; stroke-dasharray: 4 4; }
@@ -64,8 +64,6 @@ def render_genealogy_web():
             // ==========================================
             // 1. PROCEDURAL DATA ARCHITECTURE
             // ==========================================
-            // 'steps' = Generational depth chronologically (Kyle = 0, Parents = 1, Grandparents = 2)
-            // 'lateral' = Distance branched away from the direct male/female line (Direct = 0, Sibling = 1, Cousin = 2)
             
             const graphData = {
                 nodes: [
@@ -196,7 +194,6 @@ def render_genealogy_web():
                 ]
             };
 
-            // Focused timeline tree for clear history reading
             const treeData = {
                 name: "Kyle Killebrew", year: 1990, branch: "M", steps: 0, lateral: 0, desc: "Present",
                 children: [
@@ -250,13 +247,20 @@ def render_genealogy_web():
             // ==========================================
             // 2. PROCEDURAL ALGORITHMS (Color & Size)
             // ==========================================
-            // Auto-compute the max generational depth per branch to normalize the color gradient steps
+            
+            // 1. Calculate maximums for normalization
             let maxSteps = { K: 0, V: 0, R: 0, L: 0 };
+            let maxLateral = 0;
+            
             graphData.nodes.forEach(d => {
                 if (d.lateral === 0 && maxSteps[d.branch] !== undefined) {
                     maxSteps[d.branch] = Math.max(maxSteps[d.branch], d.steps);
                 }
+                if (d.lateral > maxLateral) maxLateral = d.lateral;
             });
+            
+            // Minimum denominator to prevent rapid washout to white if tree is small
+            maxLateral = Math.max(3, maxLateral); 
 
             function calcRadius(d) {
                 const ROOT_SIZE = 25;
@@ -267,47 +271,46 @@ def render_genealogy_web():
                     let sz = ROOT_SIZE * (1 - 0.05 * d.steps);
                     return Math.max(1, sz);
                 } else {
-                    // Siblings/Descendants: 
-                    // 1. Identify the generation step they branched from
+                    // Descendants: Anchor to their main-line parent
                     let branchRootStep = d.steps + d.lateral;
                     let branchRootSize = ROOT_SIZE * (1 - 0.05 * branchRootStep);
-                    // 2. Start at 1/3 the size of the root
+                    // Start at 1/3 the size of the root
                     let startSize = branchRootSize / 3;
-                    // 3. Decrease by 10% of that starting size as lateral distance increases
+                    // Decrease by 10% of that starting size per lateral step away
                     let factor = 1 - 0.10 * (d.lateral - 1);
                     return Math.max(1, startSize * factor);
                 }
             }
 
             function calcColor(d) {
-                if (d.inLaw) return "rgb(0,0,0)";
+                if (d.inLaw) return "rgb(0,0,0)"; // Pure black for in-laws
 
-                let r = 240, g = 0, b = 240; // Base Purple (Kyle)
+                // Step 1: Calculate the mathematical "Base Color" of the node's main-line ancestor
+                let mainSteps = d.steps + d.lateral; 
+                let mMax = maxSteps[d.branch] || 1;
+                
+                let t = (mainSteps <= 1) ? 0 : (mainSteps - 1) / Math.max(1, mMax - 1);
+                let r = 240, g = 0, b = 240; 
 
                 if (d.branch === "K") {
-                    // Start at 220, reach 0 at max steps. Math scales automatically to total steps.
-                    let t = d.steps === 1 ? 0 : (d.steps - 1) / (maxSteps.K - 1);
                     r = Math.round(220 + (0 - 220) * t);
                     b = 240;
                 } else if (d.branch === "V") {
-                    let t = d.steps === 1 ? 0 : (d.steps - 1) / (maxSteps.V - 1);
                     r = 240;
                     b = Math.round(220 + (0 - 220) * t);
                 } else if (d.branch === "R") {
-                    let t = (d.steps - 1) / (maxSteps.R - 1);
                     r = Math.round(220 + (0 - 220) * t);
                     g = Math.round(0 + (240 - 0) * t);
                     b = Math.round(240 + (0 - 240) * t);
                 } else if (d.branch === "L") {
-                    let t = (d.steps - 1) / (maxSteps.L - 1);
                     r = 240;
                     g = Math.round(0 + (240 - 0) * t);
                     b = Math.round(220 + (0 - 220) * t);
                 }
 
-                // Lateral shift towards White (240, 240, 240) relative to parent color
+                // Step 2: If lateral descendant, take steps toward White relative to that base color
                 if (d.lateral > 0) {
-                    let wT = Math.min(1, d.lateral * 0.33);
+                    let wT = d.lateral / maxLateral; 
                     r = Math.round(r + (240 - r) * wT);
                     g = Math.round(g + (240 - g) * wT);
                     b = Math.round(b + (240 - b) * wT);
@@ -325,12 +328,11 @@ def render_genealogy_web():
 
             fSvg.attr("viewBox", [-width / 2, -height / 2, width, height]);
 
-            // Highly Customized Physics
+            // Physics Force Map - EXACT UNIFORM DISTANCES
             const simulation = d3.forceSimulation(graphData.nodes)
                 .force("link", d3.forceLink(graphData.links).id(d => d.id)
-                    .distance(d => d.type === "main" ? 70 : (d.type === "marriage" ? 100 : 15))
-                    // ZERO FORCE for marriages so they just follow the graph
-                    .strength(d => d.type === "marriage" ? 0.001 : 1) 
+                    .distance(70) // Forced consistency across ALL node connection lines
+                    .strength(d => d.type === "marriage" ? 0.001 : 1) // Marriages track visually but exert near zero gravity
                 )
                 .force("charge", d3.forceManyBody().strength(d => d.inLaw ? -15 : -250))
                 .force("collide", d3.forceCollide().radius(d => calcRadius(d) + 5).iterations(2))
@@ -355,7 +357,6 @@ def render_genealogy_web():
                 .attr("fill", d => calcColor(d))
                 .on("mouseover", (e,d) => {
                     tooltip.transition().duration(200).style("opacity", 1);
-                    // Dynamically building the tooltip stats
                     let stat = d.lateral === 0 ? "Direct Ancestor" : "Lateral Relative";
                     if(d.inLaw) stat = "In-Law";
                     tooltip.html(`<strong>${d.id}</strong><br/>${d.desc || stat}<br/><span style="color:#94A3B8; font-size:10px;">Size: ${Math.round(calcRadius(d))}px | RGB: ${calcColor(d)}</span>`)
@@ -394,7 +395,7 @@ def render_genealogy_web():
             legend.append("circle").attr("cx", 25).attr("cy", 85).attr("r", 5).attr("fill", "#000");
             legend.append("text").attr("x", 60).attr("y", 89).attr("fill", "#64748B").attr("font-size", "10px").text("In-laws (Black | 5%)");
             legend.append("text").attr("x", 0).attr("y", 110).attr("fill", "#64748B").attr("font-size", "10px").text("Direct Size: -5% per step");
-            legend.append("text").attr("x", 0).attr("y", 125).attr("fill", "#64748B").attr("font-size", "10px").text("Lateral Color: Shift to White");
+            legend.append("text").attr("x", 0).attr("y", 125).attr("fill", "#64748B").attr("font-size", "10px").text("Lateral Color: Step to White");
 
             // ==========================================
             // 4. RIGHT PANEL: TIMELINE
@@ -424,7 +425,6 @@ def render_genealogy_web():
             const tNode = treeGroup.selectAll(".tree-node").data(root.descendants()).enter().append("g")
                 .attr("transform", d => `translate(${d.x},${d.y})`);
 
-            // Apply the same algorithmic generator to the Chrono tree
             tNode.append("circle")
                 .attr("class", "node")
                 .attr("r", d => calcRadius(d.data))
