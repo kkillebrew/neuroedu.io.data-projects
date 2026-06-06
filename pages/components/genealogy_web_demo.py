@@ -33,17 +33,16 @@ def render_genealogy_web():
                 border-radius: 6px; pointer-events: none; opacity: 0; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
                 transition: opacity 0.2s; max-width: 200px; z-index: 10;
             }
-            .node { cursor: pointer; stroke: #0F172A; stroke-width: 1px; transition: stroke-width 0.2s; }
-            .node:hover { stroke: #F8FAFC; stroke-width: 3px; }
+            .node { cursor: pointer; stroke: #0F172A; stroke-width: 1.5px; transition: stroke-width 0.2s; }
+            .node:hover { stroke: #F8FAFC; stroke-width: 4px; }
             
-            /* Differentiated Link Styles */
-            .link-main { fill: none; stroke: #475569; stroke-opacity: 0.6; stroke-width: 2.5px; }
-            .link-marriage { fill: none; stroke: #94A3B8; stroke-opacity: 0.4; stroke-width: 1.5px; stroke-dasharray: 4,4; }
-            .link-leaf { fill: none; stroke: #475569; stroke-opacity: 0.8; stroke-width: 1.5px; }
-            .link-inlaw { fill: none; stroke: #64748B; stroke-opacity: 0.6; stroke-width: 1px; stroke-dasharray: 2,2; }
+            /* Differentiated Link Styles (Thickness Doubled) */
+            .link-main { fill: none; stroke: #475569; stroke-opacity: 0.6; stroke-width: 5px; }
+            .link-marriage { fill: none; stroke: #94A3B8; stroke-opacity: 0.4; stroke-width: 3px; stroke-dasharray: 6,6; }
+            .link-leaf { fill: none; stroke: #475569; stroke-opacity: 0.8; stroke-width: 3px; }
+            .link-inlaw { fill: none; stroke: #64748B; stroke-opacity: 0.6; stroke-width: 2px; stroke-dasharray: 4,4; }
             
-            .tree-link { fill: none; stroke: #334155; stroke-width: 1.5px; }
-            .label { fill: #F8FAFC; font-size: 10px; font-weight: 500; pointer-events: none; text-anchor: middle; }
+            .tree-link { fill: none; stroke: #334155; stroke-width: 3px; }
             .grid-line { stroke: #1E293B; stroke-width: 1px; stroke-dasharray: 4 4; }
             .grid-label { fill: #64748B; font-size: 10px; font-family: monospace; }
         </style>
@@ -51,12 +50,10 @@ def render_genealogy_web():
     <body>
         <div id="tooltip"></div>
         <div class="container">
-            <!-- Left: Bubble Web -->
             <div class="panel">
                 <div class="panel-title">Procedural Ancestral Cluster</div>
                 <svg id="viz-force" width="100%" height="100%"></svg>
             </div>
-            <!-- Right: Pedigree Timeline -->
             <div class="panel right-panel">
                 <div class="panel-title">Chronological Pedigree</div>
                 <svg id="viz-tree" width="100%" height="100%"></svg>
@@ -67,8 +64,9 @@ def render_genealogy_web():
             // ==========================================
             // 1. PROCEDURAL DATA ARCHITECTURE
             // ==========================================
+            // 'steps' = Generational depth chronologically (Kyle = 0, Parents = 1, Grandparents = 2)
+            // 'lateral' = Distance branched away from the direct male/female line (Direct = 0, Sibling = 1, Cousin = 2)
             
-            // Nodes are explicitly defined by algorithmic distance (steps) and laterality.
             const graphData = {
                 nodes: [
                     { id: "Kyle Killebrew", branch: "M", steps: 0, lateral: 0, desc: "1990 - Present" },
@@ -91,15 +89,15 @@ def render_genealogy_web():
                     { id: "Joseph K.", branch: "K", steps: 7, lateral: 0, desc: "1753 - 1824" },
                     { id: "Francis K.", branch: "K", steps: 8, lateral: 0, desc: "1619 - 1673" },
                     
-                    // Killebrew Laterals (Siblings)
-                    { id: "Ron K.", branch: "K", steps: 3, lateral: 1 },
-                    { id: "Urma K.", branch: "K", steps: 3, lateral: 1 },
-                    { id: "Kelly K.", branch: "K", steps: 2, lateral: 1 },
-                    { id: "Stephen K.", branch: "K", steps: 2, lateral: 1 },
-                    { id: "Suzie K.", branch: "K", steps: 2, lateral: 1 },
-                    { id: "Tony K.", branch: "K", steps: 2, lateral: 1 },
-                    { id: "Keri K.", branch: "K", steps: 2, lateral: 1 },
-                    { id: "Sheri K.", branch: "K", steps: 2, lateral: 1 },
+                    // Killebrew Laterals
+                    { id: "Kelly K.", branch: "K", steps: 1, lateral: 1 },
+                    { id: "Stephen K.", branch: "K", steps: 1, lateral: 1 },
+                    { id: "Suzie K.", branch: "K", steps: 1, lateral: 1 },
+                    { id: "Tony K.", branch: "K", steps: 1, lateral: 1 },
+                    { id: "Keri K.", branch: "K", steps: 1, lateral: 1 },
+                    { id: "Sheri K.", branch: "K", steps: 1, lateral: 1 },
+                    { id: "Ron K.", branch: "K", steps: 2, lateral: 1 },
+                    { id: "Urma K.", branch: "K", steps: 2, lateral: 1 },
 
                     // Rasmussen Direct Line
                     { id: "Clinton Rasmussen", branch: "R", steps: 3, lateral: 0, desc: "1904 - 1979" },
@@ -108,16 +106,16 @@ def render_genealogy_web():
                     { id: "Jens Rasmussen", branch: "R", steps: 6, lateral: 0, desc: "1810 - 1888" },
                     
                     // Rasmussen Laterals
-                    { id: "Richard R.", branch: "R", steps: 3, lateral: 1 },
-                    { id: "Bettie R.", branch: "R", steps: 3, lateral: 1 },
-                    { id: "Rhett R.", branch: "R", steps: 3, lateral: 1 },
-                    { id: "Oranell", branch: "R", steps: 3, lateral: 1, inLaw: true },
-                    { id: "Bob", branch: "R", steps: 3, lateral: 1, inLaw: true },
-                    { id: "James", branch: "R", steps: 4, lateral: 2 },
-                    { id: "Rosemary", branch: "R", steps: 4, lateral: 2 },
-                    { id: "Ruth", branch: "R", steps: 4, lateral: 2 },
-                    { id: "Karen", branch: "R", steps: 4, lateral: 2 },
-                    { id: "Michelle", branch: "R", steps: 4, lateral: 2 },
+                    { id: "Richard R.", branch: "R", steps: 2, lateral: 1 },
+                    { id: "Bettie R.", branch: "R", steps: 2, lateral: 1 },
+                    { id: "Rhett R.", branch: "R", steps: 2, lateral: 1 },
+                    { id: "Oranell", branch: "R", steps: 2, lateral: 1, inLaw: true },
+                    { id: "James", branch: "R", steps: 1, lateral: 2 },
+                    { id: "Rosemary", branch: "R", steps: 1, lateral: 2 },
+                    { id: "Ruth", branch: "R", steps: 1, lateral: 2 },
+                    { id: "Karen", branch: "R", steps: 1, lateral: 2 },
+                    { id: "Bob", branch: "R", steps: 2, lateral: 1, inLaw: true },
+                    { id: "Michelle", branch: "R", steps: 1, lateral: 2 },
 
                     // Vanderhoop Direct Line
                     { id: "Leonard V.", branch: "V", steps: 3, lateral: 0, desc: "1895 - 1989" },
@@ -126,14 +124,14 @@ def render_genealogy_web():
                     { id: "Beulah Salisbury", branch: "V", steps: 5, lateral: 0, desc: "1814 - 1892" },
                     
                     // Vanderhoop Laterals
-                    { id: "Johnny Vanderhoop", branch: "V", steps: 2, lateral: 1 },
+                    { id: "Johnny Vanderhoop", branch: "V", steps: 1, lateral: 1 },
 
                     // Lieber Direct Line
                     { id: "Marie Emilie Ibe", branch: "L", steps: 3, lateral: 0, desc: "Unknown"},
                     { id: "G. Heinrich L. Lieber", branch: "L", steps: 3, lateral: 0, desc: "Unknown"},
                     
                     // Lieber Laterals
-                    { id: "Manfred Lieber", branch: "L", steps: 3, lateral: 1 }
+                    { id: "Manfred Lieber", branch: "L", steps: 2, lateral: 1 }
                 ],
                 links: [
                     // Main Branches
@@ -144,12 +142,12 @@ def render_genealogy_web():
                     { source: "John O. Vanderhoop", target: "Christina Vanderhoop", type: "main" },
                     { source: "Waltrud M. Lieber", target: "Christina Vanderhoop", type: "main" },
                     
-                    // Direct Marriages (Zero Force)
+                    // Direct Marriages
                     { source: "Eric Killebrew", target: "Christina Vanderhoop", type: "marriage" },
                     { source: "Robert Killebrew", target: "Bonnie Rasmussen", type: "marriage" },
                     { source: "John O. Vanderhoop", target: "Waltrud M. Lieber", type: "marriage" },
 
-                    // Killebrew History
+                    // Killebrew Path & Laterals
                     { source: "William H. K.", target: "Robert Killebrew", type: "main" },
                     { source: "Daniel Boone K.", target: "William H. K.", type: "main" },
                     { source: "George W. K.", target: "Daniel Boone K.", type: "main" },
@@ -166,7 +164,7 @@ def render_genealogy_web():
                     { source: "Robert Killebrew", target: "Keri K.", type: "leaf" },
                     { source: "Robert Killebrew", target: "Sheri K.", type: "leaf" },
 
-                    // Rasmussen History
+                    // Rasmussen Path & Laterals
                     { source: "Clinton Rasmussen", target: "Bonnie Rasmussen", type: "main" },
                     { source: "James A. R.", target: "Clinton Rasmussen", type: "main" },
                     { source: "Rasmus J. R.", target: "James A. R.", type: "main" },
@@ -183,7 +181,7 @@ def render_genealogy_web():
                     { source: "Bettie R.", target: "Bob", type: "inlaw" },
                     { source: "Bettie R.", target: "Michelle", type: "leaf" },
 
-                    // Vanderhoop History
+                    // Vanderhoop Path & Laterals
                     { source: "Leonard V.", target: "John O. Vanderhoop", type: "main" },
                     { source: "Edwin DeVries V.", target: "Leonard V.", type: "main" },
                     { source: "William A. V.", target: "Edwin DeVries V.", type: "main" },
@@ -191,38 +189,38 @@ def render_genealogy_web():
                     
                     { source: "John O. Vanderhoop", target: "Johnny Vanderhoop", type: "leaf" },
 
-                    // Lieber History
+                    // Lieber Path & Laterals
                     { source: "Marie Emilie Ibe", target: "Waltrud M. Lieber", type: "main"},
                     { source: "G. Heinrich L. Lieber", target: "Waltrud M. Lieber", type: "main"},
                     { source: "Marie Emilie Ibe", target: "Manfred Lieber", type: "leaf"}
                 ]
             };
 
-            // Hierarchical Pedigree Data
+            // Focused timeline tree for clear history reading
             const treeData = {
-                name: "Kyle Killebrew", year: 1990, branch: "M", desc: "Present",
+                name: "Kyle Killebrew", year: 1990, branch: "M", steps: 0, lateral: 0, desc: "Present",
                 children: [
                     {
-                        name: "Eric Killebrew", year: 1961, branch: "K", desc: "Father",
+                        name: "Eric Killebrew", year: 1961, branch: "K", steps: 1, lateral: 0, desc: "Father",
                         children: [
-                            { name: "Robert Killebrew", year: 1930, branch: "K", desc: "Grandfather", children: [
-                                { name: "William H. K.", year: 1898, branch: "K", children: [
-                                    { name: "Daniel Boone K.", year: 1860, branch: "K", children: [
-                                        { name: "George W. K.", year: 1812, branch: "K", children: [
-                                            { name: "Whitfield K.", year: 1793, branch: "K", children: [
-                                                { name: "Joseph K.", year: 1753, branch: "K", children: [
-                                                    { name: "Francis K.", year: 1619, branch: "K" }
+                            { name: "Robert Killebrew", year: 1930, branch: "K", steps: 2, lateral: 0, children: [
+                                { name: "William H. K.", year: 1898, branch: "K", steps: 3, lateral: 0, children: [
+                                    { name: "Daniel Boone K.", year: 1860, branch: "K", steps: 4, lateral: 0, children: [
+                                        { name: "George W. K.", year: 1812, branch: "K", steps: 5, lateral: 0, children: [
+                                            { name: "Whitfield K.", year: 1793, branch: "K", steps: 6, lateral: 0, children: [
+                                                { name: "Joseph K.", year: 1753, branch: "K", steps: 7, lateral: 0, children: [
+                                                    { name: "Francis K.", year: 1619, branch: "K", steps: 8, lateral: 0 }
                                                 ]}
                                             ]}
                                         ]}
                                     ]}
                                 ]}
                             ]},
-                            { name: "Bonnie Rasmussen", year: 1934, branch: "R", desc: "Grandmother", children: [
-                                { name: "Clinton R.", year: 1904, branch: "R", children: [
-                                    { name: "James A. R.", year: 1877, branch: "R", children: [
-                                        { name: "Rasmus J. R.", year: 1842, branch: "R", children: [
-                                            { name: "Jens Rasmussen", year: 1810, branch: "R" }
+                            { name: "Bonnie Rasmussen", year: 1934, branch: "R", steps: 2, lateral: 0, children: [
+                                { name: "Clinton R.", year: 1904, branch: "R", steps: 3, lateral: 0, children: [
+                                    { name: "James A. R.", year: 1877, branch: "R", steps: 4, lateral: 0, children: [
+                                        { name: "Rasmus J. R.", year: 1842, branch: "R", steps: 5, lateral: 0, children: [
+                                            { name: "Jens Rasmussen", year: 1810, branch: "R", steps: 6, lateral: 0 }
                                         ]}
                                     ]}
                                 ]}
@@ -230,19 +228,19 @@ def render_genealogy_web():
                         ]
                     },
                     {
-                        name: "Christina Vanderhoop", year: 1961, branch: "V", desc: "Mother",
+                        name: "Christina Vanderhoop", year: 1961, branch: "V", steps: 1, lateral: 0, desc: "Mother",
                         children: [
-                            { name: "John O. Vanderhoop", year: 1934, branch: "V", desc: "Grandfather", children: [
-                                { name: "Leonard V.", year: 1895, branch: "V", children: [
-                                    { name: "Edwin DeVries V.", year: 1848, branch: "V", children: [
-                                        { name: "William A. V.", year: 1816, branch: "V" },
-                                        { name: "Beulah Salisbury", year: 1814, branch: "V" }
+                            { name: "John O. Vanderhoop", year: 1934, branch: "V", steps: 2, lateral: 0, children: [
+                                { name: "Leonard V.", year: 1895, branch: "V", steps: 3, lateral: 0, children: [
+                                    { name: "Edwin DeVries V.", year: 1848, branch: "V", steps: 4, lateral: 0, children: [
+                                        { name: "William A. V.", year: 1816, branch: "V", steps: 5, lateral: 0 },
+                                        { name: "Beulah Salisbury", year: 1814, branch: "V", steps: 5, lateral: 0 }
                                     ]}
                                 ]}
                             ]},
-                            { name: "Waltrud M. Lieber", year: 1934, branch: "L", desc: "Grandmother", children: [
-                                { name: "Marie Emilie Ibe", year: 1900, branch: "L" },
-                                { name: "G. Heinrich L. Lieber", year: 1900, branch: "L" }
+                            { name: "Waltrud M. Lieber", year: 1934, branch: "L", steps: 2, lateral: 0, children: [
+                                { name: "Marie Emilie Ibe", year: 1900, branch: "L", steps: 3, lateral: 0 },
+                                { name: "G. Heinrich L. Lieber", year: 1900, branch: "L", steps: 3, lateral: 0 }
                             ]}
                         ]
                     }
@@ -252,43 +250,69 @@ def render_genealogy_web():
             // ==========================================
             // 2. PROCEDURAL ALGORITHMS (Color & Size)
             // ==========================================
-            
+            // Auto-compute the max generational depth per branch to normalize the color gradient steps
+            let maxSteps = { K: 0, V: 0, R: 0, L: 0 };
+            graphData.nodes.forEach(d => {
+                if (d.lateral === 0 && maxSteps[d.branch] !== undefined) {
+                    maxSteps[d.branch] = Math.max(maxSteps[d.branch], d.steps);
+                }
+            });
+
             function calcRadius(d) {
-                if (d.inLaw) return Math.max(3, 25 * 0.05); // Fixed 5%, minimum 3px visible radius
-                let pct = 1.0 - (0.10 * d.steps);
-                if (pct <= 0) pct = 0.02;
-                return Math.max(3, 25 * pct);
+                const ROOT_SIZE = 25;
+                if (d.inLaw) return ROOT_SIZE * 0.05; // Fixed 5% for non-blood
+
+                if (d.lateral === 0) {
+                    // Male Line: Decrease by 5% per generation
+                    let sz = ROOT_SIZE * (1 - 0.05 * d.steps);
+                    return Math.max(1, sz);
+                } else {
+                    // Siblings/Descendants: 
+                    // 1. Identify the generation step they branched from
+                    let branchRootStep = d.steps + d.lateral;
+                    let branchRootSize = ROOT_SIZE * (1 - 0.05 * branchRootStep);
+                    // 2. Start at 1/3 the size of the root
+                    let startSize = branchRootSize / 3;
+                    // 3. Decrease by 10% of that starting size as lateral distance increases
+                    let factor = 1 - 0.10 * (d.lateral - 1);
+                    return Math.max(1, startSize * factor);
+                }
             }
 
             function calcColor(d) {
                 if (d.inLaw) return "rgb(0,0,0)";
-                
+
                 let r = 240, g = 0, b = 240; // Base Purple (Kyle)
-                let pStep = Math.min(12, d.steps);
-                
-                if (d.branch === "K") { 
-                    r = Math.max(0, 240 - 20 * pStep); // To Blue (0,0,240)
-                } else if (d.branch === "V") { 
-                    b = Math.max(0, 240 - 20 * pStep); // To Red (240,0,0)
-                } else if (d.branch === "R") { 
-                    let st = Math.max(0, pStep - 1);
-                    r = Math.max(0, 220 - 20 * st);
-                    b = Math.max(0, 240 - 20 * st);
-                    g = Math.min(240, 0 + 20 * st); // To Green (0,240,0)
+
+                if (d.branch === "K") {
+                    // Start at 220, reach 0 at max steps. Math scales automatically to total steps.
+                    let t = d.steps === 1 ? 0 : (d.steps - 1) / (maxSteps.K - 1);
+                    r = Math.round(220 + (0 - 220) * t);
+                    b = 240;
+                } else if (d.branch === "V") {
+                    let t = d.steps === 1 ? 0 : (d.steps - 1) / (maxSteps.V - 1);
+                    r = 240;
+                    b = Math.round(220 + (0 - 220) * t);
+                } else if (d.branch === "R") {
+                    let t = (d.steps - 1) / (maxSteps.R - 1);
+                    r = Math.round(220 + (0 - 220) * t);
+                    g = Math.round(0 + (240 - 0) * t);
+                    b = Math.round(240 + (0 - 240) * t);
                 } else if (d.branch === "L") {
-                    let st = Math.max(0, pStep - 1);
-                    b = Math.max(0, 220 - 20 * st);
-                    g = Math.min(240, 0 + 20 * st); // To Yellow (240,240,0)
+                    let t = (d.steps - 1) / (maxSteps.L - 1);
+                    r = 240;
+                    g = Math.round(0 + (240 - 0) * t);
+                    b = Math.round(220 + (0 - 220) * t);
                 }
 
-                // Lateral Desaturation (Towards White)
+                // Lateral shift towards White (240, 240, 240) relative to parent color
                 if (d.lateral > 0) {
-                    let factor = Math.min(1, 0.35 * d.lateral);
-                    r = Math.round(r + (255 - r) * factor);
-                    g = Math.round(g + (255 - g) * factor);
-                    b = Math.round(b + (255 - b) * factor);
+                    let wT = Math.min(1, d.lateral * 0.33);
+                    r = Math.round(r + (240 - r) * wT);
+                    g = Math.round(g + (240 - g) * wT);
+                    b = Math.round(b + (240 - b) * wT);
                 }
-                
+
                 return `rgb(${r}, ${g}, ${b})`;
             }
 
@@ -301,12 +325,14 @@ def render_genealogy_web():
 
             fSvg.attr("viewBox", [-width / 2, -height / 2, width, height]);
 
-            // Physics Force Map
+            // Highly Customized Physics
             const simulation = d3.forceSimulation(graphData.nodes)
                 .force("link", d3.forceLink(graphData.links).id(d => d.id)
                     .distance(d => d.type === "main" ? 70 : (d.type === "marriage" ? 100 : 15))
-                    .strength(d => d.type === "marriage" ? 0.01 : 1)) // Marriages don't pull
-                .force("charge", d3.forceManyBody().strength(d => d.inLaw ? -20 : -250))
+                    // ZERO FORCE for marriages so they just follow the graph
+                    .strength(d => d.type === "marriage" ? 0.001 : 1) 
+                )
+                .force("charge", d3.forceManyBody().strength(d => d.inLaw ? -15 : -250))
                 .force("collide", d3.forceCollide().radius(d => calcRadius(d) + 5).iterations(2))
                 .force("x", d3.forceX())
                 .force("y", d3.forceY());
@@ -329,7 +355,10 @@ def render_genealogy_web():
                 .attr("fill", d => calcColor(d))
                 .on("mouseover", (e,d) => {
                     tooltip.transition().duration(200).style("opacity", 1);
-                    tooltip.html(`<strong>${d.id}</strong><br/>${d.desc || "Lateral Relative"}`)
+                    // Dynamically building the tooltip stats
+                    let stat = d.lateral === 0 ? "Direct Ancestor" : "Lateral Relative";
+                    if(d.inLaw) stat = "In-Law";
+                    tooltip.html(`<strong>${d.id}</strong><br/>${d.desc || stat}<br/><span style="color:#94A3B8; font-size:10px;">Size: ${Math.round(calcRadius(d))}px | RGB: ${calcColor(d)}</span>`)
                         .style("left", (e.pageX + 15) + "px").style("top", (e.pageY - 28) + "px");
                 })
                 .on("mouseout", () => tooltip.transition().duration(500).style("opacity", 0));
@@ -340,9 +369,9 @@ def render_genealogy_web():
                 fNode.attr("transform", d => `translate(${d.x},${d.y})`);
             });
 
-            // --- Legend ---
-            const legend = fSvg.append("g").attr("transform", `translate(${-width/2 + 20}, ${height/2 - 120})`);
-            legend.append("text").attr("fill", "#94A3B8").attr("font-size", "12px").attr("y", -10).text("COLOR MAP:");
+            // --- Dimension & Color Legend ---
+            const legend = fSvg.append("g").attr("transform", `translate(${-width/2 + 20}, ${height/2 - 140})`);
+            legend.append("text").attr("fill", "#94A3B8").attr("font-size", "12px").attr("y", -10).text("DIMENSIONAL RULES:");
             
             const defs = fSvg.append("defs");
             function buildGrad(id, c1, c2) {
@@ -350,12 +379,12 @@ def render_genealogy_web():
                 g.append("stop").attr("offset", "0%").attr("stop-color", c1);
                 g.append("stop").attr("offset", "100%").attr("stop-color", c2);
             }
-            buildGrad("k-grad", "rgb(240,0,240)", "rgb(0,0,240)");
-            buildGrad("v-grad", "rgb(240,0,240)", "rgb(240,0,0)");
+            buildGrad("k-grad", "rgb(220,0,240)", "rgb(0,0,240)");
+            buildGrad("v-grad", "rgb(240,0,220)", "rgb(240,0,0)");
             buildGrad("r-grad", "rgb(220,0,240)", "rgb(0,240,0)");
             buildGrad("l-grad", "rgb(240,0,220)", "rgb(240,240,0)");
 
-            const labels = ["Killebrew (Blue)", "Vanderhoop (Red)", "Rasmussen (Green)", "Lieber (Yellow)"];
+            const labels = ["Killebrew (Father's Line)", "Vanderhoop (Mother's Line)", "Rasmussen (Father's Mother)", "Lieber (Mother's Mother)"];
             const grads = ["url(#k-grad)", "url(#v-grad)", "url(#r-grad)", "url(#l-grad)"];
             
             labels.forEach((l, i) => {
@@ -363,7 +392,9 @@ def render_genealogy_web():
                 legend.append("text").attr("x", 60).attr("y", i*20 + 9).attr("fill", "#64748B").attr("font-size", "10px").text(l);
             });
             legend.append("circle").attr("cx", 25).attr("cy", 85).attr("r", 5).attr("fill", "#000");
-            legend.append("text").attr("x", 60).attr("y", 89).attr("fill", "#64748B").attr("font-size", "10px").text("In-laws (Black)");
+            legend.append("text").attr("x", 60).attr("y", 89).attr("fill", "#64748B").attr("font-size", "10px").text("In-laws (Black | 5%)");
+            legend.append("text").attr("x", 0).attr("y", 110).attr("fill", "#64748B").attr("font-size", "10px").text("Direct Size: -5% per step");
+            legend.append("text").attr("x", 0).attr("y", 125).attr("fill", "#64748B").attr("font-size", "10px").text("Lateral Color: Shift to White");
 
             // ==========================================
             // 4. RIGHT PANEL: TIMELINE
@@ -393,10 +424,11 @@ def render_genealogy_web():
             const tNode = treeGroup.selectAll(".tree-node").data(root.descendants()).enter().append("g")
                 .attr("transform", d => `translate(${d.x},${d.y})`);
 
-            // Apply the same algorithmic color generator to the Chrono tree!
+            // Apply the same algorithmic generator to the Chrono tree
             tNode.append("circle")
-                .attr("class", "node").attr("r", 7)
-                .attr("fill", d => calcColor({branch: d.data.branch, steps: d.depth, lateral: 0, inLaw: false}))
+                .attr("class", "node")
+                .attr("r", d => calcRadius(d.data))
+                .attr("fill", d => calcColor(d.data))
                 .on("mouseover", (e,d) => {
                     tooltip.transition().duration(200).style("opacity", 1);
                     tooltip.html(`<strong>${d.data.name}</strong><br/>${d.data.year} | ${d.data.desc || ""}`)
