@@ -328,13 +328,19 @@ def render_genealogy_web():
 
             fSvg.attr("viewBox", [-width / 2, -height / 2, width, height]);
 
-            // Physics Force Map - EXACT UNIFORM DISTANCES
+            // Physics Force Map - DYNAMIC DISTANCES
             const simulation = d3.forceSimulation(graphData.nodes)
                 .force("link", d3.forceLink(graphData.links).id(d => d.id)
-                    .distance(70) // Forced consistency across ALL node connection lines
-                    .strength(d => d.type === "marriage" ? 0.001 : 1) // Marriages track visually but exert near zero gravity
+                    .distance(d => {
+                        // Main branches are 80px long. Laterals/Inlaws are 25% of that (20px)
+                        if (d.type === "leaf" || d.type === "inlaw") return 20; 
+                        return 80;
+                    })
+                    // Zero force for marriages so they just follow the graph visually
+                    .strength(d => d.type === "marriage" ? 0.001 : 1) 
                 )
-                .force("charge", d3.forceManyBody().strength(d => d.inLaw ? -15 : -250))
+                // Slightly increased the repulsion charge since the laterals are now packed in tight
+                .force("charge", d3.forceManyBody().strength(d => d.inLaw ? -15 : -300))
                 .force("collide", d3.forceCollide().radius(d => calcRadius(d) + 5).iterations(2))
                 .force("x", d3.forceX())
                 .force("y", d3.forceY());
