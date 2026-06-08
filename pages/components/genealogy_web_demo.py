@@ -592,27 +592,53 @@ def render_genealogy_web():
             const tSvg = d3.select("#viz-tree");
             const tWidth = tSvg.node().getBoundingClientRect().width;
             
+            // 1. Scale Down Elements to Prevent Overlap
+            const tScale = 0.65;
+            const tRad = d => calcRadius(d) * tScale;
+            
             const root = d3.hierarchy(treeData);
             
-            // Standard tree layout to calculate X positions (horizontal spacing)
-            d3.tree().size([tWidth - 60, height])
+            // 2. Dynamic Separation with In-Law compression
+            d3.tree().size([tWidth - 60, height - 100])
                 .separation((a, b) => {
-                    let rA = calcRadius(a.data);
-                    let rB = calcRadius(b.data);
-                    return (rA + rB) / 30; // Slightly increased separation for visual clarity
+                    // Spouses will be snapped manually, so we prevent D3 from allocating massive horizontal space for them
+                    let isSpouse = a.data.inLaw || b.data.inLaw;
+                    let baseSep = a.parent === b.parent ? 1.5 : 2.5;
+                    return isSpouse ? 0.3 : baseSep; 
                 })(root);
             
             // --- Custom Generational Y-Positioning ---
-            const base_y = 120; // Starting Y position for Kyle (Baseline)
-            const gen_gap = 65; // Pixel distance between each generation
+            const base_y = 120; // Starting Y position for Kyle
+            const gen_gap = 70; // Pixel distance between generations
             
             let minStep = 0;
             let maxStep = 0;
 
+            // 3. First Pass: Apply Y-Coordinates, Zipper Staggering, and Min/Max
             root.each(d => { 
                 d.y = base_y + (d.data.steps * gen_gap); 
+                
+                // ZIPPER ALGORITHM: Offset lateral descendants (siblings/cousins) vertically to pack them tighter
+                if (d.data.lateral > 0 && !d.data.inLaw && d.parent) {
+                    let lateralSiblings = d.parent.children.filter(c => !c.data.inLaw);
+                    if (lateralSiblings.length > 1) {
+                        let idx = lateralSiblings.indexOf(d);
+                        d.y += (idx % 2 === 0) ? -15 : 15; // Alternate up and down by 15px
+                    }
+                }
+
                 minStep = Math.min(minStep, d.data.steps);
                 maxStep = Math.max(maxStep, d.data.steps);
+            });
+
+            // 4. Second Pass: Spousal Abutment 
+            root.each(d => {
+                if (d.data.inLaw && d.parent) {
+                    // Abut strictly to the direct right of the spouse's radius + 2px buffer
+                    d.x = d.parent.x + tRad(d.parent.data) + tRad(d.data) + 2;
+                    // Lock exact vertical height of spouse (this safely inherits any zipper offset the parent has)
+                    d.y = d.parent.y; 
+                }
             });
 
             // --- Draw Generational Gridlines ---
@@ -628,12 +654,12 @@ def render_genealogy_web():
                 .attr("y", d => base_y + (d * gen_gap) - 5)
                 .text(d => {
                     if (d === 0) return "Baseline";
-                    if (d < 0) return `Gen ${d} (Next)`;
+                    if (d < 0) return `Gen ${Math.abs(d)} (Next)`;
                     return `Gen ${d}`;
                 });
 
             // --- Draw Nodes and Links ---
-            const treeGroup = tSvg.append("g").attr("transform", "translate(30,0)");
+            const treeGroup = tSvg.append("g").attr("transform", "translate(30, 20)");
             
             treeGroup.selectAll(".tree-link").data(root.links()).enter().append("path")
                 .attr("class", d => {
@@ -642,7 +668,11 @@ def render_genealogy_web():
                     return "tree-link main";
                 })
                 .attr("d", d3.linkVertical().x(d => d.x).y(d => d.y))
-                .attr("stroke-width", d => calcLinkWidth(d))
+                .attr("stroke-width", d => {
+                    // SPOSUAL LINK OVERRIDE: 0 thickness for in-laws
+                    if (d.target.data.inLaw) return 0;
+                    return Math.max(1, calcLinkWidth(d) * tScale);
+                })
                 .attr("stroke-opacity", d => calcOpacity(d.target.data));
 
             const tNode = treeGroup.selectAll(".tree-node").data(root.descendants()).enter().append("g")
@@ -650,7 +680,7 @@ def render_genealogy_web():
 
             tNode.append("circle")
                 .attr("class", "node")
-                .attr("r", d => calcRadius(d.data))
+                .attr("r", d => tRad(d.data)) // Use the scaled radius
                 .attr("fill", d => calcColor(d.data))
                 .attr("opacity", d => calcOpacity(d.data))
                 .on("mouseover", (e,d) => {
