@@ -535,7 +535,8 @@ def render_genealogy_web():
                     tooltip.transition().duration(200).style("opacity", 1);
                     let stat = d.lateral === 0 ? "Direct Ancestor" : "Lateral Relative";
                     if(d.inLaw) stat = "In-Law (Spouse)";
-                    tooltip.html(`<strong>${{d.id}}</strong><br/>${d.desc || stat}<br/><span style="color:#94A3B8; font-size:10px;">Opacity: ${Math.round(calcOpacity(d)*100)}% | Size: ${Math.round(calcRadius(d))}px</span>`)
+                    // FIX: Reverted to standard JS single-brace interpolation
+                    tooltip.html(`<strong>${d.id}</strong><br/>${d.desc || stat}<br/><span style="color:#94A3B8; font-size:10px;">Opacity: ${Math.round(calcOpacity(d)*100)}% | Size: ${Math.round(calcRadius(d))}px</span>`)
                         .style("left", (e.pageX + 15) + "px").style("top", (e.pageY - 28) + "px");
                 })
                 .on("mouseout", () => tooltip.transition().duration(500).style("opacity", 0));
@@ -545,7 +546,8 @@ def render_genealogy_web():
                      .attr("x2", d => d.target.x).attr("y2", d => d.target.y)
                      .attr("stroke-width", d => calcLinkWidth(d))
                      .attr("stroke-opacity", d => calcOpacity(d.target));
-                fNode.attr("transform", d => `translate(${{d.x}},${{d.y}})`);
+                // FIX: Reverted to standard JS single-brace interpolation
+                fNode.attr("transform", d => `translate(${d.x},${d.y})`);
             });
 
             // --- Dimension & Color Legend ---
