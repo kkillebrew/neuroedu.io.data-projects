@@ -488,6 +488,14 @@ def render_genealogy_web():
                 const ROOT_SIZE = 25;
                 if (d.id === "Kyle Killebrew" || d.name === "Kyle Killebrew") return ROOT_SIZE;
 
+                // NEW: Spouses are explicitly scaled down to be much smaller than bloodline nodes
+                if (d.inLaw) {
+                    let rootStep = d.lateral > 0 ? d.steps + d.lateral : d.steps;
+                    let spouseSize = ROOT_SIZE * (1 - 0.10 * rootStep);
+                    if (d.lateral > 0) spouseSize *= 0.3333; // Apply lateral sibling reduction
+                    return Math.max(2, spouseSize * 0.4); // Exactly 40% of their partner's size
+                }
+
                 if (d.lateral === 0) {
                     // Male Line: Decrease by 10% per generation
                     let sz = ROOT_SIZE * (1 - 0.10 * d.steps);
@@ -670,13 +678,15 @@ def render_genealogy_web():
             
             const root = d3.hierarchy(treeData);
             
-            // 2. Dynamic Separation with In-Law compression
+            /// 2. Dynamic Separation with In-Law compression & Sibling X-Axis Reduction
             d3.tree().size([tWidth - 60, height - 100])
                 .separation((a, b) => {
-                    // Spouses will be snapped manually, so we prevent D3 from allocating massive horizontal space for them
+                    // Spouses will be snapped manually, keep their footprint minimal
                     let isSpouse = a.data.inLaw || b.data.inLaw;
-                    let baseSep = a.parent === b.parent ? 1.5 : 2.5;
-                    return isSpouse ? 0.3 : baseSep; 
+                    
+                    // X-AXIS REDUCTION: Shrink distance between children (siblings) by ~50% (0.75 instead of 1.5)
+                    let baseSep = a.parent === b.parent ? 0.75 : 2.5;
+                    return isSpouse ? 0.25 : baseSep; 
                 })(root);
             
             // --- Custom Generational Y-Positioning ---
