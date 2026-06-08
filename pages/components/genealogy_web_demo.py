@@ -36,17 +36,15 @@ def render_genealogy_web():
             .node { cursor: pointer; stroke: #0F172A; stroke-width: 1.5px; transition: stroke-width 0.2s; }
             .node:hover { stroke: #F8FAFC; stroke-width: 4px; }
             
-            /* FORCE WEB LINK STYLES: Thickness Doubled for Data-to-Ink Emphasis */
-            .link-main { fill: none; stroke: #475569; stroke-opacity: 0.6; stroke-width: 5px; }
-            .link-marriage { fill: none; stroke: #94A3B8; stroke-opacity: 0.3; stroke-width: 3px; stroke-dasharray: 6,6; }
-            .link-leaf { fill: none; stroke: #475569; stroke-opacity: 0.8; stroke-width: 1.5px; }
-            .link-inlaw { fill: none; stroke: #64748B; stroke-opacity: 0.6; stroke-width: 1.5px; stroke-dasharray: 4,4; }
+            /* FORCE WEB LINK STYLES: Handled dynamically by D3 */
+            .link-main { fill: none; stroke: #475569; }
+            .link-marriage { fill: none; stroke: #94A3B8; stroke-dasharray: 6,6; }
+            .link-leaf { fill: none; stroke: #475569; }
+            .link-inlaw { fill: none; stroke: #64748B; stroke-dasharray: 4,4; }
             
             /* TIMELINE TREE LINK STYLES */
             .tree-link { fill: none; stroke: #334155; }
-            .tree-link.main { stroke-width: 5px; stroke-opacity: 0.6; }
-            .tree-link.leaf { stroke-width: 1.5px; stroke-opacity: 0.8; }
-            .tree-link.inlaw { stroke-width: 1.5px; stroke-opacity: 0.6; stroke-dasharray: 4,4; }
+            .tree-link.inlaw { stroke-dasharray: 4,4; }
             
             .grid-line { stroke: #1E293B; stroke-width: 1px; stroke-dasharray: 4 4; }
             .grid-label { fill: #64748B; font-size: 10px; font-family: monospace; }
@@ -72,14 +70,24 @@ def render_genealogy_web():
             
             const graphData = {
                 nodes: [
+                    // --- CORE / IMMEDIATE FAMILY ---
                     { id: "Kyle Killebrew", branch: "M", steps: 0, lateral: 0, desc: "1990 - Present" },
                     { id: "Eric Killebrew", branch: "K", steps: 1, lateral: 0, desc: "1961 - Present" },
-                    { id: "Christina Vanderhoop", branch: "V", steps: 1, lateral: 0, desc: "Mother" },
+                    { id: "Christina Vanderhoop", branch: "V", steps: 1, lateral: 0, desc: "Biological Mother" },
+                    { id: "Antonia Constance Buzunis", branch: "B", steps: 1, lateral: 0, desc: "Step Mother", inLaw: true },
+                    
+                    { id: "Andrea Nicole Killebrew", branch: "K", steps: 0, lateral: 1 },
+                    { id: "Eric Scott Killebrew, Jr.", branch: "K", steps: 0, lateral: 1 },
+
+                    // --- GRANDPARENTS ---
                     { id: "Robert Killebrew", branch: "K", steps: 2, lateral: 0, desc: "1930 - 2017" },
                     { id: "Bonnie Rasmussen", branch: "R", steps: 2, lateral: 0, desc: "1934 - 2020" },
                     { id: "John O. Vanderhoop", branch: "V", steps: 2, lateral: 0, desc: "1934 - 2022" },
                     { id: "Waltrud M. Lieber", branch: "L", steps: 2, lateral: 0, desc: "1934 - 2022" },
+                    { id: "Peter Buzunis", branch: "B", steps: 2, lateral: 0, desc: "Step Mother's Father" },
+                    { id: "Annestasia Buzunis", branch: "A", steps: 2, lateral: 0, desc: "Step Mother's Mother" },
                     
+                    // --- KILLEBREW BRANCH (K) ---
                     { id: "William H. K.", branch: "K", steps: 3, lateral: 0, desc: "1898 - 1970" },
                     { id: "Daniel Boone K.", branch: "K", steps: 4, lateral: 0, desc: "1860 - 1939" },
                     { id: "George W. K.", branch: "K", steps: 5, lateral: 0, desc: "1812 - 1871" },
@@ -87,15 +95,40 @@ def render_genealogy_web():
                     { id: "Joseph K.", branch: "K", steps: 7, lateral: 0, desc: "1753 - 1824" },
                     { id: "Francis K.", branch: "K", steps: 8, lateral: 0, desc: "1619 - 1673" },
                     
-                    { id: "Kelly K.", branch: "K", steps: 1, lateral: 1 },
-                    { id: "Stephen K.", branch: "K", steps: 1, lateral: 1 },
-                    { id: "Suzie K.", branch: "K", steps: 1, lateral: 1 },
-                    { id: "Tony K.", branch: "K", steps: 1, lateral: 1 },
-                    { id: "Keri K.", branch: "K", steps: 1, lateral: 1 },
-                    { id: "Sheri K.", branch: "K", steps: 1, lateral: 1 },
                     { id: "Ron K.", branch: "K", steps: 2, lateral: 1 },
                     { id: "Urma K.", branch: "K", steps: 2, lateral: 1 },
 
+                    // Father's Siblings & Families
+                    { id: "Kelly K.", branch: "K", steps: 1, lateral: 1 },
+                    { id: "Stephen K.", branch: "K", steps: 1, lateral: 1 },
+                    { id: "Iman Killebrew", branch: "K", steps: 1, lateral: 1, inLaw: true },
+                    { id: "Alec K.", branch: "K", steps: 0, lateral: 2 },
+                    { id: "Gillan K.", branch: "K", steps: 0, lateral: 2 },
+                    { id: "Jayce K.", branch: "K", steps: 0, lateral: 2 },
+
+                    { id: "Suzie K.", branch: "K", steps: 1, lateral: 1 },
+                    { id: "Steve Gerphy", branch: "K", steps: 1, lateral: 1, inLaw: true },
+                    { id: "Matt Gerphy", branch: "K", steps: 0, lateral: 2 },
+                    { id: "Francesca", branch: "K", steps: 0, lateral: 2, inLaw: true },
+                    { id: "Amelia Gerphy", branch: "K", steps: -1, lateral: 3 },
+                    { id: "Riley Gerphy", branch: "K", steps: -1, lateral: 3 },
+                    { id: "Oliver Gerphy", branch: "K", steps: -1, lateral: 3 },
+                    { id: "Chris Gerphy", branch: "K", steps: 0, lateral: 2 },
+
+                    { id: "Tony K.", branch: "K", steps: 1, lateral: 1 },
+                    { id: "Martha", branch: "K", steps: 1, lateral: 1, inLaw: true },
+                    { id: "Will K.", branch: "K", steps: 0, lateral: 2 },
+                    { id: "Ben K.", branch: "K", steps: 0, lateral: 2 },
+
+                    { id: "Keri K.", branch: "K", steps: 1, lateral: 1 },
+                    { id: "Stacy", branch: "K", steps: 1, lateral: 1, inLaw: true },
+
+                    { id: "Sheri K.", branch: "K", steps: 1, lateral: 1 },
+                    { id: "Ray Snisky", branch: "K", steps: 1, lateral: 1, inLaw: true },
+                    { id: "Ellie Snisky", branch: "K", steps: 0, lateral: 2 },
+                    { id: "Ava Snisky", branch: "K", steps: 0, lateral: 2 },
+
+                    // --- RASMUSSEN BRANCH (R) ---
                     { id: "Clinton Rasmussen", branch: "R", steps: 3, lateral: 0, desc: "1904 - 1979" },
                     { id: "James A. R.", branch: "R", steps: 4, lateral: 0, desc: "1877 - 1965" },
                     { id: "Rasmus J. R.", branch: "R", steps: 5, lateral: 0, desc: "1842 - 1920" },
@@ -112,50 +145,102 @@ def render_genealogy_web():
                     { id: "Bob", branch: "R", steps: 2, lateral: 1, inLaw: true },
                     { id: "Michelle", branch: "R", steps: 1, lateral: 2 },
 
+                    // --- VANDERHOOP BRANCH (V) ---
                     { id: "Leonard V.", branch: "V", steps: 3, lateral: 0, desc: "1895 - 1989" },
                     { id: "Edwin DeVries V.", branch: "V", steps: 4, lateral: 0, desc: "1848 - 1923" },
                     { id: "William A. V.", branch: "V", steps: 5, lateral: 0, desc: "~1816 - 1893" },
                     { id: "Beulah Salisbury", branch: "V", steps: 5, lateral: 0, inLaw: true },
-                    
                     { id: "Johnny Vanderhoop", branch: "V", steps: 1, lateral: 1 },
+                    
+                    // Mother's Father's Siblings
+                    { id: "Leonard Jr. V.", branch: "V", steps: 2, lateral: 1 },
+                    { id: "William (Billy) V.", branch: "V", steps: 2, lateral: 1 },
+                    { id: "Edmund V.", branch: "V", steps: 2, lateral: 1 },
+                    { id: "Margery V.", branch: "V", steps: 2, lateral: 1 },
+                    { id: "Paul", branch: "V", steps: 2, lateral: 1, inLaw: true },
+                    { id: "Maushup", branch: "V", steps: 1, lateral: 2 },
+                    { id: "Nashawn", branch: "V", steps: 1, lateral: 2 },
 
+                    // --- LIEBER BRANCH (L) ---
                     { id: "G. Heinrich L. Lieber", branch: "L", steps: 3, lateral: 0, desc: "Unknown"},
                     { id: "Marie Emilie Ibe", branch: "L", steps: 3, lateral: 0, inLaw: true },
-                    { id: "Manfred Lieber", branch: "L", steps: 2, lateral: 1 }
+                    { id: "Manfred Lieber", branch: "L", steps: 2, lateral: 1 },
+
+                    // --- BUZUNIS BRANCH (B) ---
+                    { id: "Teddy Buzunis", branch: "B", steps: 1, lateral: 1 },
+                    { id: "Victoria Buzunis", branch: "B", steps: 0, lateral: 2 },
+                    { id: "Demo Buzunis", branch: "B", steps: 1, lateral: 1 },
+                    { id: "Andrea Buzunis", branch: "B", steps: 1, lateral: 1 },
+                    { id: "Timothy Buzunis", branch: "B", steps: 1, lateral: 1 },
+                    { id: "Kerry", branch: "B", steps: 1, lateral: 1, inLaw: true }
                 ],
                 links: [
+                    // Main Ancestral Lines
                     { source: "Eric Killebrew", target: "Kyle Killebrew", type: "main" },
                     { source: "Christina Vanderhoop", target: "Kyle Killebrew", type: "main" },
                     { source: "Robert Killebrew", target: "Eric Killebrew", type: "main" },
                     { source: "Bonnie Rasmussen", target: "Eric Killebrew", type: "main" },
                     { source: "John O. Vanderhoop", target: "Christina Vanderhoop", type: "main" },
                     { source: "Waltrud M. Lieber", target: "Christina Vanderhoop", type: "main" },
+                    { source: "Peter Buzunis", target: "Antonia Constance Buzunis", type: "main" },
+                    { source: "Annestasia Buzunis", target: "Antonia Constance Buzunis", type: "main" },
                     
+                    // Marriages
                     { source: "Eric Killebrew", target: "Christina Vanderhoop", type: "marriage" },
+                    { source: "Eric Killebrew", target: "Antonia Constance Buzunis", type: "marriage" },
                     { source: "Robert Killebrew", target: "Bonnie Rasmussen", type: "marriage" },
                     { source: "John O. Vanderhoop", target: "Waltrud M. Lieber", type: "marriage" },
+                    { source: "Peter Buzunis", target: "Annestasia Buzunis", type: "marriage" },
+                    
+                    // Siblings
+                    { source: "Eric Killebrew", target: "Andrea Nicole Killebrew", type: "leaf" },
+                    { source: "Eric Killebrew", target: "Eric Scott Killebrew, Jr.", type: "leaf" },
 
+                    // Killebrew Historical Male Line
                     { source: "William H. K.", target: "Robert Killebrew", type: "main" },
                     { source: "Daniel Boone K.", target: "William H. K.", type: "main" },
                     { source: "George W. K.", target: "Daniel Boone K.", type: "main" },
                     { source: "Whitfield K.", target: "George W. K.", type: "main" },
                     { source: "Joseph K.", target: "Whitfield K.", type: "main" },
                     { source: "Francis K.", target: "Joseph K.", type: "main" },
-                    
-                    { source: "Robert Killebrew", target: "Kelly K.", type: "leaf" },
-                    { source: "Robert Killebrew", target: "Stephen K.", type: "leaf" },
-                    { source: "Robert Killebrew", target: "Suzie K.", type: "leaf" },
-                    { source: "Robert Killebrew", target: "Tony K.", type: "leaf" },
-                    { source: "Robert Killebrew", target: "Keri K.", type: "leaf" },
-                    { source: "Robert Killebrew", target: "Sheri K.", type: "leaf" },
                     { source: "William H. K.", target: "Ron K.", type: "leaf" },
                     { source: "William H. K.", target: "Urma K.", type: "leaf" },
 
+                    // Killebrew Aunts/Uncles & Families
+                    { source: "Robert Killebrew", target: "Kelly K.", type: "leaf" },
+                    { source: "Robert Killebrew", target: "Stephen K.", type: "leaf" },
+                    { source: "Stephen K.", target: "Iman Killebrew", type: "inlaw" },
+                    { source: "Stephen K.", target: "Alec K.", type: "leaf" },
+                    { source: "Stephen K.", target: "Gillan K.", type: "leaf" },
+                    { source: "Stephen K.", target: "Jayce K.", type: "leaf" },
+
+                    { source: "Robert Killebrew", target: "Suzie K.", type: "leaf" },
+                    { source: "Suzie K.", target: "Steve Gerphy", type: "inlaw" },
+                    { source: "Suzie K.", target: "Matt Gerphy", type: "leaf" },
+                    { source: "Suzie K.", target: "Chris Gerphy", type: "leaf" },
+                    { source: "Matt Gerphy", target: "Francesca", type: "inlaw" },
+                    { source: "Matt Gerphy", target: "Amelia Gerphy", type: "leaf" },
+                    { source: "Matt Gerphy", target: "Riley Gerphy", type: "leaf" },
+                    { source: "Matt Gerphy", target: "Oliver Gerphy", type: "leaf" },
+
+                    { source: "Robert Killebrew", target: "Tony K.", type: "leaf" },
+                    { source: "Tony K.", target: "Martha", type: "inlaw" },
+                    { source: "Tony K.", target: "Will K.", type: "leaf" },
+                    { source: "Tony K.", target: "Ben K.", type: "leaf" },
+
+                    { source: "Robert Killebrew", target: "Keri K.", type: "leaf" },
+                    { source: "Keri K.", target: "Stacy", type: "inlaw" },
+
+                    { source: "Robert Killebrew", target: "Sheri K.", type: "leaf" },
+                    { source: "Sheri K.", target: "Ray Snisky", type: "inlaw" },
+                    { source: "Sheri K.", target: "Ellie Snisky", type: "leaf" },
+                    { source: "Sheri K.", target: "Ava Snisky", type: "leaf" },
+
+                    // Rasmussen Line
                     { source: "Clinton Rasmussen", target: "Bonnie Rasmussen", type: "main" },
                     { source: "James A. R.", target: "Clinton Rasmussen", type: "main" },
                     { source: "Rasmus J. R.", target: "James A. R.", type: "main" },
                     { source: "Jens Rasmussen", target: "Rasmus J. R.", type: "main" },
-                    
                     { source: "Clinton Rasmussen", target: "Richard R.", type: "leaf" },
                     { source: "Clinton Rasmussen", target: "Bettie R.", type: "leaf" },
                     { source: "Clinton Rasmussen", target: "Rhett R.", type: "leaf" },
@@ -167,20 +252,35 @@ def render_genealogy_web():
                     { source: "Bettie R.", target: "Bob", type: "inlaw" },
                     { source: "Bettie R.", target: "Michelle", type: "leaf" },
 
+                    // Vanderhoop Line
                     { source: "Leonard V.", target: "John O. Vanderhoop", type: "main" },
                     { source: "Edwin DeVries V.", target: "Leonard V.", type: "main" },
                     { source: "William A. V.", target: "Edwin DeVries V.", type: "main" },
-                    
-                    { source: "William A. V.", target: "Beulah Salisbury", type: "inlaw" }, // Married into bloodline
+                    { source: "William A. V.", target: "Beulah Salisbury", type: "inlaw" },
                     { source: "John O. Vanderhoop", target: "Johnny Vanderhoop", type: "leaf" },
+                    { source: "Leonard V.", target: "Leonard Jr. V.", type: "leaf" },
+                    { source: "Leonard V.", target: "William (Billy) V.", type: "leaf" },
+                    { source: "Leonard V.", target: "Edmund V.", type: "leaf" },
+                    { source: "Leonard V.", target: "Margery V.", type: "leaf" },
+                    { source: "Margery V.", target: "Paul", type: "inlaw" },
+                    { source: "Margery V.", target: "Maushup", type: "leaf" },
+                    { source: "Margery V.", target: "Nashawn", type: "leaf" },
 
+                    // Lieber Line
                     { source: "G. Heinrich L. Lieber", target: "Waltrud M. Lieber", type: "main"},
-                    { source: "G. Heinrich L. Lieber", target: "Marie Emilie Ibe", type: "inlaw" }, // Married into bloodline
-                    { source: "G. Heinrich L. Lieber", target: "Manfred Lieber", type: "leaf"}
+                    { source: "G. Heinrich L. Lieber", target: "Marie Emilie Ibe", type: "inlaw" },
+                    { source: "G. Heinrich L. Lieber", target: "Manfred Lieber", type: "leaf"},
+
+                    // Buzunis Siblings
+                    { source: "Peter Buzunis", target: "Teddy Buzunis", type: "leaf" },
+                    { source: "Peter Buzunis", target: "Demo Buzunis", type: "leaf" },
+                    { source: "Peter Buzunis", target: "Andrea Buzunis", type: "leaf" },
+                    { source: "Peter Buzunis", target: "Timothy Buzunis", type: "leaf" },
+                    { source: "Teddy Buzunis", target: "Victoria Buzunis", type: "leaf" },
+                    { source: "Timothy Buzunis", target: "Kerry", type: "inlaw" }
                 ]
             };
 
-            // HYDRATED TIMELINE TREE 
             const treeData = {
                 name: "Kyle Killebrew", year: 1990, branch: "M", steps: 0, lateral: 0, desc: "Present",
                 children: [
@@ -202,11 +302,35 @@ def render_genealogy_web():
                                     { name: "Urma K.", year: 1932, branch: "K", steps: 2, lateral: 1 }
                                 ]},
                                 { name: "Kelly K.", year: 1955, branch: "K", steps: 1, lateral: 1 },
-                                { name: "Stephen K.", year: 1957, branch: "K", steps: 1, lateral: 1 },
-                                { name: "Suzie K.", year: 1959, branch: "K", steps: 1, lateral: 1 },
-                                { name: "Tony K.", year: 1963, branch: "K", steps: 1, lateral: 1 },
-                                { name: "Keri K.", year: 1965, branch: "K", steps: 1, lateral: 1 },
-                                { name: "Sheri K.", year: 1967, branch: "K", steps: 1, lateral: 1 }
+                                { name: "Stephen K.", year: 1957, branch: "K", steps: 1, lateral: 1, children: [
+                                    { name: "Iman Killebrew", year: 1957, branch: "K", steps: 1, lateral: 1, inLaw: true },
+                                    { name: "Alec K.", year: 1985, branch: "K", steps: 0, lateral: 2 },
+                                    { name: "Gillan K.", year: 1987, branch: "K", steps: 0, lateral: 2 },
+                                    { name: "Jayce K.", year: 1989, branch: "K", steps: 0, lateral: 2 }
+                                ]},
+                                { name: "Suzie K.", year: 1959, branch: "K", steps: 1, lateral: 1, children: [
+                                    { name: "Steve Gerphy", year: 1959, branch: "K", steps: 1, lateral: 1, inLaw: true },
+                                    { name: "Matt Gerphy", year: 1985, branch: "K", steps: 0, lateral: 2, children: [
+                                        { name: "Francesca", year: 1985, branch: "K", steps: 0, lateral: 2, inLaw: true },
+                                        { name: "Amelia Gerphy", year: 2010, branch: "K", steps: -1, lateral: 3 },
+                                        { name: "Riley Gerphy", year: 2012, branch: "K", steps: -1, lateral: 3 },
+                                        { name: "Oliver Gerphy", year: 2014, branch: "K", steps: -1, lateral: 3 }
+                                    ]},
+                                    { name: "Chris Gerphy", year: 1988, branch: "K", steps: 0, lateral: 2 }
+                                ]},
+                                { name: "Tony K.", year: 1963, branch: "K", steps: 1, lateral: 1, children: [
+                                    { name: "Martha", year: 1963, branch: "K", steps: 1, lateral: 1, inLaw: true },
+                                    { name: "Will K.", year: 1990, branch: "K", steps: 0, lateral: 2 },
+                                    { name: "Ben K.", year: 1992, branch: "K", steps: 0, lateral: 2 }
+                                ]},
+                                { name: "Keri K.", year: 1965, branch: "K", steps: 1, lateral: 1, children: [
+                                    { name: "Stacy", year: 1965, branch: "K", steps: 1, lateral: 1, inLaw: true }
+                                ]},
+                                { name: "Sheri K.", year: 1967, branch: "K", steps: 1, lateral: 1, children: [
+                                    { name: "Ray Snisky", year: 1965, branch: "K", steps: 1, lateral: 1, inLaw: true },
+                                    { name: "Ellie Snisky", year: 1995, branch: "K", steps: 0, lateral: 2 },
+                                    { name: "Ava Snisky", year: 1998, branch: "K", steps: 0, lateral: 2 }
+                                ]}
                             ]},
                             { name: "Bonnie Rasmussen", year: 1934, branch: "R", steps: 2, lateral: 0, desc: "Grandmother", children: [
                                 { name: "Clinton R.", year: 1904, branch: "R", steps: 3, lateral: 0, children: [
@@ -228,11 +352,26 @@ def render_genealogy_web():
                                     ]},
                                     { name: "Rhett R.", year: 1938, branch: "R", steps: 2, lateral: 1 }
                                 ]}
-                            ]}
+                            ]},
+                            { name: "Antonia Constance Buzunis", year: 1965, branch: "B", steps: 1, lateral: 0, inLaw: true, desc: "Step Mother", children: [
+                                { name: "Peter Buzunis", year: 1930, branch: "B", steps: 2, lateral: 0, desc: "Step Mother's Father", children: [
+                                    { name: "Teddy Buzunis", year: 1960, branch: "B", steps: 1, lateral: 1, children: [
+                                        { name: "Victoria Buzunis", year: 1990, branch: "B", steps: 0, lateral: 2 }
+                                    ]},
+                                    { name: "Demo Buzunis", year: 1962, branch: "B", steps: 1, lateral: 1 },
+                                    { name: "Andrea Buzunis", year: 1968, branch: "B", steps: 1, lateral: 1 },
+                                    { name: "Timothy Buzunis", year: 1970, branch: "B", steps: 1, lateral: 1, children: [
+                                        { name: "Kerry", year: 1970, branch: "B", steps: 1, lateral: 1, inLaw: true }
+                                    ]}
+                                ]},
+                                { name: "Annestasia Buzunis", year: 1932, branch: "A", steps: 2, lateral: 0, desc: "Step Mother's Mother" }
+                            ]},
+                            { name: "Andrea Nicole Killebrew", year: 1985, branch: "K", steps: 0, lateral: 1 },
+                            { name: "Eric Scott Killebrew, Jr.", year: 1988, branch: "K", steps: 0, lateral: 1 }
                         ]
                     },
                     {
-                        name: "Christina Vanderhoop", year: 1961, branch: "V", steps: 1, lateral: 0, desc: "Mother",
+                        name: "Christina Vanderhoop", year: 1961, branch: "V", steps: 1, lateral: 0, desc: "Biological Mother",
                         children: [
                             { name: "John O. Vanderhoop", year: 1934, branch: "V", steps: 2, lateral: 0, desc: "Grandfather", children: [
                                 { name: "Leonard V.", year: 1895, branch: "V", steps: 3, lateral: 0, children: [
@@ -240,6 +379,14 @@ def render_genealogy_web():
                                         { name: "William A. V.", year: 1816, branch: "V", steps: 5, lateral: 0, children: [
                                             { name: "Beulah Salisbury", year: 1814, branch: "V", steps: 5, lateral: 0, inLaw: true }
                                         ]}
+                                    ]},
+                                    { name: "Leonard Jr. V.", year: 1925, branch: "V", steps: 2, lateral: 1 },
+                                    { name: "William (Billy) V.", year: 1928, branch: "V", steps: 2, lateral: 1 },
+                                    { name: "Edmund V.", year: 1930, branch: "V", steps: 2, lateral: 1 },
+                                    { name: "Margery V.", year: 1932, branch: "V", steps: 2, lateral: 1, children: [
+                                        { name: "Paul", year: 1932, branch: "V", steps: 2, lateral: 1, inLaw: true },
+                                        { name: "Maushup", year: 1960, branch: "V", steps: 1, lateral: 2 },
+                                        { name: "Nashawn", year: 1962, branch: "V", steps: 1, lateral: 2 }
                                     ]}
                                 ]},
                                 { name: "Johnny Vanderhoop", year: 1936, branch: "V", steps: 1, lateral: 1 }
@@ -259,72 +406,78 @@ def render_genealogy_web():
             // 2. PROCEDURAL ALGORITHMS (Color & Size)
             // ==========================================
             
-            // This normalizes the color gradients based on how deep each branch goes
-            let maxSteps = { K: 0, V: 0, R: 0, L: 0 };
-            let maxLateral = 0;
+            let maxSteps = { K: 0, V: 0, R: 0, L: 0, B: 0, A: 0 };
             
             graphData.nodes.forEach(d => {
                 if (d.lateral === 0 && maxSteps[d.branch] !== undefined) {
                     maxSteps[d.branch] = Math.max(maxSteps[d.branch], d.steps);
                 }
-                if (d.lateral > maxLateral) maxLateral = d.lateral;
             });
-            maxLateral = Math.max(3, maxLateral); 
 
             function calcRadius(d) {
                 const ROOT_SIZE = 25;
-                if (d.inLaw) return Math.max(1.5, ROOT_SIZE * 0.05); // Fixed 5% for non-blood (min 1.5px to stay visible)
+                if (d.id === "Kyle Killebrew" || d.name === "Kyle Killebrew") return ROOT_SIZE;
+                if (d.inLaw && d.lateral > 0) return Math.max(2, ROOT_SIZE * 0.05);
 
                 if (d.lateral === 0) {
-                    // Male Line: Decrease by 5% per generation
-                    let sz = ROOT_SIZE * (1 - 0.05 * d.steps);
+                    // Male Line: Decrease by 10% per generation
+                    let sz = ROOT_SIZE * (1 - 0.10 * d.steps);
                     return Math.max(2, sz);
                 } else {
-                    // Descendants: Anchor to their main-line parent
-                    let branchRootStep = d.steps + d.lateral;
-                    let branchRootSize = ROOT_SIZE * (1 - 0.05 * branchRootStep);
-                    // Start at 1/3 the size of the root
-                    let startSize = branchRootSize / 3;
-                    // Decrease by 10% of that starting size per lateral step away
-                    let factor = 1 - 0.10 * (d.lateral - 1);
-                    return Math.max(2, startSize * factor);
+                    // Siblings: 33.33% of their parent node's size
+                    let parentStep = d.steps + 1; 
+                    let parentSize = ROOT_SIZE * (1 - 0.10 * parentStep);
+                    let siblingSize = parentSize * 0.3333;
+                    
+                    if (d.lateral === 1) {
+                        return Math.max(2, siblingSize);
+                    } else {
+                        // Descendants of Siblings: Decrease 5% per lateral step
+                        let factor = Math.pow(0.95, d.lateral - 1);
+                        return Math.max(2, siblingSize * factor);
+                    }
                 }
             }
 
+            function calcOpacity(d) {
+                // Decay opacity by 10% per generation away from the primary male line
+                if (d.lateral === 0) return 1.0;
+                return Math.max(0.2, 1.0 - (0.10 * d.lateral));
+            }
+
+            function calcLinkWidth(d) {
+                if (d.type === "marriage" || (d.target && d.target.inLaw)) return 2;
+                let targetNode = d.target.data ? d.target.data : d.target;
+                let targetRadius = calcRadius(targetNode);
+                return Math.max(1, targetRadius * 0.2); // 20% of the target node's size
+            }
+
             function calcColor(d) {
-                if (d.inLaw) return "rgb(255, 215, 0)"; // GOLD for Spouses
-
-                // Step 1: Mathematical "Base Color" mapped exactly like Iteration 3
-                let mainSteps = d.steps + d.lateral; 
-                let mMax = maxSteps[d.branch] || 1;
+                if (d.inLaw && d.lateral > 0) return "rgb(255, 215, 0)"; 
                 
-                let t = (mainSteps <= 1) ? 0 : (mainSteps - 1) / Math.max(1, mMax - 1);
-                let r = 240, g = 0, b = 240; 
+                // Start pure white, scale towards target RGB based on generational depth
+                let r = 240, g = 240, b = 240; 
+                let mMax = maxSteps[d.branch] || 1;
+                let t = Math.min(1, Math.max(0, d.steps / mMax));
 
-                if (d.branch === "K") {
-                    r = Math.round(220 + (0 - 220) * t);
-                    b = 240;
-                } else if (d.branch === "V") {
-                    r = 240;
-                    b = Math.round(220 + (0 - 220) * t);
-                } else if (d.branch === "R") {
-                    r = Math.round(220 + (0 - 220) * t);
-                    g = Math.round(0 + (240 - 0) * t);
-                    b = Math.round(240 + (0 - 240) * t);
-                } else if (d.branch === "L") {
-                    r = 240;
-                    g = Math.round(0 + (240 - 0) * t);
-                    b = Math.round(220 + (0 - 220) * t);
+                if (d.branch === "K") { // Blue
+                    r = Math.round(240 - 240 * t);
+                    g = Math.round(240 - 240 * t);
+                } else if (d.branch === "R") { // Purple
+                    r = Math.round(240 - 80 * t);   
+                    g = Math.round(240 - 208 * t);  
+                } else if (d.branch === "V") { // Green
+                    r = Math.round(240 - 240 * t);
+                    b = Math.round(240 - 240 * t);
+                } else if (d.branch === "L") { // Yellow
+                    b = Math.round(240 - 240 * t);
+                } else if (d.branch === "B") { // Red
+                    g = Math.round(240 - 240 * t);
+                    b = Math.round(240 - 240 * t);
+                } else if (d.branch === "A") { // Orange
+                    g = Math.round(240 - 112 * t);  
+                    b = Math.round(240 - 240 * t);
                 }
-
-                // Step 2: Lateral shift towards White (240, 240, 240) relative to that base color
-                if (d.lateral > 0) {
-                    let wT = d.lateral / maxLateral; 
-                    r = Math.round(r + (240 - r) * wT);
-                    g = Math.round(g + (240 - g) * wT);
-                    b = Math.round(b + (240 - b) * wT);
-                }
-
                 return `rgb(${r}, ${g}, ${b})`;
             }
 
@@ -377,23 +530,26 @@ def render_genealogy_web():
                 .attr("class", "node")
                 .attr("r", d => calcRadius(d))
                 .attr("fill", d => calcColor(d))
+                .attr("opacity", d => calcOpacity(d))
                 .on("mouseover", (e,d) => {
                     tooltip.transition().duration(200).style("opacity", 1);
                     let stat = d.lateral === 0 ? "Direct Ancestor" : "Lateral Relative";
                     if(d.inLaw) stat = "In-Law (Spouse)";
-                    tooltip.html(`<strong>${d.id}</strong><br/>${d.desc || stat}<br/><span style="color:#94A3B8; font-size:10px;">Size: ${Math.round(calcRadius(d))}px | RGB: ${calcColor(d)}</span>`)
+                    tooltip.html(`<strong>${{d.id}}</strong><br/>${d.desc || stat}<br/><span style="color:#94A3B8; font-size:10px;">Opacity: ${Math.round(calcOpacity(d)*100)}% | Size: ${Math.round(calcRadius(d))}px</span>`)
                         .style("left", (e.pageX + 15) + "px").style("top", (e.pageY - 28) + "px");
                 })
                 .on("mouseout", () => tooltip.transition().duration(500).style("opacity", 0));
 
             simulation.on("tick", () => {
                 fLink.attr("x1", d => d.source.x).attr("y1", d => d.source.y)
-                     .attr("x2", d => d.target.x).attr("y2", d => d.target.y);
-                fNode.attr("transform", d => `translate(${d.x},${d.y})`);
+                     .attr("x2", d => d.target.x).attr("y2", d => d.target.y)
+                     .attr("stroke-width", d => calcLinkWidth(d))
+                     .attr("stroke-opacity", d => calcOpacity(d.target));
+                fNode.attr("transform", d => `translate(${{d.x}},${{d.y}})`);
             });
 
             // --- Dimension & Color Legend ---
-            const legend = fSvg.append("g").attr("transform", `translate(${-width/2 + 20}, ${height/2 - 140})`);
+            const legend = fSvg.append("g").attr("transform", `translate(${-width/2 + 20}, ${height/2 - 170})`);
             legend.append("text").attr("fill", "#94A3B8").attr("font-size", "12px").attr("y", -10).text("DIMENSIONAL RULES:");
             
             const defs = fSvg.append("defs");
@@ -402,22 +558,23 @@ def render_genealogy_web():
                 g.append("stop").attr("offset", "0%").attr("stop-color", c1);
                 g.append("stop").attr("offset", "100%").attr("stop-color", c2);
             }
-            buildGrad("k-grad", "rgb(220,0,240)", "rgb(0,0,240)");
-            buildGrad("v-grad", "rgb(240,0,220)", "rgb(240,0,0)");
-            buildGrad("r-grad", "rgb(220,0,240)", "rgb(0,240,0)");
-            buildGrad("l-grad", "rgb(240,0,220)", "rgb(240,240,0)");
+            buildGrad("k-grad", "rgb(240,240,240)", "rgb(0,0,240)");
+            buildGrad("r-grad", "rgb(240,240,240)", "rgb(160,32,240)");
+            buildGrad("v-grad", "rgb(240,240,240)", "rgb(0,240,0)");
+            buildGrad("l-grad", "rgb(240,240,240)", "rgb(240,240,0)");
+            buildGrad("b-grad", "rgb(240,240,240)", "rgb(240,0,0)");
+            buildGrad("a-grad", "rgb(240,240,240)", "rgb(240,128,0)");
 
-            const labels = ["Killebrew (Father's Line)", "Vanderhoop (Mother's Line)", "Rasmussen (Father's Mother)", "Lieber (Mother's Mother)"];
-            const grads = ["url(#k-grad)", "url(#v-grad)", "url(#r-grad)", "url(#l-grad)"];
+            const labels = ["Killebrew (Dad's Father)", "Rasmussen (Dad's Mother)", "Vanderhoop (Bio Mom's Father)", "Lieber (Bio Mom's Mother)", "Buzunis (Step Mom's Father)", "Annestasia (Step Mom's Mother)"];
+            const grads = ["url(#k-grad)", "url(#r-grad)", "url(#v-grad)", "url(#l-grad)", "url(#b-grad)", "url(#a-grad)"];
             
             labels.forEach((l, i) => {
                 legend.append("rect").attr("y", i*20).attr("width", 50).attr("height", 10).style("fill", grads[i]);
                 legend.append("text").attr("x", 60).attr("y", i*20 + 9).attr("fill", "#64748B").attr("font-size", "10px").text(l);
             });
-            legend.append("circle").attr("cx", 25).attr("cy", 85).attr("r", 5).attr("fill", "rgb(255,215,0)");
-            legend.append("text").attr("x", 60).attr("y", 89).attr("fill", "#64748B").attr("font-size", "10px").text("In-laws (Gold | 5%)");
-            legend.append("text").attr("x", 0).attr("y", 110).attr("fill", "#64748B").attr("font-size", "10px").text("Direct Size: -5% per step");
-            legend.append("text").attr("x", 0).attr("y", 125).attr("fill", "#64748B").attr("font-size", "10px").text("Lateral Color: Step to White");
+            legend.append("circle").attr("cx", 25).attr("cy", 125).attr("r", 5).attr("fill", "rgb(255,215,0)");
+            legend.append("text").attr("x", 60).attr("y", 129).attr("fill", "#64748B").attr("font-size", "10px").text("In-laws (Gold)");
+            legend.append("text").attr("x", 0).attr("y", 150).attr("fill", "#64748B").attr("font-size", "10px").text("Lines: 20% of Target Node");
 
             // ==========================================
             // 4. RIGHT PANEL: TIMELINE
@@ -456,7 +613,9 @@ def render_genealogy_web():
                     if (d.target.data.lateral > 0) return "tree-link leaf";
                     return "tree-link main";
                 })
-                .attr("d", d3.linkVertical().x(d => d.x).y(d => d.y));
+                .attr("d", d3.linkVertical().x(d => d.x).y(d => d.y))
+                .attr("stroke-width", d => calcLinkWidth(d))
+                .attr("stroke-opacity", d => calcOpacity(d.target.data));
 
             const tNode = treeGroup.selectAll(".tree-node").data(root.descendants()).enter().append("g")
                 .attr("transform", d => `translate(${d.x},${d.y})`);
@@ -465,11 +624,12 @@ def render_genealogy_web():
                 .attr("class", "node")
                 .attr("r", d => calcRadius(d.data))
                 .attr("fill", d => calcColor(d.data))
+                .attr("opacity", d => calcOpacity(d.data))
                 .on("mouseover", (e,d) => {
                     tooltip.transition().duration(200).style("opacity", 1);
                     let stat = d.data.lateral === 0 ? "Direct Ancestor" : "Lateral Relative";
                     if(d.data.inLaw) stat = "In-Law (Spouse)";
-                    tooltip.html(`<strong>${d.data.name}</strong><br/>${d.data.year} | ${d.data.desc || stat}<br/><span style="color:#94A3B8; font-size:10px;">Size: ${Math.round(calcRadius(d.data))}px | RGB: ${calcColor(d.data)}</span>`)
+                    tooltip.html(`<strong>${d.data.name}</strong><br/>${d.data.year} | ${d.data.desc || stat}<br/><span style="color:#94A3B8; font-size:10px;">Opacity: ${Math.round(calcOpacity(d.data)*100)}% | Size: ${Math.round(calcRadius(d.data))}px</span>`)
                         .style("left", (e.pageX + 15) + "px").style("top", (e.pageY - 28) + "px");
                 })
                 .on("mouseout", () => tooltip.transition().duration(500).style("opacity", 0));
