@@ -84,8 +84,8 @@ def render_genealogy_web():
                     { id: "Bonnie Rasmussen", branch: "R", steps: 2, lateral: 0, desc: "Grandparent (1934 - 2020)" },
                     { id: "John O. Vanderhoop", branch: "V", steps: 2, lateral: 0, desc: "Grandparent (1934 - 2022)" },
                     { id: "Waltrud M. Lieber", branch: "L", steps: 2, lateral: 0, desc: "Grandparent (1934 - 2022)" },
-                    { id: "Peter Buzunis", branch: "B", steps: 2, lateral: 0, desc: "Grandparent" },
-                    { id: "Annestasia Buzunis", branch: "A", steps: 2, lateral: 0, desc: "Grandparent" },
+                    { id: "Peter Buzunis", branch: "B", steps: 2, lateral: 0, desc: "Grandparent (1917 - 2007)" },
+                    { id: "Anastasia Ginakes", branch: "A", steps: 2, lateral: 0, desc: "Grandparent (1925 - 2018)" },
                     
                     // --- KILLEBREW BRANCH (K) ---
                     { id: "William H. K.", branch: "K", steps: 3, lateral: 0, desc: "Great Grandparent (1898 - 1970)" },
@@ -171,12 +171,29 @@ def render_genealogy_web():
                     { id: "Manfred Lieber", branch: "L", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
 
                     // --- BUZUNIS BRANCH (B) ---
+                    { id: "Theodore Buzunis", branch: "B", steps: 3, lateral: 0, desc: "Great Grandparent (1885 - 1978)" },
+                    { id: "Constantina Colilos", branch: "B", steps: 3, lateral: 0, desc: "Great Grandparent (1887 - 1963)", inLaw: true },
+                    { id: "Helen Buzunis", branch: "B", steps: 2, lateral: 1, desc: "Great Aunt / Uncle (1911 - 1971)" },
+                    { id: "James Effos", branch: "B", steps: 2, lateral: 1, inLaw: true },
+                    
                     { id: "Teddy Buzunis", branch: "B", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
                     { id: "Victoria Buzunis", branch: "B", steps: 0, lateral: 2, desc: "First Cousin" },
                     { id: "Demo Buzunis", branch: "B", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
                     { id: "Andrea Buzunis", branch: "B", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
                     { id: "Timothy Buzunis", branch: "B", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
-                    { id: "Kerry", branch: "B", steps: 1, lateral: 1, inLaw: true }
+                    { id: "Kerry", branch: "B", steps: 1, lateral: 1, inLaw: true },
+
+                    // --- GINAKES BRANCH (A) ---
+                    { id: "Andrew Demetrius Ginakes", branch: "A", steps: 3, lateral: 0, desc: "Great Grandparent (1895 - 1967)" },
+                    { id: "Arcondo A. Boosalis", branch: "A", steps: 3, lateral: 0, desc: "Great Grandparent (1895 - 1984)", inLaw: true },
+                    { id: "Desmos Giannakis", branch: "A", steps: 4, lateral: 0, desc: "Great Great Grandparent" },
+                    { id: "Anastasia Mirras", branch: "A", steps: 4, lateral: 0, inLaw: true },
+                    
+                    { id: "Desmos Andrew Ginakes", branch: "A", steps: 2, lateral: 1, desc: "Great Aunt / Uncle (1923 - 1996)" },
+                    { id: "Mary Ginakes", branch: "A", steps: 2, lateral: 1, desc: "Great Aunt / Uncle (1928 - 2013)" },
+                    { id: "Nicholas Ginakes", branch: "A", steps: 3, lateral: 1, desc: "Great Grand Aunt / Uncle" },
+                    { id: "John Ginakes", branch: "A", steps: 3, lateral: 1, desc: "Great Grand Aunt / Uncle" },
+                    { id: "Constantine Ginakes", branch: "A", steps: 3, lateral: 1, desc: "Great Grand Aunt / Uncle" }
                 ],
                 links: [
                     // Main Ancestral Lines
@@ -187,15 +204,22 @@ def render_genealogy_web():
                     { source: "John O. Vanderhoop", target: "Christina Vanderhoop", type: "main" },
                     { source: "Waltrud M. Lieber", target: "Christina Vanderhoop", type: "main" },
                     { source: "Peter Buzunis", target: "Antonia Constance Buzunis", type: "main" },
-                    { source: "Annestasia Buzunis", target: "Antonia Constance Buzunis", type: "main" },
+                    { source: "Anastasia Ginakes", target: "Antonia Constance Buzunis", type: "main" },
+                    
+                    { source: "Theodore Buzunis", target: "Peter Buzunis", type: "main" },
+                    { source: "Andrew Demetrius Ginakes", target: "Anastasia Ginakes", type: "main" },
+                    { source: "Desmos Giannakis", target: "Andrew Demetrius Ginakes", type: "main" },
                     
                     // Marriages & Step-Relations
                     { source: "Eric Killebrew", target: "Christina Vanderhoop", type: "marriage" },
                     { source: "Eric Killebrew", target: "Antonia Constance Buzunis", type: "marriage" },
                     { source: "Robert Killebrew", target: "Bonnie Rasmussen", type: "marriage" },
                     { source: "John O. Vanderhoop", target: "Waltrud M. Lieber", type: "marriage" },
-                    { source: "Peter Buzunis", target: "Annestasia Buzunis", type: "marriage" },
-                    { source: "Antonia Constance Buzunis", target: "Kyle Killebrew", type: "inlaw" },
+                    { source: "Peter Buzunis", target: "Anastasia Ginakes", type: "marriage" },
+                    { source: "Theodore Buzunis", target: "Constantina Colilos", type: "marriage" },
+                    { source: "Andrew Demetrius Ginakes", target: "Arcondo A. Boosalis", type: "marriage" },
+                    { source: "Desmos Giannakis", target: "Anastasia Mirras", type: "marriage" },
+                    { source: "Antonia Constance Buzunis", target: "Kyle Killebrew", type: "inlaw" }, // Triangular tie
                     
                     // Siblings
                     { source: "Eric Killebrew", target: "Andrea Nicole Killebrew", type: "leaf" },
@@ -268,7 +292,6 @@ def render_genealogy_web():
                     { source: "Leonard V.", target: "Edmund V.", type: "leaf" },
                     { source: "Leonard V.", target: "Margery V.", type: "leaf" },
                     
-                    // Margery's Family Links
                     { source: "Margery V.", target: "Paul V.", type: "leaf" },
                     { source: "Margery V.", target: "Polly V.", type: "leaf" },
                     { source: "Paul V.", target: "Paul's Wife", type: "inlaw" },
@@ -280,7 +303,17 @@ def render_genealogy_web():
                     { source: "G. Heinrich L. Lieber", target: "Marie Emilie Ibe", type: "inlaw" },
                     { source: "G. Heinrich L. Lieber", target: "Manfred Lieber", type: "leaf"},
 
-                    // Buzunis Siblings
+                    // Buzunis / Ginakes Branches
+                    { source: "Theodore Buzunis", target: "Helen Buzunis", type: "leaf" },
+                    { source: "Helen Buzunis", target: "James Effos", type: "inlaw" },
+
+                    { source: "Desmos Giannakis", target: "Nicholas Ginakes", type: "leaf" },
+                    { source: "Desmos Giannakis", target: "John Ginakes", type: "leaf" },
+                    { source: "Desmos Giannakis", target: "Constantine Ginakes", type: "leaf" },
+                    
+                    { source: "Andrew Demetrius Ginakes", target: "Desmos Andrew Ginakes", type: "leaf" },
+                    { source: "Andrew Demetrius Ginakes", target: "Mary Ginakes", type: "leaf" },
+                    
                     { source: "Peter Buzunis", target: "Teddy Buzunis", type: "leaf" },
                     { source: "Peter Buzunis", target: "Demo Buzunis", type: "leaf" },
                     { source: "Peter Buzunis", target: "Andrea Buzunis", type: "leaf" },
@@ -362,8 +395,14 @@ def render_genealogy_web():
                                     { name: "Rhett R.", year: 1938, branch: "R", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" }
                                 ]}
                             ]},
-                            { name: "Antonia Constance Buzunis", year: 1965, branch: "B", steps: 1, lateral: 0, inLaw: true, desc: "Step Mother", children: [
-                                { name: "Peter Buzunis", year: 1930, branch: "B", steps: 2, lateral: 0, desc: "Grandparent", children: [
+                            { name: "Antonia Constance Buzunis", year: 1964, branch: "B", steps: 1, lateral: 0, inLaw: true, desc: "Step Mother", children: [
+                                { name: "Peter Buzunis", year: 1917, branch: "B", steps: 2, lateral: 0, desc: "Grandparent", children: [
+                                    { name: "Theodore Buzunis", year: 1885, branch: "B", steps: 3, lateral: 0, desc: "Great Grandparent", children: [
+                                        { name: "Constantina Colilos", year: 1887, branch: "B", steps: 3, lateral: 0, inLaw: true },
+                                        { name: "Helen Buzunis", year: 1911, branch: "B", steps: 2, lateral: 1, desc: "Great Aunt / Uncle", children: [
+                                            { name: "James Effos", year: 1894, branch: "B", steps: 2, lateral: 1, inLaw: true }
+                                        ]}
+                                    ]},
                                     { name: "Teddy Buzunis", year: 1960, branch: "B", steps: 1, lateral: 1, desc: "Aunt / Uncle", children: [
                                         { name: "Victoria Buzunis", year: 1990, branch: "B", steps: 0, lateral: 2, desc: "First Cousin" }
                                     ]},
@@ -373,7 +412,19 @@ def render_genealogy_web():
                                         { name: "Kerry", year: 1970, branch: "B", steps: 1, lateral: 1, inLaw: true }
                                     ]}
                                 ]},
-                                { name: "Annestasia Buzunis", year: 1932, branch: "A", steps: 2, lateral: 0, desc: "Grandparent" }
+                                { name: "Anastasia Ginakes", year: 1925, branch: "A", steps: 2, lateral: 0, desc: "Grandparent", children: [
+                                    { name: "Andrew Demetrius Ginakes", year: 1895, branch: "A", steps: 3, lateral: 0, desc: "Great Grandparent", children: [
+                                        { name: "Desmos Giannakis", year: 1865, branch: "A", steps: 4, lateral: 0, desc: "Great Great Grandparent", children: [
+                                            { name: "Anastasia Mirras", year: 1865, branch: "A", steps: 4, lateral: 0, inLaw: true },
+                                            { name: "Nicholas Ginakes", year: 1890, branch: "A", steps: 3, lateral: 1, desc: "Great Grand Aunt / Uncle" },
+                                            { name: "John Ginakes", year: 1892, branch: "A", steps: 3, lateral: 1, desc: "Great Grand Aunt / Uncle" },
+                                            { name: "Constantine Ginakes", year: 1898, branch: "A", steps: 3, lateral: 1, desc: "Great Grand Aunt / Uncle" }
+                                        ]},
+                                        { name: "Arcondo A. Boosalis", year: 1895, branch: "A", steps: 3, lateral: 0, inLaw: true },
+                                        { name: "Desmos Andrew Ginakes", year: 1923, branch: "A", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
+                                        { name: "Mary Ginakes", year: 1928, branch: "A", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" }
+                                    ]}
+                                ]}
                             ]},
                             { name: "Andrea Nicole Killebrew", year: 1985, branch: "K", steps: 0, lateral: 1, desc: "Sister / Brother" },
                             { name: "Eric Scott Killebrew, Jr.", year: 1988, branch: "K", steps: 0, lateral: 1, desc: "Sister / Brother" }
