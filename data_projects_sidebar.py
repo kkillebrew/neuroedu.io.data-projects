@@ -163,9 +163,9 @@ def render_sidebar():
         st.markdown("""
             <div class="sidebar-footer">
                 © 2026 Kyle W. Killebrew.<br>
-                Code, models, and resume collaboratively self authored.<br>
-                Disclaimer: The figures and analysis presented here are all<br>
-                ongoing and may contain errors.<br>
+                Code, models, and resume self authored.<br>
+                Disclaimer: The figures and analysis presented here<br>
+                are allongoing and may contain errors.<br>
                 References reported for all databases used. 
             </div>
         """, unsafe_allow_html=True)

@@ -125,7 +125,7 @@ with col_text:
 st.divider()
 
 # --- FAMILY TREE MODULE ---
-st.markdown("<h3 style='text-align: center; color: #F8FAFC; margin-bottom: 10px;'>My Family Tree</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center; color: #F8FAFC; margin-bottom: 10px;'>Explore where I come from!</h3>", unsafe_allow_html=True)
 
 # Custom CSS to center the radio buttons
 st.markdown("""
@@ -144,7 +144,6 @@ tree_view = st.radio(
 if tree_view == "Ancestral Tree":
     render_genealogy_web()
 elif tree_view == "Migration Journeys":
-    # --- REPLACED PLACEHOLDER WITH NEW COMPONENT ---
     render_migration_map()
 elif tree_view == "DNA Evidence":
     st.info("DNA sequencing and genomic variance module is currently in development.")
