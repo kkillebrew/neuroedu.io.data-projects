@@ -97,15 +97,12 @@ def render_genealogy_web():
                     
                     { id: "Ron K.", branch: "K", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
                     { id: "Urma K.", branch: "K", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
-
-                    // Father's Siblings & Families
                     { id: "Kelly K.", branch: "K", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
                     { id: "Stephen K.", branch: "K", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
                     { id: "Iman Killebrew", branch: "K", steps: 1, lateral: 1, inLaw: true },
                     { id: "Alec K.", branch: "K", steps: 0, lateral: 2, desc: "First Cousin" },
                     { id: "Gillan K.", branch: "K", steps: 0, lateral: 2, desc: "First Cousin" },
                     { id: "Jayce K.", branch: "K", steps: 0, lateral: 2, desc: "First Cousin" },
-
                     { id: "Suzie K.", branch: "K", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
                     { id: "Steve Gerphy", branch: "K", steps: 1, lateral: 1, inLaw: true },
                     { id: "Matt Gerphy", branch: "K", steps: 0, lateral: 2, desc: "First Cousin" },
@@ -114,15 +111,12 @@ def render_genealogy_web():
                     { id: "Riley Gerphy", branch: "K", steps: -1, lateral: 3, desc: "First Cousin Once Removed" },
                     { id: "Oliver Gerphy", branch: "K", steps: -1, lateral: 3, desc: "First Cousin Once Removed" },
                     { id: "Chris Gerphy", branch: "K", steps: 0, lateral: 2, desc: "First Cousin" },
-
                     { id: "Tony K.", branch: "K", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
                     { id: "Martha", branch: "K", steps: 1, lateral: 1, inLaw: true },
                     { id: "Will K.", branch: "K", steps: 0, lateral: 2, desc: "First Cousin" },
                     { id: "Ben K.", branch: "K", steps: 0, lateral: 2, desc: "First Cousin" },
-
                     { id: "Keri K.", branch: "K", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
                     { id: "Stacy", branch: "K", steps: 1, lateral: 1, inLaw: true },
-
                     { id: "Sheri K.", branch: "K", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
                     { id: "Ray Snisky", branch: "K", steps: 1, lateral: 1, inLaw: true },
                     { id: "Ellie Snisky", branch: "K", steps: 0, lateral: 2, desc: "First Cousin" },
@@ -133,7 +127,6 @@ def render_genealogy_web():
                     { id: "James A. R.", branch: "R", steps: 4, lateral: 0, desc: "Great Great Grandparent (1877 - 1965)" },
                     { id: "Rasmus J. R.", branch: "R", steps: 5, lateral: 0, desc: "3x Great Grandparent (1842 - 1920)" },
                     { id: "Jens Rasmussen", branch: "R", steps: 6, lateral: 0, desc: "4x Great Grandparent (1810 - 1888)" },
-                    
                     { id: "Richard R.", branch: "R", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
                     { id: "Bettie R.", branch: "R", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
                     { id: "Rhett R.", branch: "R", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
@@ -151,17 +144,13 @@ def render_genealogy_web():
                     { id: "William A. V.", branch: "V", steps: 5, lateral: 0, desc: "3x Great Grandparent (~1816 - 1893)" },
                     { id: "Beulah Salisbury", branch: "V", steps: 5, lateral: 0, inLaw: true },
                     { id: "Johnny Vanderhoop", branch: "V", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
-                    
-                    // Mother's Father's Siblings & Descendants
                     { id: "Leonard Jr. V.", branch: "V", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
                     { id: "William (Billy) V.", branch: "V", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
                     { id: "Edmund V.", branch: "V", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
                     { id: "Margery V.", branch: "V", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
-                    
                     { id: "Paul V.", branch: "V", steps: 1, lateral: 2, desc: "First Cousin Once Removed" },
                     { id: "Polly V.", branch: "V", steps: 1, lateral: 2, desc: "First Cousin Once Removed" },
                     { id: "Paul's Wife", branch: "V", steps: 1, lateral: 2, inLaw: true },
-                    
                     { id: "Maushup V.", branch: "V", steps: 0, lateral: 3, desc: "Second Cousin" },
                     { id: "Nashawn V.", branch: "V", steps: 0, lateral: 3, desc: "Second Cousin" },
 
@@ -171,11 +160,21 @@ def render_genealogy_web():
                     { id: "Manfred Lieber", branch: "L", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
 
                     // --- BUZUNIS BRANCH (B) ---
+                    { id: "George Constantine Buzunis", branch: "B", steps: 4, lateral: 0, desc: "Great Great Grandparent (1846 - 1912)" },
+                    { id: "Elenis 'Helen' Georgakopoulis", branch: "B", steps: 4, lateral: 0, desc: "Great Great Grandparent (1867 - 1912)", inLaw: true },
                     { id: "Theodore Buzunis", branch: "B", steps: 3, lateral: 0, desc: "Great Grandparent (1885 - 1978)" },
                     { id: "Constantina Colilos", branch: "B", steps: 3, lateral: 0, desc: "Great Grandparent (1887 - 1963)", inLaw: true },
+                    
+                    { id: "William Buzunis", branch: "B", steps: 3, lateral: 1, desc: "Great Grand Aunt / Uncle" },
+                    { id: "Alexander Buzunis", branch: "B", steps: 3, lateral: 1, desc: "Great Grand Aunt / Uncle" },
+                    { id: "Nickolas Buzunis", branch: "B", steps: 3, lateral: 1, desc: "Great Grand Aunt / Uncle" },
+                    { id: "Christopher Buzunis", branch: "B", steps: 3, lateral: 1, desc: "Great Grand Aunt / Uncle" },
+                    
                     { id: "Helen Buzunis", branch: "B", steps: 2, lateral: 1, desc: "Great Aunt / Uncle (1911 - 1971)" },
                     { id: "James Effos", branch: "B", steps: 2, lateral: 1, inLaw: true },
-                    
+                    { id: "George Buzunis", branch: "B", steps: 2, lateral: 1, desc: "Great Aunt / Uncle (1914 - 1988)" },
+                    { id: "Christina Buzunis", branch: "B", steps: 2, lateral: 1, desc: "Great Aunt / Uncle (1915 - 2005)" },
+
                     { id: "Teddy Buzunis", branch: "B", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
                     { id: "Victoria Buzunis", branch: "B", steps: 0, lateral: 2, desc: "First Cousin" },
                     { id: "Demo Buzunis", branch: "B", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
@@ -184,16 +183,17 @@ def render_genealogy_web():
                     { id: "Kerry", branch: "B", steps: 1, lateral: 1, inLaw: true },
 
                     // --- GINAKES BRANCH (A) ---
+                    { id: "Unknown Ginakes", branch: "A", steps: 4, lateral: 0, desc: "Great Great Grandparent" },
                     { id: "Andrew Demetrius Ginakes", branch: "A", steps: 3, lateral: 0, desc: "Great Grandparent (1895 - 1967)" },
                     { id: "Arcondo A. Boosalis", branch: "A", steps: 3, lateral: 0, desc: "Great Grandparent (1895 - 1984)", inLaw: true },
-                    { id: "Desmos Giannakis", branch: "A", steps: 4, lateral: 0, desc: "Great Great Grandparent" },
-                    { id: "Anastasia Mirras", branch: "A", steps: 4, lateral: 0, inLaw: true },
                     
-                    { id: "Desmos Andrew Ginakes", branch: "A", steps: 2, lateral: 1, desc: "Great Aunt / Uncle (1923 - 1996)" },
-                    { id: "Mary Ginakes", branch: "A", steps: 2, lateral: 1, desc: "Great Aunt / Uncle (1928 - 2013)" },
+                    { id: "Constantine D Ginakes", branch: "A", steps: 3, lateral: 1, desc: "Great Grand Aunt / Uncle (1908 - 1965)" },
+                    { id: "Anastasia Mirras", branch: "A", steps: 3, lateral: 1, inLaw: true },
                     { id: "Nicholas Ginakes", branch: "A", steps: 3, lateral: 1, desc: "Great Grand Aunt / Uncle" },
                     { id: "John Ginakes", branch: "A", steps: 3, lateral: 1, desc: "Great Grand Aunt / Uncle" },
-                    { id: "Constantine Ginakes", branch: "A", steps: 3, lateral: 1, desc: "Great Grand Aunt / Uncle" }
+
+                    { id: "Desmos Andrew Ginakes", branch: "A", steps: 2, lateral: 1, desc: "Great Aunt / Uncle (1923 - 1996)" },
+                    { id: "Mary Ginakes", branch: "A", steps: 2, lateral: 1, desc: "Great Aunt / Uncle (1928 - 2013)" }
                 ],
                 links: [
                     // Main Ancestral Lines
@@ -203,29 +203,32 @@ def render_genealogy_web():
                     { source: "Bonnie Rasmussen", target: "Eric Killebrew", type: "main" },
                     { source: "John O. Vanderhoop", target: "Christina Vanderhoop", type: "main" },
                     { source: "Waltrud M. Lieber", target: "Christina Vanderhoop", type: "main" },
+                    
                     { source: "Peter Buzunis", target: "Antonia Constance Buzunis", type: "main" },
                     { source: "Anastasia Ginakes", target: "Antonia Constance Buzunis", type: "main" },
-                    
                     { source: "Theodore Buzunis", target: "Peter Buzunis", type: "main" },
-                    { source: "Andrew Demetrius Ginakes", target: "Anastasia Ginakes", type: "main" },
-                    { source: "Desmos Giannakis", target: "Andrew Demetrius Ginakes", type: "main" },
+                    { source: "George Constantine Buzunis", target: "Theodore Buzunis", type: "main" },
                     
+                    { source: "Andrew Demetrius Ginakes", target: "Anastasia Ginakes", type: "main" },
+                    { source: "Unknown Ginakes", target: "Andrew Demetrius Ginakes", type: "main" },
+
                     // Marriages & Step-Relations
                     { source: "Eric Killebrew", target: "Christina Vanderhoop", type: "marriage" },
                     { source: "Eric Killebrew", target: "Antonia Constance Buzunis", type: "marriage" },
                     { source: "Robert Killebrew", target: "Bonnie Rasmussen", type: "marriage" },
                     { source: "John O. Vanderhoop", target: "Waltrud M. Lieber", type: "marriage" },
+                    
                     { source: "Peter Buzunis", target: "Anastasia Ginakes", type: "marriage" },
                     { source: "Theodore Buzunis", target: "Constantina Colilos", type: "marriage" },
+                    { source: "George Constantine Buzunis", target: "Elenis 'Helen' Georgakopoulis", type: "marriage" },
                     { source: "Andrew Demetrius Ginakes", target: "Arcondo A. Boosalis", type: "marriage" },
-                    { source: "Desmos Giannakis", target: "Anastasia Mirras", type: "marriage" },
-                    { source: "Antonia Constance Buzunis", target: "Kyle Killebrew", type: "inlaw" }, // Triangular tie
+                    { source: "Constantine D Ginakes", target: "Anastasia Mirras", type: "marriage" },
                     
-                    // Siblings
+                    { source: "Antonia Constance Buzunis", target: "Kyle Killebrew", type: "inlaw" },
+                    
+                    // Siblings & Relatives (Killebrew/Rasmussen/Vanderhoop/Lieber)
                     { source: "Eric Killebrew", target: "Andrea Nicole Killebrew", type: "leaf" },
                     { source: "Eric Killebrew", target: "Eric Scott Killebrew, Jr.", type: "leaf" },
-
-                    // Killebrew Historical Male Line
                     { source: "William H. K.", target: "Robert Killebrew", type: "main" },
                     { source: "Daniel Boone K.", target: "William H. K.", type: "main" },
                     { source: "George W. K.", target: "Daniel Boone K.", type: "main" },
@@ -234,15 +237,12 @@ def render_genealogy_web():
                     { source: "Francis K.", target: "Joseph K.", type: "main" },
                     { source: "William H. K.", target: "Ron K.", type: "leaf" },
                     { source: "William H. K.", target: "Urma K.", type: "leaf" },
-
-                    // Killebrew Aunts/Uncles & Families
                     { source: "Robert Killebrew", target: "Kelly K.", type: "leaf" },
                     { source: "Robert Killebrew", target: "Stephen K.", type: "leaf" },
                     { source: "Stephen K.", target: "Iman Killebrew", type: "inlaw" },
                     { source: "Stephen K.", target: "Alec K.", type: "leaf" },
                     { source: "Stephen K.", target: "Gillan K.", type: "leaf" },
                     { source: "Stephen K.", target: "Jayce K.", type: "leaf" },
-
                     { source: "Robert Killebrew", target: "Suzie K.", type: "leaf" },
                     { source: "Suzie K.", target: "Steve Gerphy", type: "inlaw" },
                     { source: "Suzie K.", target: "Matt Gerphy", type: "leaf" },
@@ -251,21 +251,16 @@ def render_genealogy_web():
                     { source: "Matt Gerphy", target: "Amelia Gerphy", type: "leaf" },
                     { source: "Matt Gerphy", target: "Riley Gerphy", type: "leaf" },
                     { source: "Matt Gerphy", target: "Oliver Gerphy", type: "leaf" },
-
                     { source: "Robert Killebrew", target: "Tony K.", type: "leaf" },
                     { source: "Tony K.", target: "Martha", type: "inlaw" },
                     { source: "Tony K.", target: "Will K.", type: "leaf" },
                     { source: "Tony K.", target: "Ben K.", type: "leaf" },
-
                     { source: "Robert Killebrew", target: "Keri K.", type: "leaf" },
                     { source: "Keri K.", target: "Stacy", type: "inlaw" },
-
                     { source: "Robert Killebrew", target: "Sheri K.", type: "leaf" },
                     { source: "Sheri K.", target: "Ray Snisky", type: "inlaw" },
                     { source: "Sheri K.", target: "Ellie Snisky", type: "leaf" },
                     { source: "Sheri K.", target: "Ava Snisky", type: "leaf" },
-
-                    // Rasmussen Line
                     { source: "Clinton Rasmussen", target: "Bonnie Rasmussen", type: "main" },
                     { source: "James A. R.", target: "Clinton Rasmussen", type: "main" },
                     { source: "Rasmus J. R.", target: "James A. R.", type: "main" },
@@ -280,8 +275,6 @@ def render_genealogy_web():
                     { source: "Richard R.", target: "Karen", type: "leaf" },
                     { source: "Bettie R.", target: "Bob", type: "inlaw" },
                     { source: "Bettie R.", target: "Michelle", type: "leaf" },
-
-                    // Vanderhoop Line
                     { source: "Leonard V.", target: "John O. Vanderhoop", type: "main" },
                     { source: "Edwin DeVries V.", target: "Leonard V.", type: "main" },
                     { source: "William A. V.", target: "Edwin DeVries V.", type: "main" },
@@ -291,35 +284,39 @@ def render_genealogy_web():
                     { source: "Leonard V.", target: "William (Billy) V.", type: "leaf" },
                     { source: "Leonard V.", target: "Edmund V.", type: "leaf" },
                     { source: "Leonard V.", target: "Margery V.", type: "leaf" },
-                    
                     { source: "Margery V.", target: "Paul V.", type: "leaf" },
                     { source: "Margery V.", target: "Polly V.", type: "leaf" },
                     { source: "Paul V.", target: "Paul's Wife", type: "inlaw" },
                     { source: "Paul V.", target: "Maushup V.", type: "leaf" },
                     { source: "Paul V.", target: "Nashawn V.", type: "leaf" },
-
-                    // Lieber Line
                     { source: "G. Heinrich L. Lieber", target: "Waltrud M. Lieber", type: "main"},
                     { source: "G. Heinrich L. Lieber", target: "Marie Emilie Ibe", type: "inlaw" },
                     { source: "G. Heinrich L. Lieber", target: "Manfred Lieber", type: "leaf"},
 
-                    // Buzunis / Ginakes Branches
-                    { source: "Theodore Buzunis", target: "Helen Buzunis", type: "leaf" },
-                    { source: "Helen Buzunis", target: "James Effos", type: "inlaw" },
-
-                    { source: "Desmos Giannakis", target: "Nicholas Ginakes", type: "leaf" },
-                    { source: "Desmos Giannakis", target: "John Ginakes", type: "leaf" },
-                    { source: "Desmos Giannakis", target: "Constantine Ginakes", type: "leaf" },
+                    // Siblings & Relatives (Buzunis / Ginakes)
+                    { source: "George Constantine Buzunis", target: "William Buzunis", type: "leaf" },
+                    { source: "George Constantine Buzunis", target: "Alexander Buzunis", type: "leaf" },
+                    { source: "George Constantine Buzunis", target: "Nickolas Buzunis", type: "leaf" },
+                    { source: "George Constantine Buzunis", target: "Christopher Buzunis", type: "leaf" },
                     
-                    { source: "Andrew Demetrius Ginakes", target: "Desmos Andrew Ginakes", type: "leaf" },
-                    { source: "Andrew Demetrius Ginakes", target: "Mary Ginakes", type: "leaf" },
+                    { source: "Theodore Buzunis", target: "Helen Buzunis", type: "leaf" },
+                    { source: "Theodore Buzunis", target: "George Buzunis", type: "leaf" },
+                    { source: "Theodore Buzunis", target: "Christina Buzunis", type: "leaf" },
+                    { source: "Helen Buzunis", target: "James Effos", type: "inlaw" },
                     
                     { source: "Peter Buzunis", target: "Teddy Buzunis", type: "leaf" },
                     { source: "Peter Buzunis", target: "Demo Buzunis", type: "leaf" },
                     { source: "Peter Buzunis", target: "Andrea Buzunis", type: "leaf" },
                     { source: "Peter Buzunis", target: "Timothy Buzunis", type: "leaf" },
                     { source: "Teddy Buzunis", target: "Victoria Buzunis", type: "leaf" },
-                    { source: "Timothy Buzunis", target: "Kerry", type: "inlaw" }
+                    { source: "Timothy Buzunis", target: "Kerry", type: "inlaw" },
+
+                    { source: "Unknown Ginakes", target: "Constantine D Ginakes", type: "leaf" },
+                    { source: "Unknown Ginakes", target: "Nicholas Ginakes", type: "leaf" },
+                    { source: "Unknown Ginakes", target: "John Ginakes", type: "leaf" },
+                    
+                    { source: "Andrew Demetrius Ginakes", target: "Desmos Andrew Ginakes", type: "leaf" },
+                    { source: "Andrew Demetrius Ginakes", target: "Mary Ginakes", type: "leaf" }
                 ]
             };
 
@@ -398,10 +395,19 @@ def render_genealogy_web():
                             { name: "Antonia Constance Buzunis", year: 1964, branch: "B", steps: 1, lateral: 0, inLaw: true, desc: "Step Mother", children: [
                                 { name: "Peter Buzunis", year: 1917, branch: "B", steps: 2, lateral: 0, desc: "Grandparent", children: [
                                     { name: "Theodore Buzunis", year: 1885, branch: "B", steps: 3, lateral: 0, desc: "Great Grandparent", children: [
+                                        { name: "George Constantine Buzunis", year: 1846, branch: "B", steps: 4, lateral: 0, desc: "Great Great Grandparent", children: [
+                                            { name: "Elenis 'Helen' Georgakopoulis", year: 1867, branch: "B", steps: 4, lateral: 0, inLaw: true },
+                                            { name: "William Buzunis", year: 1880, branch: "B", steps: 3, lateral: 1, desc: "Great Grand Aunt / Uncle" },
+                                            { name: "Alexander Buzunis", year: 1882, branch: "B", steps: 3, lateral: 1, desc: "Great Grand Aunt / Uncle" },
+                                            { name: "Nickolas Buzunis", year: 1884, branch: "B", steps: 3, lateral: 1, desc: "Great Grand Aunt / Uncle" },
+                                            { name: "Christopher Buzunis", year: 1886, branch: "B", steps: 3, lateral: 1, desc: "Great Grand Aunt / Uncle" }
+                                        ]},
                                         { name: "Constantina Colilos", year: 1887, branch: "B", steps: 3, lateral: 0, inLaw: true },
                                         { name: "Helen Buzunis", year: 1911, branch: "B", steps: 2, lateral: 1, desc: "Great Aunt / Uncle", children: [
                                             { name: "James Effos", year: 1894, branch: "B", steps: 2, lateral: 1, inLaw: true }
-                                        ]}
+                                        ]},
+                                        { name: "George Buzunis", year: 1914, branch: "B", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
+                                        { name: "Christina Buzunis", year: 1915, branch: "B", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" }
                                     ]},
                                     { name: "Teddy Buzunis", year: 1960, branch: "B", steps: 1, lateral: 1, desc: "Aunt / Uncle", children: [
                                         { name: "Victoria Buzunis", year: 1990, branch: "B", steps: 0, lateral: 2, desc: "First Cousin" }
@@ -414,11 +420,12 @@ def render_genealogy_web():
                                 ]},
                                 { name: "Anastasia Ginakes", year: 1925, branch: "A", steps: 2, lateral: 0, desc: "Grandparent", children: [
                                     { name: "Andrew Demetrius Ginakes", year: 1895, branch: "A", steps: 3, lateral: 0, desc: "Great Grandparent", children: [
-                                        { name: "Desmos Giannakis", year: 1865, branch: "A", steps: 4, lateral: 0, desc: "Great Great Grandparent", children: [
-                                            { name: "Anastasia Mirras", year: 1865, branch: "A", steps: 4, lateral: 0, inLaw: true },
+                                        { name: "Unknown Ginakes", year: 1865, branch: "A", steps: 4, lateral: 0, desc: "Great Great Grandparent", children: [
+                                            { name: "Constantine D Ginakes", year: 1908, branch: "A", steps: 3, lateral: 1, desc: "Great Grand Aunt / Uncle", children: [
+                                                { name: "Anastasia Mirras", year: 1910, branch: "A", steps: 3, lateral: 1, inLaw: true }
+                                            ]},
                                             { name: "Nicholas Ginakes", year: 1890, branch: "A", steps: 3, lateral: 1, desc: "Great Grand Aunt / Uncle" },
-                                            { name: "John Ginakes", year: 1892, branch: "A", steps: 3, lateral: 1, desc: "Great Grand Aunt / Uncle" },
-                                            { name: "Constantine Ginakes", year: 1898, branch: "A", steps: 3, lateral: 1, desc: "Great Grand Aunt / Uncle" }
+                                            { name: "John Ginakes", year: 1892, branch: "A", steps: 3, lateral: 1, desc: "Great Grand Aunt / Uncle" }
                                         ]},
                                         { name: "Arcondo A. Boosalis", year: 1895, branch: "A", steps: 3, lateral: 0, inLaw: true },
                                         { name: "Desmos Andrew Ginakes", year: 1923, branch: "A", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
@@ -431,7 +438,7 @@ def render_genealogy_web():
                         ]
                     },
                     {
-                        name: "Christina Vanderhoop", year: 1961, branch: "V", steps: 1, lateral: 0, desc: "Parent",
+                        name: "Christina Vanderhoop", year: 1961, branch: "V", steps: 1, lateral: 0, desc: "Mother",
                         children: [
                             { name: "John O. Vanderhoop", year: 1934, branch: "V", steps: 2, lateral: 0, desc: "Grandparent", children: [
                                 { name: "Leonard V.", year: 1895, branch: "V", steps: 3, lateral: 0, desc: "Great Grandparent", children: [
@@ -515,21 +522,45 @@ def render_genealogy_web():
             }
 
             function calcColor(d) {
-                if (d.inLaw && d.lateral > 0) return "rgb(255, 215, 0)"; 
-                
-                // Lock the interpolation to the root ancestor's generation depth
-                let rootStep = d.lateral > 0 ? (d.steps + d.lateral) : d.steps;
-                let mMax = maxSteps[d.branch] || 1;
-                let t = Math.min(1, Math.max(0, rootStep / mMax));
+                if (d.inLaw) return "rgb(255, 215, 0)"; // GOLD for Spouses
 
-                let r = 240, g = 240, b = 240; 
-                if (d.branch === "K") { r = Math.round(240 - 240 * t); g = Math.round(240 - 240 * t); }
-                else if (d.branch === "R") { r = Math.round(240 - 80 * t); g = Math.round(240 - 208 * t); }
-                else if (d.branch === "V") { r = Math.round(240 - 240 * t); b = Math.round(240 - 240 * t); }
-                else if (d.branch === "L") { b = Math.round(240 - 240 * t); }
-                else if (d.branch === "B") { g = Math.round(240 - 240 * t); b = Math.round(240 - 240 * t); }
-                else if (d.branch === "A") { g = Math.round(240 - 112 * t); b = Math.round(240 - 240 * t); }
+                let mainSteps = d.steps + d.lateral; 
+                let mMax = maxSteps[d.branch] || 1;
                 
+                let t = (mainSteps <= 1) ? 0 : (mainSteps - 1) / Math.max(1, mMax - 1);
+                let r = 240, g = 0, b = 240; 
+
+                if (d.branch === "K") {
+                    r = Math.round(220 + (0 - 220) * t);
+                    b = 240;
+                } else if (d.branch === "V") {
+                    r = 240;
+                    b = Math.round(220 + (0 - 220) * t);
+                } else if (d.branch === "R") {
+                    r = Math.round(220 + (0 - 220) * t);
+                    g = Math.round(0 + (240 - 0) * t);
+                    b = Math.round(240 + (0 - 240) * t);
+                } else if (d.branch === "L") {
+                    r = 240;
+                    g = Math.round(0 + (240 - 0) * t);
+                    b = Math.round(220 + (0 - 220) * t);
+                } else if (d.branch === "B") { // RESTORED RED 
+                    r = 240;
+                    g = Math.round(220 + (0 - 220) * t);
+                    b = Math.round(220 + (0 - 220) * t);
+                } else if (d.branch === "A") { // RESTORED ORANGE
+                    r = 240;
+                    g = Math.round(220 + (128 - 220) * t);
+                    b = Math.round(220 + (0 - 220) * t);
+                }
+
+                if (d.lateral > 0) {
+                    let wT = d.lateral / maxLateral; 
+                    r = Math.round(r + (240 - r) * wT);
+                    g = Math.round(g + (240 - g) * wT);
+                    b = Math.round(b + (240 - b) * wT);
+                }
+
                 return `rgb(${r}, ${g}, ${b})`;
             }
 
@@ -619,15 +650,15 @@ def render_genealogy_web():
                 g.append("stop").attr("offset", "0%").attr("stop-color", c1);
                 g.append("stop").attr("offset", "100%").attr("stop-color", c2);
             }
-            buildGrad("k-grad", "rgb(240,240,240)", "rgb(0,0,240)");
-            buildGrad("r-grad", "rgb(240,240,240)", "rgb(160,32,240)");
-            buildGrad("v-grad", "rgb(240,240,240)", "rgb(0,240,0)");
-            buildGrad("l-grad", "rgb(240,240,240)", "rgb(240,240,0)");
-            buildGrad("b-grad", "rgb(240,240,240)", "rgb(240,0,0)");
-            buildGrad("a-grad", "rgb(240,240,240)", "rgb(240,128,0)");
+            buildGrad("k-grad", "rgb(220,0,240)", "rgb(0,0,240)");
+            buildGrad("v-grad", "rgb(240,0,220)", "rgb(240,0,0)");
+            buildGrad("r-grad", "rgb(220,0,240)", "rgb(0,240,0)");
+            buildGrad("l-grad", "rgb(240,0,220)", "rgb(240,240,0)");
+            buildGrad("b-grad", "rgb(240,220,220)", "rgb(240,0,0)");
+            buildGrad("a-grad", "rgb(240,220,220)", "rgb(240,128,0)");
 
-            const labels = ["Killebrew (Dad's Father)", "Rasmussen (Dad's Mother)", "Vanderhoop (Bio Mom's Father)", "Lieber (Bio Mom's Mother)", "Buzunis (Step Mom's Father)", "Annestasia (Step Mom's Mother)"];
-            const grads = ["url(#k-grad)", "url(#r-grad)", "url(#v-grad)", "url(#l-grad)", "url(#b-grad)", "url(#a-grad)"];
+            const labels = ["Killebrew (Dad's Father)", "Vanderhoop (Mom's Father)", "Rasmussen (Dad's Mother)", "Lieber (Mom's Mother)", "Buzunis (Step Mom's Father)", "Ginakes (Step Mom's Mother)"];
+            const grads = ["url(#k-grad)", "url(#v-grad)", "url(#r-grad)", "url(#l-grad)", "url(#b-grad)", "url(#a-grad)"];
             
             labels.forEach((l, i) => {
                 legend.append("rect").attr("y", i*20).attr("width", 50).attr("height", 10).style("fill", grads[i]);
@@ -643,7 +674,7 @@ def render_genealogy_web():
             const tSvg = d3.select("#viz-tree");
             const tWidth = tSvg.node().getBoundingClientRect().width;
             
-            // 1. Scale Down Elements to Prevent Overlap
+            // 1. Scale Down Elements to Prevent Overlap (35% smaller)
             const tScale = 0.65;
             const tRad = d => calcRadius(d) * tScale;
             
@@ -722,9 +753,9 @@ def render_genealogy_web():
                 .attr("stroke-width", d => {
                     // SPOSUAL LINK OVERRIDE: 0 thickness for in-laws
                     if (d.target.data.inLaw) return 0;
-                    return Math.max(1, calcLinkWidth(d) * tScale);
+                    return Math.max(1.5, (calcRadius(d.target.data) * 0.2) * tScale);
                 })
-                .attr("stroke-opacity", d => calcOpacity(d.target.data));
+                .attr("stroke-opacity", d => d.target.data.inLaw ? 0 : 0.8);
 
             const tNode = treeGroup.selectAll(".tree-node").data(root.descendants()).enter().append("g")
                 .attr("transform", d => `translate(${d.x},${d.y})`);
@@ -733,7 +764,6 @@ def render_genealogy_web():
                 .attr("class", "node")
                 .attr("r", d => tRad(d.data)) // Use the scaled radius
                 .attr("fill", d => calcColor(d.data))
-                .attr("opacity", d => calcOpacity(d.data))
                 .on("mouseover", (e,d) => {
                     tooltip.transition().duration(200).style("opacity", 1);
                     let stat = d.data.desc;
@@ -742,7 +772,6 @@ def render_genealogy_web():
                         .style("left", (e.pageX + 15) + "px").style("top", (e.pageY - 28) + "px");
                 })
                 .on("mouseout", () => tooltip.transition().duration(500).style("opacity", 0));
-
         </script>
     </body>
     </html>
