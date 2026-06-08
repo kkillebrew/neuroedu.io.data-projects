@@ -134,16 +134,16 @@ def render_genealogy_web():
                     { id: "Rasmus J. R.", branch: "R", steps: 5, lateral: 0, desc: "3x Great Grandparent (1842 - 1920)" },
                     { id: "Jens Rasmussen", branch: "R", steps: 6, lateral: 0, desc: "4x Great Grandparent (1810 - 1888)" },
                     
-                    { id: "Richard R.", branch: "R", steps: 2, lateral: 1, desc: "Aunt / Uncle" },
-                    { id: "Bettie R.", branch: "R", steps: 2, lateral: 1, desc: "Aunt / Uncle" },
-                    { id: "Rhett R.", branch: "R", steps: 2, lateral: 1, desc: "Aunt / Uncle" },
+                    { id: "Richard R.", branch: "R", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
+                    { id: "Bettie R.", branch: "R", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
+                    { id: "Rhett R.", branch: "R", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
                     { id: "Oranell", branch: "R", steps: 2, lateral: 1, inLaw: true },
-                    { id: "James", branch: "R", steps: 1, lateral: 2, desc: "First Cousin" },
-                    { id: "Rosemary", branch: "R", steps: 1, lateral: 2, desc: "First Cousin" },
-                    { id: "Ruth", branch: "R", steps: 1, lateral: 2, desc: "First Cousin" },
-                    { id: "Karen", branch: "R", steps: 1, lateral: 2, desc: "First Cousin" },
+                    { id: "James", branch: "R", steps: 1, lateral: 2, desc: "First Cousin Once Removed" },
+                    { id: "Rosemary", branch: "R", steps: 1, lateral: 2, desc: "First Cousin Once Removed" },
+                    { id: "Ruth", branch: "R", steps: 1, lateral: 2, desc: "First Cousin Once Removed" },
+                    { id: "Karen", branch: "R", steps: 1, lateral: 2, desc: "First Cousin Once Removed" },
                     { id: "Bob", branch: "R", steps: 2, lateral: 1, inLaw: true },
-                    { id: "Michelle", branch: "R", steps: 1, lateral: 2, desc: "First Cousin" },
+                    { id: "Michelle", branch: "R", steps: 1, lateral: 2, desc: "First Cousin Once Removed" },
 
                     // --- VANDERHOOP BRANCH (V) ---
                     { id: "Leonard V.", branch: "V", steps: 3, lateral: 0, desc: "Great Grandparent (1895 - 1989)" },
@@ -152,19 +152,23 @@ def render_genealogy_web():
                     { id: "Beulah Salisbury", branch: "V", steps: 5, lateral: 0, inLaw: true },
                     { id: "Johnny Vanderhoop", branch: "V", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
                     
-                    // Mother's Father's Siblings
-                    { id: "Leonard Jr. V.", branch: "V", steps: 2, lateral: 1, desc: "Aunt / Uncle" },
-                    { id: "William (Billy) V.", branch: "V", steps: 2, lateral: 1, desc: "Aunt / Uncle" },
-                    { id: "Edmund V.", branch: "V", steps: 2, lateral: 1, desc: "Aunt / Uncle" },
-                    { id: "Margery V.", branch: "V", steps: 2, lateral: 1, desc: "Aunt / Uncle" },
-                    { id: "Paul", branch: "V", steps: 2, lateral: 1, inLaw: true },
-                    { id: "Maushup", branch: "V", steps: 1, lateral: 2, desc: "First Cousin" },
-                    { id: "Nashawn", branch: "V", steps: 1, lateral: 2, desc: "First Cousin" },
+                    // Mother's Father's Siblings & Descendants
+                    { id: "Leonard Jr. V.", branch: "V", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
+                    { id: "William (Billy) V.", branch: "V", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
+                    { id: "Edmund V.", branch: "V", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
+                    { id: "Margery V.", branch: "V", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
+                    
+                    { id: "Paul V.", branch: "V", steps: 1, lateral: 2, desc: "First Cousin Once Removed" },
+                    { id: "Polly V.", branch: "V", steps: 1, lateral: 2, desc: "First Cousin Once Removed" },
+                    { id: "Paul's Wife", branch: "V", steps: 1, lateral: 2, inLaw: true },
+                    
+                    { id: "Maushup V.", branch: "V", steps: 0, lateral: 3, desc: "Second Cousin" },
+                    { id: "Nashawn V.", branch: "V", steps: 0, lateral: 3, desc: "Second Cousin" },
 
                     // --- LIEBER BRANCH (L) ---
                     { id: "G. Heinrich L. Lieber", branch: "L", steps: 3, lateral: 0, desc: "Great Grandparent"},
                     { id: "Marie Emilie Ibe", branch: "L", steps: 3, lateral: 0, inLaw: true },
-                    { id: "Manfred Lieber", branch: "L", steps: 2, lateral: 1, desc: "Aunt / Uncle" },
+                    { id: "Manfred Lieber", branch: "L", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
 
                     // --- BUZUNIS BRANCH (B) ---
                     { id: "Teddy Buzunis", branch: "B", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
@@ -191,8 +195,6 @@ def render_genealogy_web():
                     { source: "Robert Killebrew", target: "Bonnie Rasmussen", type: "marriage" },
                     { source: "John O. Vanderhoop", target: "Waltrud M. Lieber", type: "marriage" },
                     { source: "Peter Buzunis", target: "Annestasia Buzunis", type: "marriage" },
-                    
-                    // NEW: Creates the triangular center structure pulling Step-Mom towards You
                     { source: "Antonia Constance Buzunis", target: "Kyle Killebrew", type: "inlaw" },
                     
                     // Siblings
@@ -265,9 +267,13 @@ def render_genealogy_web():
                     { source: "Leonard V.", target: "William (Billy) V.", type: "leaf" },
                     { source: "Leonard V.", target: "Edmund V.", type: "leaf" },
                     { source: "Leonard V.", target: "Margery V.", type: "leaf" },
-                    { source: "Margery V.", target: "Paul", type: "inlaw" },
-                    { source: "Margery V.", target: "Maushup", type: "leaf" },
-                    { source: "Margery V.", target: "Nashawn", type: "leaf" },
+                    
+                    // Margery's Family Links
+                    { source: "Margery V.", target: "Paul V.", type: "leaf" },
+                    { source: "Margery V.", target: "Polly V.", type: "leaf" },
+                    { source: "Paul V.", target: "Paul's Wife", type: "inlaw" },
+                    { source: "Paul V.", target: "Maushup V.", type: "leaf" },
+                    { source: "Paul V.", target: "Nashawn V.", type: "leaf" },
 
                     // Lieber Line
                     { source: "G. Heinrich L. Lieber", target: "Waltrud M. Lieber", type: "main"},
@@ -342,18 +348,18 @@ def render_genealogy_web():
                                             { name: "Jens Rasmussen", year: 1810, branch: "R", steps: 6, lateral: 0, desc: "4x Great Grandparent" }
                                         ]}
                                     ]},
-                                    { name: "Richard R.", year: 1932, branch: "R", steps: 2, lateral: 1, desc: "Aunt / Uncle", children: [
+                                    { name: "Richard R.", year: 1932, branch: "R", steps: 2, lateral: 1, desc: "Great Aunt / Uncle", children: [
                                         { name: "Oranell", year: 1932, branch: "R", steps: 2, lateral: 1, inLaw: true },
-                                        { name: "James", year: 1955, branch: "R", steps: 1, lateral: 2, desc: "First Cousin" },
-                                        { name: "Rosemary", year: 1957, branch: "R", steps: 1, lateral: 2, desc: "First Cousin" },
-                                        { name: "Ruth", year: 1959, branch: "R", steps: 1, lateral: 2, desc: "First Cousin" },
-                                        { name: "Karen", year: 1961, branch: "R", steps: 1, lateral: 2, desc: "First Cousin" }
+                                        { name: "James", year: 1955, branch: "R", steps: 1, lateral: 2, desc: "First Cousin Once Removed" },
+                                        { name: "Rosemary", year: 1957, branch: "R", steps: 1, lateral: 2, desc: "First Cousin Once Removed" },
+                                        { name: "Ruth", year: 1959, branch: "R", steps: 1, lateral: 2, desc: "First Cousin Once Removed" },
+                                        { name: "Karen", year: 1961, branch: "R", steps: 1, lateral: 2, desc: "First Cousin Once Removed" }
                                     ]},
-                                    { name: "Bettie R.", year: 1936, branch: "R", steps: 2, lateral: 1, desc: "Aunt / Uncle", children: [
+                                    { name: "Bettie R.", year: 1936, branch: "R", steps: 2, lateral: 1, desc: "Great Aunt / Uncle", children: [
                                         { name: "Bob", year: 1936, branch: "R", steps: 2, lateral: 1, inLaw: true },
-                                        { name: "Michelle", year: 1960, branch: "R", steps: 1, lateral: 2, desc: "First Cousin" }
+                                        { name: "Michelle", year: 1960, branch: "R", steps: 1, lateral: 2, desc: "First Cousin Once Removed" }
                                     ]},
-                                    { name: "Rhett R.", year: 1938, branch: "R", steps: 2, lateral: 1, desc: "Aunt / Uncle" }
+                                    { name: "Rhett R.", year: 1938, branch: "R", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" }
                                 ]}
                             ]},
                             { name: "Antonia Constance Buzunis", year: 1965, branch: "B", steps: 1, lateral: 0, inLaw: true, desc: "Step Mother", children: [
@@ -383,13 +389,16 @@ def render_genealogy_web():
                                             { name: "Beulah Salisbury", year: 1814, branch: "V", steps: 5, lateral: 0, inLaw: true }
                                         ]}
                                     ]},
-                                    { name: "Leonard Jr. V.", year: 1925, branch: "V", steps: 2, lateral: 1, desc: "Aunt / Uncle" },
-                                    { name: "William (Billy) V.", year: 1928, branch: "V", steps: 2, lateral: 1, desc: "Aunt / Uncle" },
-                                    { name: "Edmund V.", year: 1930, branch: "V", steps: 2, lateral: 1, desc: "Aunt / Uncle" },
-                                    { name: "Margery V.", year: 1932, branch: "V", steps: 2, lateral: 1, desc: "Aunt / Uncle", children: [
-                                        { name: "Paul", year: 1932, branch: "V", steps: 2, lateral: 1, inLaw: true },
-                                        { name: "Maushup", year: 1960, branch: "V", steps: 1, lateral: 2, desc: "First Cousin" },
-                                        { name: "Nashawn", year: 1962, branch: "V", steps: 1, lateral: 2, desc: "First Cousin" }
+                                    { name: "Leonard Jr. V.", year: 1925, branch: "V", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
+                                    { name: "William (Billy) V.", year: 1928, branch: "V", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
+                                    { name: "Edmund V.", year: 1930, branch: "V", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
+                                    { name: "Margery V.", year: 1932, branch: "V", steps: 2, lateral: 1, desc: "Great Aunt / Uncle", children: [
+                                        { name: "Paul V.", year: 1960, branch: "V", steps: 1, lateral: 2, desc: "First Cousin Once Removed", children: [
+                                            { name: "Paul's Wife", year: 1960, branch: "V", steps: 1, lateral: 2, inLaw: true },
+                                            { name: "Maushup V.", year: 1985, branch: "V", steps: 0, lateral: 3, desc: "Second Cousin" },
+                                            { name: "Nashawn V.", year: 1987, branch: "V", steps: 0, lateral: 3, desc: "Second Cousin" }
+                                        ]},
+                                        { name: "Polly V.", year: 1962, branch: "V", steps: 1, lateral: 2, desc: "First Cousin Once Removed" }
                                     ]}
                                 ]},
                                 { name: "Johnny Vanderhoop", year: 1936, branch: "V", steps: 1, lateral: 1, desc: "Aunt / Uncle" }
@@ -397,7 +406,7 @@ def render_genealogy_web():
                             { name: "Waltrud M. Lieber", year: 1934, branch: "L", steps: 2, lateral: 0, desc: "Grandparent", children: [
                                 { name: "G. Heinrich L. Lieber", year: 1900, branch: "L", steps: 3, lateral: 0, desc: "Great Grandparent", children: [
                                     { name: "Marie Emilie Ibe", year: 1900, branch: "L", steps: 3, lateral: 0, inLaw: true },
-                                    { name: "Manfred Lieber", year: 1932, branch: "L", steps: 2, lateral: 1, desc: "Aunt / Uncle" }
+                                    { name: "Manfred Lieber", year: 1932, branch: "L", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" }
                                 ]}
                             ]}
                         ]
@@ -652,3 +661,9 @@ def render_genealogy_web():
                         .style("left", (e.pageX + 15) + "px").style("top", (e.pageY - 28) + "px");
                 })
                 .on("mouseout", () => tooltip.transition().duration(500).style("opacity", 0));
+
+        </script>
+    </body>
+    </html>
+    """
+    components.html(html_code, height=720)
