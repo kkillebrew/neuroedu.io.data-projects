@@ -74,7 +74,9 @@ def render_genealogy_web():
                     { id: "Kyle Killebrew", branch: "M", steps: 0, lateral: 0, desc: "You (Present)" },
                     { id: "Eric Killebrew", branch: "K", steps: 1, lateral: 0, desc: "Parent" },
                     { id: "Christina Vanderhoop", branch: "V", steps: 1, lateral: 0, desc: "Parent" },
-                    { id: "Antonia Constance Buzunis", branch: "B", steps: 1, lateral: 0, desc: "Step Mother", inLaw: true },
+                    
+                    // FIX: Removed inLaw: true so she acts as a Primary Root Branch
+                    { id: "Antonia Constance Buzunis", branch: "B", steps: 1, lateral: 0, desc: "Step Mother" },
                     
                     { id: "Andrea Nicole Killebrew", branch: "K", steps: 0, lateral: 1, desc: "Sister / Brother" },
                     { id: "Eric Scott Killebrew, Jr.", branch: "K", steps: 0, lateral: 1, desc: "Sister / Brother" },
@@ -392,7 +394,9 @@ def render_genealogy_web():
                                     { name: "Rhett R.", year: 1938, branch: "R", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" }
                                 ]}
                             ]},
-                            { name: "Antonia Constance Buzunis", year: 1964, branch: "B", steps: 1, lateral: 0, inLaw: true, desc: "Step Mother", children: [
+                            
+                            // FIX: Removed inLaw: true so she acts as a Primary Root Branch
+                            { name: "Antonia Constance Buzunis", year: 1964, branch: "B", steps: 1, lateral: 0, desc: "Step Mother", children: [
                                 { name: "Peter Buzunis", year: 1917, branch: "B", steps: 2, lateral: 0, desc: "Grandparent", children: [
                                     { name: "Theodore Buzunis", year: 1885, branch: "B", steps: 3, lateral: 0, desc: "Great Grandparent", children: [
                                         { name: "George Constantine Buzunis", year: 1846, branch: "B", steps: 4, lateral: 0, desc: "Great Great Grandparent", children: [
