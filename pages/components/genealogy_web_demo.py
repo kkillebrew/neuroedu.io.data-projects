@@ -417,17 +417,16 @@ def render_genealogy_web():
             function calcRadius(d) {
                 const ROOT_SIZE = 25;
                 if (d.id === "Kyle Killebrew" || d.name === "Kyle Killebrew") return ROOT_SIZE;
-                if (d.inLaw && d.lateral > 0) return Math.max(2, ROOT_SIZE * 0.05);
 
                 if (d.lateral === 0) {
                     // Male Line: Decrease by 10% per generation
                     let sz = ROOT_SIZE * (1 - 0.10 * d.steps);
                     return Math.max(2, sz);
                 } else {
-                    // Siblings: 33.33% of their parent node's size
-                    let parentStep = d.steps + 1; 
-                    let parentSize = ROOT_SIZE * (1 - 0.10 * parentStep);
-                    let siblingSize = parentSize * 0.3333;
+                    // Lock lateral descendants to their main-line ancestor's generation
+                    let rootStep = d.steps + d.lateral; 
+                    let rootSize = ROOT_SIZE * (1 - 0.10 * rootStep);
+                    let siblingSize = rootSize * 0.3333;
                     
                     if (d.lateral === 1) {
                         return Math.max(2, siblingSize);
@@ -440,9 +439,9 @@ def render_genealogy_web():
             }
 
             function calcOpacity(d) {
-                // Decay opacity by 10% per generation away from the primary male line
+                // Decay opacity by exactly 10% per lateral generation
                 if (d.lateral === 0) return 1.0;
-                return Math.max(0.2, 1.0 - (0.10 * d.lateral));
+                return Math.max(0.1, 1.0 - (0.10 * d.lateral));
             }
 
             function calcLinkWidth(d) {
@@ -455,29 +454,19 @@ def render_genealogy_web():
             function calcColor(d) {
                 if (d.inLaw && d.lateral > 0) return "rgb(255, 215, 0)"; 
                 
-                // Start pure white, scale towards target RGB based on generational depth
-                let r = 240, g = 240, b = 240; 
+                // Lock the interpolation to the root ancestor's generation depth
+                let rootStep = d.lateral > 0 ? (d.steps + d.lateral) : d.steps;
                 let mMax = maxSteps[d.branch] || 1;
-                let t = Math.min(1, Math.max(0, d.steps / mMax));
+                let t = Math.min(1, Math.max(0, rootStep / mMax));
 
-                if (d.branch === "K") { // Blue
-                    r = Math.round(240 - 240 * t);
-                    g = Math.round(240 - 240 * t);
-                } else if (d.branch === "R") { // Purple
-                    r = Math.round(240 - 80 * t);   
-                    g = Math.round(240 - 208 * t);  
-                } else if (d.branch === "V") { // Green
-                    r = Math.round(240 - 240 * t);
-                    b = Math.round(240 - 240 * t);
-                } else if (d.branch === "L") { // Yellow
-                    b = Math.round(240 - 240 * t);
-                } else if (d.branch === "B") { // Red
-                    g = Math.round(240 - 240 * t);
-                    b = Math.round(240 - 240 * t);
-                } else if (d.branch === "A") { // Orange
-                    g = Math.round(240 - 112 * t);  
-                    b = Math.round(240 - 240 * t);
-                }
+                let r = 240, g = 240, b = 240; 
+                if (d.branch === "K") { r = Math.round(240 - 240 * t); g = Math.round(240 - 240 * t); }
+                else if (d.branch === "R") { r = Math.round(240 - 80 * t); g = Math.round(240 - 208 * t); }
+                else if (d.branch === "V") { r = Math.round(240 - 240 * t); b = Math.round(240 - 240 * t); }
+                else if (d.branch === "L") { b = Math.round(240 - 240 * t); }
+                else if (d.branch === "B") { g = Math.round(240 - 240 * t); b = Math.round(240 - 240 * t); }
+                else if (d.branch === "A") { g = Math.round(240 - 112 * t); b = Math.round(240 - 240 * t); }
+                
                 return `rgb(${r}, ${g}, ${b})`;
             }
 
@@ -494,21 +483,30 @@ def render_genealogy_web():
             const simulation = d3.forceSimulation(graphData.nodes)
                 .force("link", d3.forceLink(graphData.links).id(d => d.id)
                     .distance(d => {
-                        // FIX: Children nodes are exactly 25% the distance of main branches
-                        if (d.type === "leaf" || d.type === "inlaw") return 20; 
-                        return 80;
+                        let targetNode = d.target.data ? d.target.data : d.target;
+                        let rootStep = targetNode.lateral > 0 ? (targetNode.steps + targetNode.lateral) : targetNode.steps;
+                        let shrinkFactor = Math.max(0.2, 1 - 0.10 * rootStep);
+                        
+                        if (d.type === "marriage" || d.type === "inlaw") return 15; 
+                        if (d.type === "leaf") return 25 * shrinkFactor; 
+                        
+                        // Main branches start shorter (55) and shrink exactly 10% per generation
+                        return 55 * shrinkFactor;
                     })
                     .strength(d => {
-                        if (d.type === "marriage") return 0.001; // No gravitational pull
-                        if (d.type === "leaf" || d.type === "inlaw") return 2; // Stiff links for children
+                        if (d.type === "marriage") return 0.1; // Keep spouses tethered closely
+                        if (d.type === "leaf" || d.type === "inlaw") return 2; 
                         return 1;
                     }) 
                 )
                 .force("charge", d3.forceManyBody().strength(d => {
-                    // FIX: Isolate the repulsion force. If siblings repel too hard, they ignore the distance rules.
+                    let rootStep = d.lateral > 0 ? (d.steps + d.lateral) : d.steps;
+                    let shrinkFactor = Math.max(0.2, 1 - 0.10 * rootStep);
+                    
                     if (d.inLaw) return -5;
-                    if (d.lateral > 0) return -15; // Low repulsion allows them to hug the parent node
-                    return -350; // Heavy repulsion forces the 4 main branches apart
+                    // Lower base repulsion forces that scale down with generational depth
+                    if (d.lateral > 0) return -15 * shrinkFactor; 
+                    return -200 * shrinkFactor; 
                 }))
                 .force("collide", d3.forceCollide().radius(d => calcRadius(d) + 5).iterations(2))
                 .force("x", d3.forceX())
