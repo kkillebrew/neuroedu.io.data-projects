@@ -58,7 +58,7 @@ def render_genealogy_web():
                 <svg id="viz-force" width="100%" height="100%"></svg>
             </div>
             <div class="panel right-panel">
-                <div class="panel-title">Chronological Pedigree</div>
+                <div class="panel-title">Generational Family Tree</div>
                 <svg id="viz-tree" width="100%" height="100%"></svg>
             </div>
         </div>
@@ -578,34 +578,52 @@ def render_genealogy_web():
             legend.append("text").attr("x", 0).attr("y", 150).attr("fill", "#64748B").attr("font-size", "10px").text("Lines: 20% of Target Node");
 
             // ==========================================
-            // 4. RIGHT PANEL: TIMELINE
+            // 4. RIGHT PANEL: GENERATIONAL TREE
             // ==========================================
             const tSvg = d3.select("#viz-tree");
             const tWidth = tSvg.node().getBoundingClientRect().width;
             
-            const yScale = d3.scaleLinear().domain([2010, 1600]).range([height - 60, 60]);
-            const yearMarks = [1600, 1650, 1700, 1750, 1800, 1850, 1900, 1950, 2000];
-            
-            tSvg.selectAll(".grid-line").data(yearMarks).enter().append("line")
-                .attr("class", "grid-line").attr("x1", 30).attr("x2", tWidth - 10)
-                .attr("y1", d => yScale(d)).attr("y2", d => yScale(d));
-                
-            tSvg.selectAll(".grid-label").data(yearMarks).enter().append("text")
-                .attr("class", "grid-label").attr("x", 5).attr("y", d => yScale(d) + 3).text(d => d);
-
             const root = d3.hierarchy(treeData);
             
-            // FIX: Custom separation algorithm for proportional horizontal spacing
-            // Instead of standard uniform spacing, it spaces nodes dynamically based on their procedural radius!
+            // Standard tree layout to calculate X positions (horizontal spacing)
             d3.tree().size([tWidth - 60, height])
                 .separation((a, b) => {
                     let rA = calcRadius(a.data);
                     let rB = calcRadius(b.data);
-                    return (rA + rB) / 40; 
+                    return (rA + rB) / 30; // Slightly increased separation for visual clarity
                 })(root);
             
-            root.each(d => d.y = yScale(d.data.year));
+            // --- Custom Generational Y-Positioning ---
+            const base_y = 120; // Starting Y position for Kyle (Baseline)
+            const gen_gap = 65; // Pixel distance between each generation
+            
+            let minStep = 0;
+            let maxStep = 0;
 
+            root.each(d => { 
+                d.y = base_y + (d.data.steps * gen_gap); 
+                minStep = Math.min(minStep, d.data.steps);
+                maxStep = Math.max(maxStep, d.data.steps);
+            });
+
+            // --- Draw Generational Gridlines ---
+            const genMarks = d3.range(minStep, maxStep + 1);
+            
+            tSvg.selectAll(".grid-line").data(genMarks).enter().append("line")
+                .attr("class", "grid-line").attr("x1", 30).attr("x2", tWidth - 10)
+                .attr("y1", d => base_y + (d * gen_gap))
+                .attr("y2", d => base_y + (d * gen_gap));
+                
+            tSvg.selectAll(".grid-label").data(genMarks).enter().append("text")
+                .attr("class", "grid-label").attr("x", 5)
+                .attr("y", d => base_y + (d * gen_gap) - 5)
+                .text(d => {
+                    if (d === 0) return "Baseline";
+                    if (d < 0) return `Gen ${d} (Next)`;
+                    return `Gen ${d}`;
+                });
+
+            // --- Draw Nodes and Links ---
             const treeGroup = tSvg.append("g").attr("transform", "translate(30,0)");
             
             treeGroup.selectAll(".tree-link").data(root.links()).enter().append("path")
@@ -634,9 +652,3 @@ def render_genealogy_web():
                         .style("left", (e.pageX + 15) + "px").style("top", (e.pageY - 28) + "px");
                 })
                 .on("mouseout", () => tooltip.transition().duration(500).style("opacity", 0));
-
-        </script>
-    </body>
-    </html>
-    """
-    components.html(html_code, height=720)
