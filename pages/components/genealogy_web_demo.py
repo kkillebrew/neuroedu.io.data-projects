@@ -527,35 +527,29 @@ def render_genealogy_web():
                 let mainSteps = d.steps + d.lateral; 
                 let mMax = maxSteps[d.branch] || 1;
                 
-                let t = (mainSteps <= 1) ? 0 : (mainSteps - 1) / Math.max(1, mMax - 1);
-                let r = 240, g = 0, b = 240; 
+                // Linear interpolation from 0 (White) to 1 (Full Color)
+                let t = Math.min(1, Math.max(0, mainSteps / mMax));
+                let r = 240, g = 240, b = 240; 
 
-                if (d.branch === "K") {
-                    r = Math.round(220 + (0 - 220) * t);
-                    b = 240;
-                } else if (d.branch === "V") {
-                    r = 240;
-                    b = Math.round(220 + (0 - 220) * t);
-                } else if (d.branch === "R") {
-                    r = Math.round(220 + (0 - 220) * t);
-                    g = Math.round(0 + (240 - 0) * t);
-                    b = Math.round(240 + (0 - 240) * t);
-                } else if (d.branch === "L") {
-                    r = 240;
-                    g = Math.round(0 + (240 - 0) * t);
-                    b = Math.round(220 + (0 - 220) * t);
-                } else if (d.branch === "B") { // Red 
-                    r = 240;
-                    g = Math.round(220 + (0 - 220) * t);
-                    b = Math.round(220 + (0 - 220) * t);
+                if (d.branch === "K") { // Blue
+                    r = Math.round(240 - 240 * t);
+                    g = Math.round(240 - 240 * t);
+                } else if (d.branch === "R") { // Purple
+                    r = Math.round(240 - 80 * t);
+                    g = Math.round(240 - 208 * t);
+                } else if (d.branch === "V") { // Green
+                    r = Math.round(240 - 240 * t);
+                    b = Math.round(240 - 240 * t);
+                } else if (d.branch === "L") { // Yellow
+                    b = Math.round(240 - 240 * t);
+                } else if (d.branch === "B") { // Red
+                    g = Math.round(240 - 240 * t);
+                    b = Math.round(240 - 240 * t);
                 } else if (d.branch === "A") { // Orange
-                    r = 240;
-                    g = Math.round(220 + (128 - 220) * t);
-                    b = Math.round(220 + (0 - 220) * t);
+                    g = Math.round(240 - 112 * t);
+                    b = Math.round(240 - 240 * t);
                 }
 
-                // FIX: Buggy maxLateral RGB washout logic removed.
-                // Node colors are locked to their lineage, while opacity handles the lateral fading!
                 return `rgb(${r}, ${g}, ${b})`;
             }
 
@@ -645,22 +639,23 @@ def render_genealogy_web():
                 g.append("stop").attr("offset", "0%").attr("stop-color", c1);
                 g.append("stop").attr("offset", "100%").attr("stop-color", c2);
             }
-            buildGrad("k-grad", "rgb(220,0,240)", "rgb(0,0,240)");
-            buildGrad("v-grad", "rgb(240,0,220)", "rgb(240,0,0)");
-            buildGrad("r-grad", "rgb(220,0,240)", "rgb(0,240,0)");
-            buildGrad("l-grad", "rgb(240,0,220)", "rgb(240,240,0)");
-            buildGrad("b-grad", "rgb(240,220,220)", "rgb(240,0,0)");
-            buildGrad("a-grad", "rgb(240,220,220)", "rgb(240,128,0)");
+            // All gradients start perfectly at White (240,240,240) and end at their exact target RGB
+            buildGrad("k-grad", "rgb(240,240,240)", "rgb(0,0,240)");     // Blue
+            buildGrad("r-grad", "rgb(240,240,240)", "rgb(160,32,240)");  // Purple
+            buildGrad("v-grad", "rgb(240,240,240)", "rgb(0,240,0)");     // Green
+            buildGrad("l-grad", "rgb(240,240,240)", "rgb(240,240,0)");   // Yellow
+            buildGrad("b-grad", "rgb(240,240,240)", "rgb(240,0,0)");     // Red
+            buildGrad("a-grad", "rgb(240,240,240)", "rgb(240,128,0)");   // Orange
 
-            const labels = ["Killebrew (Dad's Father)", "Vanderhoop (Mom's Father)", "Rasmussen (Dad's Mother)", "Lieber (Mom's Mother)", "Buzunis (Step Mom's Father)", "Ginakes (Step Mom's Mother)"];
-            const grads = ["url(#k-grad)", "url(#v-grad)", "url(#r-grad)", "url(#l-grad)", "url(#b-grad)", "url(#a-grad)"];
+            const labels = ["Killebrew (Dad's Father)", "Rasmussen (Dad's Mother)", "Vanderhoop (Mom's Father)", "Lieber (Mom's Mother)", "Buzunis (Step Mom's Father)", "Ginakes (Step Mom's Mother)"];
+            const grads = ["url(#k-grad)", "url(#r-grad)", "url(#v-grad)", "url(#l-grad)", "url(#b-grad)", "url(#a-grad)"];
             
             labels.forEach((l, i) => {
                 legend.append("rect").attr("y", i*20).attr("width", 50).attr("height", 10).style("fill", grads[i]);
                 legend.append("text").attr("x", 60).attr("y", i*20 + 9).attr("fill", "#64748B").attr("font-size", "10px").text(l);
             });
-            legend.append("circle").attr("cx", 25).attr("cy", 125).attr("r", 5).attr("fill", "rgb(255,215,0)");
-            legend.append("text").attr("x", 60).attr("y", 129).attr("fill", "#64748B").attr("font-size", "10px").text("In-laws (Gold)");
+            legend.append("circle").attr("cx", 25).attr("cy", 145).attr("r", 5).attr("fill", "rgb(255,215,0)");
+            legend.append("text").attr("x", 60).attr("y", 149).attr("fill", "#64748B").attr("font-size", "10px").text("In-laws (Gold)");
             legend.append("text").attr("x", 0).attr("y", 150).attr("fill", "#64748B").attr("font-size", "10px").text("Lines: 20% of Target Node");
 
             // ==========================================
