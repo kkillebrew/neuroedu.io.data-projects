@@ -71,107 +71,107 @@ def render_genealogy_web():
             const graphData = {
                 nodes: [
                     // --- CORE / IMMEDIATE FAMILY ---
-                    { id: "Kyle Killebrew", branch: "M", steps: 0, lateral: 0, desc: "1990 - Present" },
-                    { id: "Eric Killebrew", branch: "K", steps: 1, lateral: 0, desc: "1961 - Present" },
-                    { id: "Christina Vanderhoop", branch: "V", steps: 1, lateral: 0, desc: "Biological Mother" },
+                    { id: "Kyle Killebrew", branch: "M", steps: 0, lateral: 0, desc: "You (Present)" },
+                    { id: "Eric Killebrew", branch: "K", steps: 1, lateral: 0, desc: "Parent" },
+                    { id: "Christina Vanderhoop", branch: "V", steps: 1, lateral: 0, desc: "Parent" },
                     { id: "Antonia Constance Buzunis", branch: "B", steps: 1, lateral: 0, desc: "Step Mother", inLaw: true },
                     
-                    { id: "Andrea Nicole Killebrew", branch: "K", steps: 0, lateral: 1 },
-                    { id: "Eric Scott Killebrew, Jr.", branch: "K", steps: 0, lateral: 1 },
+                    { id: "Andrea Nicole Killebrew", branch: "K", steps: 0, lateral: 1, desc: "Sister / Brother" },
+                    { id: "Eric Scott Killebrew, Jr.", branch: "K", steps: 0, lateral: 1, desc: "Sister / Brother" },
 
                     // --- GRANDPARENTS ---
-                    { id: "Robert Killebrew", branch: "K", steps: 2, lateral: 0, desc: "1930 - 2017" },
-                    { id: "Bonnie Rasmussen", branch: "R", steps: 2, lateral: 0, desc: "1934 - 2020" },
-                    { id: "John O. Vanderhoop", branch: "V", steps: 2, lateral: 0, desc: "1934 - 2022" },
-                    { id: "Waltrud M. Lieber", branch: "L", steps: 2, lateral: 0, desc: "1934 - 2022" },
-                    { id: "Peter Buzunis", branch: "B", steps: 2, lateral: 0, desc: "Step Mother's Father" },
-                    { id: "Annestasia Buzunis", branch: "A", steps: 2, lateral: 0, desc: "Step Mother's Mother" },
+                    { id: "Robert Killebrew", branch: "K", steps: 2, lateral: 0, desc: "Grandparent (1930 - 2017)" },
+                    { id: "Bonnie Rasmussen", branch: "R", steps: 2, lateral: 0, desc: "Grandparent (1934 - 2020)" },
+                    { id: "John O. Vanderhoop", branch: "V", steps: 2, lateral: 0, desc: "Grandparent (1934 - 2022)" },
+                    { id: "Waltrud M. Lieber", branch: "L", steps: 2, lateral: 0, desc: "Grandparent (1934 - 2022)" },
+                    { id: "Peter Buzunis", branch: "B", steps: 2, lateral: 0, desc: "Grandparent" },
+                    { id: "Annestasia Buzunis", branch: "A", steps: 2, lateral: 0, desc: "Grandparent" },
                     
                     // --- KILLEBREW BRANCH (K) ---
-                    { id: "William H. K.", branch: "K", steps: 3, lateral: 0, desc: "1898 - 1970" },
-                    { id: "Daniel Boone K.", branch: "K", steps: 4, lateral: 0, desc: "1860 - 1939" },
-                    { id: "George W. K.", branch: "K", steps: 5, lateral: 0, desc: "1812 - 1871" },
-                    { id: "Whitfield K.", branch: "K", steps: 6, lateral: 0, desc: "1793 - 1859" },
-                    { id: "Joseph K.", branch: "K", steps: 7, lateral: 0, desc: "1753 - 1824" },
-                    { id: "Francis K.", branch: "K", steps: 8, lateral: 0, desc: "1619 - 1673" },
+                    { id: "William H. K.", branch: "K", steps: 3, lateral: 0, desc: "Great Grandparent (1898 - 1970)" },
+                    { id: "Daniel Boone K.", branch: "K", steps: 4, lateral: 0, desc: "Great Great Grandparent (1860 - 1939)" },
+                    { id: "George W. K.", branch: "K", steps: 5, lateral: 0, desc: "3x Great Grandparent (1812 - 1871)" },
+                    { id: "Whitfield K.", branch: "K", steps: 6, lateral: 0, desc: "4x Great Grandparent (1793 - 1859)" },
+                    { id: "Joseph K.", branch: "K", steps: 7, lateral: 0, desc: "5x Great Grandparent (1753 - 1824)" },
+                    { id: "Francis K.", branch: "K", steps: 8, lateral: 0, desc: "6x Great Grandparent (1619 - 1673)" },
                     
-                    { id: "Ron K.", branch: "K", steps: 2, lateral: 1 },
-                    { id: "Urma K.", branch: "K", steps: 2, lateral: 1 },
+                    { id: "Ron K.", branch: "K", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
+                    { id: "Urma K.", branch: "K", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
 
                     // Father's Siblings & Families
-                    { id: "Kelly K.", branch: "K", steps: 1, lateral: 1 },
-                    { id: "Stephen K.", branch: "K", steps: 1, lateral: 1 },
+                    { id: "Kelly K.", branch: "K", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
+                    { id: "Stephen K.", branch: "K", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
                     { id: "Iman Killebrew", branch: "K", steps: 1, lateral: 1, inLaw: true },
-                    { id: "Alec K.", branch: "K", steps: 0, lateral: 2 },
-                    { id: "Gillan K.", branch: "K", steps: 0, lateral: 2 },
-                    { id: "Jayce K.", branch: "K", steps: 0, lateral: 2 },
+                    { id: "Alec K.", branch: "K", steps: 0, lateral: 2, desc: "First Cousin" },
+                    { id: "Gillan K.", branch: "K", steps: 0, lateral: 2, desc: "First Cousin" },
+                    { id: "Jayce K.", branch: "K", steps: 0, lateral: 2, desc: "First Cousin" },
 
-                    { id: "Suzie K.", branch: "K", steps: 1, lateral: 1 },
+                    { id: "Suzie K.", branch: "K", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
                     { id: "Steve Gerphy", branch: "K", steps: 1, lateral: 1, inLaw: true },
-                    { id: "Matt Gerphy", branch: "K", steps: 0, lateral: 2 },
+                    { id: "Matt Gerphy", branch: "K", steps: 0, lateral: 2, desc: "First Cousin" },
                     { id: "Francesca", branch: "K", steps: 0, lateral: 2, inLaw: true },
-                    { id: "Amelia Gerphy", branch: "K", steps: -1, lateral: 3 },
-                    { id: "Riley Gerphy", branch: "K", steps: -1, lateral: 3 },
-                    { id: "Oliver Gerphy", branch: "K", steps: -1, lateral: 3 },
-                    { id: "Chris Gerphy", branch: "K", steps: 0, lateral: 2 },
+                    { id: "Amelia Gerphy", branch: "K", steps: -1, lateral: 3, desc: "First Cousin Once Removed" },
+                    { id: "Riley Gerphy", branch: "K", steps: -1, lateral: 3, desc: "First Cousin Once Removed" },
+                    { id: "Oliver Gerphy", branch: "K", steps: -1, lateral: 3, desc: "First Cousin Once Removed" },
+                    { id: "Chris Gerphy", branch: "K", steps: 0, lateral: 2, desc: "First Cousin" },
 
-                    { id: "Tony K.", branch: "K", steps: 1, lateral: 1 },
+                    { id: "Tony K.", branch: "K", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
                     { id: "Martha", branch: "K", steps: 1, lateral: 1, inLaw: true },
-                    { id: "Will K.", branch: "K", steps: 0, lateral: 2 },
-                    { id: "Ben K.", branch: "K", steps: 0, lateral: 2 },
+                    { id: "Will K.", branch: "K", steps: 0, lateral: 2, desc: "First Cousin" },
+                    { id: "Ben K.", branch: "K", steps: 0, lateral: 2, desc: "First Cousin" },
 
-                    { id: "Keri K.", branch: "K", steps: 1, lateral: 1 },
+                    { id: "Keri K.", branch: "K", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
                     { id: "Stacy", branch: "K", steps: 1, lateral: 1, inLaw: true },
 
-                    { id: "Sheri K.", branch: "K", steps: 1, lateral: 1 },
+                    { id: "Sheri K.", branch: "K", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
                     { id: "Ray Snisky", branch: "K", steps: 1, lateral: 1, inLaw: true },
-                    { id: "Ellie Snisky", branch: "K", steps: 0, lateral: 2 },
-                    { id: "Ava Snisky", branch: "K", steps: 0, lateral: 2 },
+                    { id: "Ellie Snisky", branch: "K", steps: 0, lateral: 2, desc: "First Cousin" },
+                    { id: "Ava Snisky", branch: "K", steps: 0, lateral: 2, desc: "First Cousin" },
 
                     // --- RASMUSSEN BRANCH (R) ---
-                    { id: "Clinton Rasmussen", branch: "R", steps: 3, lateral: 0, desc: "1904 - 1979" },
-                    { id: "James A. R.", branch: "R", steps: 4, lateral: 0, desc: "1877 - 1965" },
-                    { id: "Rasmus J. R.", branch: "R", steps: 5, lateral: 0, desc: "1842 - 1920" },
-                    { id: "Jens Rasmussen", branch: "R", steps: 6, lateral: 0, desc: "1810 - 1888" },
+                    { id: "Clinton Rasmussen", branch: "R", steps: 3, lateral: 0, desc: "Great Grandparent (1904 - 1979)" },
+                    { id: "James A. R.", branch: "R", steps: 4, lateral: 0, desc: "Great Great Grandparent (1877 - 1965)" },
+                    { id: "Rasmus J. R.", branch: "R", steps: 5, lateral: 0, desc: "3x Great Grandparent (1842 - 1920)" },
+                    { id: "Jens Rasmussen", branch: "R", steps: 6, lateral: 0, desc: "4x Great Grandparent (1810 - 1888)" },
                     
-                    { id: "Richard R.", branch: "R", steps: 2, lateral: 1 },
-                    { id: "Bettie R.", branch: "R", steps: 2, lateral: 1 },
-                    { id: "Rhett R.", branch: "R", steps: 2, lateral: 1 },
+                    { id: "Richard R.", branch: "R", steps: 2, lateral: 1, desc: "Aunt / Uncle" },
+                    { id: "Bettie R.", branch: "R", steps: 2, lateral: 1, desc: "Aunt / Uncle" },
+                    { id: "Rhett R.", branch: "R", steps: 2, lateral: 1, desc: "Aunt / Uncle" },
                     { id: "Oranell", branch: "R", steps: 2, lateral: 1, inLaw: true },
-                    { id: "James", branch: "R", steps: 1, lateral: 2 },
-                    { id: "Rosemary", branch: "R", steps: 1, lateral: 2 },
-                    { id: "Ruth", branch: "R", steps: 1, lateral: 2 },
-                    { id: "Karen", branch: "R", steps: 1, lateral: 2 },
+                    { id: "James", branch: "R", steps: 1, lateral: 2, desc: "First Cousin" },
+                    { id: "Rosemary", branch: "R", steps: 1, lateral: 2, desc: "First Cousin" },
+                    { id: "Ruth", branch: "R", steps: 1, lateral: 2, desc: "First Cousin" },
+                    { id: "Karen", branch: "R", steps: 1, lateral: 2, desc: "First Cousin" },
                     { id: "Bob", branch: "R", steps: 2, lateral: 1, inLaw: true },
-                    { id: "Michelle", branch: "R", steps: 1, lateral: 2 },
+                    { id: "Michelle", branch: "R", steps: 1, lateral: 2, desc: "First Cousin" },
 
                     // --- VANDERHOOP BRANCH (V) ---
-                    { id: "Leonard V.", branch: "V", steps: 3, lateral: 0, desc: "1895 - 1989" },
-                    { id: "Edwin DeVries V.", branch: "V", steps: 4, lateral: 0, desc: "1848 - 1923" },
-                    { id: "William A. V.", branch: "V", steps: 5, lateral: 0, desc: "~1816 - 1893" },
+                    { id: "Leonard V.", branch: "V", steps: 3, lateral: 0, desc: "Great Grandparent (1895 - 1989)" },
+                    { id: "Edwin DeVries V.", branch: "V", steps: 4, lateral: 0, desc: "Great Great Grandparent (1848 - 1923)" },
+                    { id: "William A. V.", branch: "V", steps: 5, lateral: 0, desc: "3x Great Grandparent (~1816 - 1893)" },
                     { id: "Beulah Salisbury", branch: "V", steps: 5, lateral: 0, inLaw: true },
-                    { id: "Johnny Vanderhoop", branch: "V", steps: 1, lateral: 1 },
+                    { id: "Johnny Vanderhoop", branch: "V", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
                     
                     // Mother's Father's Siblings
-                    { id: "Leonard Jr. V.", branch: "V", steps: 2, lateral: 1 },
-                    { id: "William (Billy) V.", branch: "V", steps: 2, lateral: 1 },
-                    { id: "Edmund V.", branch: "V", steps: 2, lateral: 1 },
-                    { id: "Margery V.", branch: "V", steps: 2, lateral: 1 },
+                    { id: "Leonard Jr. V.", branch: "V", steps: 2, lateral: 1, desc: "Aunt / Uncle" },
+                    { id: "William (Billy) V.", branch: "V", steps: 2, lateral: 1, desc: "Aunt / Uncle" },
+                    { id: "Edmund V.", branch: "V", steps: 2, lateral: 1, desc: "Aunt / Uncle" },
+                    { id: "Margery V.", branch: "V", steps: 2, lateral: 1, desc: "Aunt / Uncle" },
                     { id: "Paul", branch: "V", steps: 2, lateral: 1, inLaw: true },
-                    { id: "Maushup", branch: "V", steps: 1, lateral: 2 },
-                    { id: "Nashawn", branch: "V", steps: 1, lateral: 2 },
+                    { id: "Maushup", branch: "V", steps: 1, lateral: 2, desc: "First Cousin" },
+                    { id: "Nashawn", branch: "V", steps: 1, lateral: 2, desc: "First Cousin" },
 
                     // --- LIEBER BRANCH (L) ---
-                    { id: "G. Heinrich L. Lieber", branch: "L", steps: 3, lateral: 0, desc: "Unknown"},
+                    { id: "G. Heinrich L. Lieber", branch: "L", steps: 3, lateral: 0, desc: "Great Grandparent"},
                     { id: "Marie Emilie Ibe", branch: "L", steps: 3, lateral: 0, inLaw: true },
-                    { id: "Manfred Lieber", branch: "L", steps: 2, lateral: 1 },
+                    { id: "Manfred Lieber", branch: "L", steps: 2, lateral: 1, desc: "Aunt / Uncle" },
 
                     // --- BUZUNIS BRANCH (B) ---
-                    { id: "Teddy Buzunis", branch: "B", steps: 1, lateral: 1 },
-                    { id: "Victoria Buzunis", branch: "B", steps: 0, lateral: 2 },
-                    { id: "Demo Buzunis", branch: "B", steps: 1, lateral: 1 },
-                    { id: "Andrea Buzunis", branch: "B", steps: 1, lateral: 1 },
-                    { id: "Timothy Buzunis", branch: "B", steps: 1, lateral: 1 },
+                    { id: "Teddy Buzunis", branch: "B", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
+                    { id: "Victoria Buzunis", branch: "B", steps: 0, lateral: 2, desc: "First Cousin" },
+                    { id: "Demo Buzunis", branch: "B", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
+                    { id: "Andrea Buzunis", branch: "B", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
+                    { id: "Timothy Buzunis", branch: "B", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
                     { id: "Kerry", branch: "B", steps: 1, lateral: 1, inLaw: true }
                 ],
                 links: [
@@ -185,12 +185,15 @@ def render_genealogy_web():
                     { source: "Peter Buzunis", target: "Antonia Constance Buzunis", type: "main" },
                     { source: "Annestasia Buzunis", target: "Antonia Constance Buzunis", type: "main" },
                     
-                    // Marriages
+                    // Marriages & Step-Relations
                     { source: "Eric Killebrew", target: "Christina Vanderhoop", type: "marriage" },
                     { source: "Eric Killebrew", target: "Antonia Constance Buzunis", type: "marriage" },
                     { source: "Robert Killebrew", target: "Bonnie Rasmussen", type: "marriage" },
                     { source: "John O. Vanderhoop", target: "Waltrud M. Lieber", type: "marriage" },
                     { source: "Peter Buzunis", target: "Annestasia Buzunis", type: "marriage" },
+                    
+                    // NEW: Creates the triangular center structure pulling Step-Mom towards You
+                    { source: "Antonia Constance Buzunis", target: "Kyle Killebrew", type: "inlaw" },
                     
                     // Siblings
                     { source: "Eric Killebrew", target: "Andrea Nicole Killebrew", type: "leaf" },
@@ -282,119 +285,119 @@ def render_genealogy_web():
             };
 
             const treeData = {
-                name: "Kyle Killebrew", year: 1990, branch: "M", steps: 0, lateral: 0, desc: "Present",
+                name: "Kyle Killebrew", year: 1990, branch: "M", steps: 0, lateral: 0, desc: "You (Present)",
                 children: [
                     {
-                        name: "Eric Killebrew", year: 1961, branch: "K", steps: 1, lateral: 0, desc: "Father",
+                        name: "Eric Killebrew", year: 1961, branch: "K", steps: 1, lateral: 0, desc: "Parent",
                         children: [
-                            { name: "Robert Killebrew", year: 1930, branch: "K", steps: 2, lateral: 0, desc: "Grandfather", children: [
-                                { name: "William H. K.", year: 1898, branch: "K", steps: 3, lateral: 0, children: [
-                                    { name: "Daniel Boone K.", year: 1860, branch: "K", steps: 4, lateral: 0, children: [
-                                        { name: "George W. K.", year: 1812, branch: "K", steps: 5, lateral: 0, children: [
-                                            { name: "Whitfield K.", year: 1793, branch: "K", steps: 6, lateral: 0, children: [
-                                                { name: "Joseph K.", year: 1753, branch: "K", steps: 7, lateral: 0, children: [
-                                                    { name: "Francis K.", year: 1619, branch: "K", steps: 8, lateral: 0 }
+                            { name: "Robert Killebrew", year: 1930, branch: "K", steps: 2, lateral: 0, desc: "Grandparent", children: [
+                                { name: "William H. K.", year: 1898, branch: "K", steps: 3, lateral: 0, desc: "Great Grandparent", children: [
+                                    { name: "Daniel Boone K.", year: 1860, branch: "K", steps: 4, lateral: 0, desc: "Great Great Grandparent", children: [
+                                        { name: "George W. K.", year: 1812, branch: "K", steps: 5, lateral: 0, desc: "3x Great Grandparent", children: [
+                                            { name: "Whitfield K.", year: 1793, branch: "K", steps: 6, lateral: 0, desc: "4x Great Grandparent", children: [
+                                                { name: "Joseph K.", year: 1753, branch: "K", steps: 7, lateral: 0, desc: "5x Great Grandparent", children: [
+                                                    { name: "Francis K.", year: 1619, branch: "K", steps: 8, lateral: 0, desc: "6x Great Grandparent" }
                                                 ]}
                                             ]}
                                         ]}
                                     ]},
-                                    { name: "Ron K.", year: 1928, branch: "K", steps: 2, lateral: 1 },
-                                    { name: "Urma K.", year: 1932, branch: "K", steps: 2, lateral: 1 }
+                                    { name: "Ron K.", year: 1928, branch: "K", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" },
+                                    { name: "Urma K.", year: 1932, branch: "K", steps: 2, lateral: 1, desc: "Great Aunt / Uncle" }
                                 ]},
-                                { name: "Kelly K.", year: 1955, branch: "K", steps: 1, lateral: 1 },
-                                { name: "Stephen K.", year: 1957, branch: "K", steps: 1, lateral: 1, children: [
+                                { name: "Kelly K.", year: 1955, branch: "K", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
+                                { name: "Stephen K.", year: 1957, branch: "K", steps: 1, lateral: 1, desc: "Aunt / Uncle", children: [
                                     { name: "Iman Killebrew", year: 1957, branch: "K", steps: 1, lateral: 1, inLaw: true },
-                                    { name: "Alec K.", year: 1985, branch: "K", steps: 0, lateral: 2 },
-                                    { name: "Gillan K.", year: 1987, branch: "K", steps: 0, lateral: 2 },
-                                    { name: "Jayce K.", year: 1989, branch: "K", steps: 0, lateral: 2 }
+                                    { name: "Alec K.", year: 1985, branch: "K", steps: 0, lateral: 2, desc: "First Cousin" },
+                                    { name: "Gillan K.", year: 1987, branch: "K", steps: 0, lateral: 2, desc: "First Cousin" },
+                                    { name: "Jayce K.", year: 1989, branch: "K", steps: 0, lateral: 2, desc: "First Cousin" }
                                 ]},
-                                { name: "Suzie K.", year: 1959, branch: "K", steps: 1, lateral: 1, children: [
+                                { name: "Suzie K.", year: 1959, branch: "K", steps: 1, lateral: 1, desc: "Aunt / Uncle", children: [
                                     { name: "Steve Gerphy", year: 1959, branch: "K", steps: 1, lateral: 1, inLaw: true },
-                                    { name: "Matt Gerphy", year: 1985, branch: "K", steps: 0, lateral: 2, children: [
+                                    { name: "Matt Gerphy", year: 1985, branch: "K", steps: 0, lateral: 2, desc: "First Cousin", children: [
                                         { name: "Francesca", year: 1985, branch: "K", steps: 0, lateral: 2, inLaw: true },
-                                        { name: "Amelia Gerphy", year: 2010, branch: "K", steps: -1, lateral: 3 },
-                                        { name: "Riley Gerphy", year: 2012, branch: "K", steps: -1, lateral: 3 },
-                                        { name: "Oliver Gerphy", year: 2014, branch: "K", steps: -1, lateral: 3 }
+                                        { name: "Amelia Gerphy", year: 2010, branch: "K", steps: -1, lateral: 3, desc: "First Cousin Once Removed" },
+                                        { name: "Riley Gerphy", year: 2012, branch: "K", steps: -1, lateral: 3, desc: "First Cousin Once Removed" },
+                                        { name: "Oliver Gerphy", year: 2014, branch: "K", steps: -1, lateral: 3, desc: "First Cousin Once Removed" }
                                     ]},
-                                    { name: "Chris Gerphy", year: 1988, branch: "K", steps: 0, lateral: 2 }
+                                    { name: "Chris Gerphy", year: 1988, branch: "K", steps: 0, lateral: 2, desc: "First Cousin" }
                                 ]},
-                                { name: "Tony K.", year: 1963, branch: "K", steps: 1, lateral: 1, children: [
+                                { name: "Tony K.", year: 1963, branch: "K", steps: 1, lateral: 1, desc: "Aunt / Uncle", children: [
                                     { name: "Martha", year: 1963, branch: "K", steps: 1, lateral: 1, inLaw: true },
-                                    { name: "Will K.", year: 1990, branch: "K", steps: 0, lateral: 2 },
-                                    { name: "Ben K.", year: 1992, branch: "K", steps: 0, lateral: 2 }
+                                    { name: "Will K.", year: 1990, branch: "K", steps: 0, lateral: 2, desc: "First Cousin" },
+                                    { name: "Ben K.", year: 1992, branch: "K", steps: 0, lateral: 2, desc: "First Cousin" }
                                 ]},
-                                { name: "Keri K.", year: 1965, branch: "K", steps: 1, lateral: 1, children: [
+                                { name: "Keri K.", year: 1965, branch: "K", steps: 1, lateral: 1, desc: "Aunt / Uncle", children: [
                                     { name: "Stacy", year: 1965, branch: "K", steps: 1, lateral: 1, inLaw: true }
                                 ]},
-                                { name: "Sheri K.", year: 1967, branch: "K", steps: 1, lateral: 1, children: [
+                                { name: "Sheri K.", year: 1967, branch: "K", steps: 1, lateral: 1, desc: "Aunt / Uncle", children: [
                                     { name: "Ray Snisky", year: 1965, branch: "K", steps: 1, lateral: 1, inLaw: true },
-                                    { name: "Ellie Snisky", year: 1995, branch: "K", steps: 0, lateral: 2 },
-                                    { name: "Ava Snisky", year: 1998, branch: "K", steps: 0, lateral: 2 }
+                                    { name: "Ellie Snisky", year: 1995, branch: "K", steps: 0, lateral: 2, desc: "First Cousin" },
+                                    { name: "Ava Snisky", year: 1998, branch: "K", steps: 0, lateral: 2, desc: "First Cousin" }
                                 ]}
                             ]},
-                            { name: "Bonnie Rasmussen", year: 1934, branch: "R", steps: 2, lateral: 0, desc: "Grandmother", children: [
-                                { name: "Clinton R.", year: 1904, branch: "R", steps: 3, lateral: 0, children: [
-                                    { name: "James A. R.", year: 1877, branch: "R", steps: 4, lateral: 0, children: [
-                                        { name: "Rasmus J. R.", year: 1842, branch: "R", steps: 5, lateral: 0, children: [
-                                            { name: "Jens Rasmussen", year: 1810, branch: "R", steps: 6, lateral: 0 }
+                            { name: "Bonnie Rasmussen", year: 1934, branch: "R", steps: 2, lateral: 0, desc: "Grandparent", children: [
+                                { name: "Clinton R.", year: 1904, branch: "R", steps: 3, lateral: 0, desc: "Great Grandparent", children: [
+                                    { name: "James A. R.", year: 1877, branch: "R", steps: 4, lateral: 0, desc: "Great Great Grandparent", children: [
+                                        { name: "Rasmus J. R.", year: 1842, branch: "R", steps: 5, lateral: 0, desc: "3x Great Grandparent", children: [
+                                            { name: "Jens Rasmussen", year: 1810, branch: "R", steps: 6, lateral: 0, desc: "4x Great Grandparent" }
                                         ]}
                                     ]},
-                                    { name: "Richard R.", year: 1932, branch: "R", steps: 2, lateral: 1, children: [
+                                    { name: "Richard R.", year: 1932, branch: "R", steps: 2, lateral: 1, desc: "Aunt / Uncle", children: [
                                         { name: "Oranell", year: 1932, branch: "R", steps: 2, lateral: 1, inLaw: true },
-                                        { name: "James", year: 1955, branch: "R", steps: 1, lateral: 2 },
-                                        { name: "Rosemary", year: 1957, branch: "R", steps: 1, lateral: 2 },
-                                        { name: "Ruth", year: 1959, branch: "R", steps: 1, lateral: 2 },
-                                        { name: "Karen", year: 1961, branch: "R", steps: 1, lateral: 2 }
+                                        { name: "James", year: 1955, branch: "R", steps: 1, lateral: 2, desc: "First Cousin" },
+                                        { name: "Rosemary", year: 1957, branch: "R", steps: 1, lateral: 2, desc: "First Cousin" },
+                                        { name: "Ruth", year: 1959, branch: "R", steps: 1, lateral: 2, desc: "First Cousin" },
+                                        { name: "Karen", year: 1961, branch: "R", steps: 1, lateral: 2, desc: "First Cousin" }
                                     ]},
-                                    { name: "Bettie R.", year: 1936, branch: "R", steps: 2, lateral: 1, children: [
+                                    { name: "Bettie R.", year: 1936, branch: "R", steps: 2, lateral: 1, desc: "Aunt / Uncle", children: [
                                         { name: "Bob", year: 1936, branch: "R", steps: 2, lateral: 1, inLaw: true },
-                                        { name: "Michelle", year: 1960, branch: "R", steps: 1, lateral: 2 }
+                                        { name: "Michelle", year: 1960, branch: "R", steps: 1, lateral: 2, desc: "First Cousin" }
                                     ]},
-                                    { name: "Rhett R.", year: 1938, branch: "R", steps: 2, lateral: 1 }
+                                    { name: "Rhett R.", year: 1938, branch: "R", steps: 2, lateral: 1, desc: "Aunt / Uncle" }
                                 ]}
                             ]},
                             { name: "Antonia Constance Buzunis", year: 1965, branch: "B", steps: 1, lateral: 0, inLaw: true, desc: "Step Mother", children: [
-                                { name: "Peter Buzunis", year: 1930, branch: "B", steps: 2, lateral: 0, desc: "Step Mother's Father", children: [
-                                    { name: "Teddy Buzunis", year: 1960, branch: "B", steps: 1, lateral: 1, children: [
-                                        { name: "Victoria Buzunis", year: 1990, branch: "B", steps: 0, lateral: 2 }
+                                { name: "Peter Buzunis", year: 1930, branch: "B", steps: 2, lateral: 0, desc: "Grandparent", children: [
+                                    { name: "Teddy Buzunis", year: 1960, branch: "B", steps: 1, lateral: 1, desc: "Aunt / Uncle", children: [
+                                        { name: "Victoria Buzunis", year: 1990, branch: "B", steps: 0, lateral: 2, desc: "First Cousin" }
                                     ]},
-                                    { name: "Demo Buzunis", year: 1962, branch: "B", steps: 1, lateral: 1 },
-                                    { name: "Andrea Buzunis", year: 1968, branch: "B", steps: 1, lateral: 1 },
-                                    { name: "Timothy Buzunis", year: 1970, branch: "B", steps: 1, lateral: 1, children: [
+                                    { name: "Demo Buzunis", year: 1962, branch: "B", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
+                                    { name: "Andrea Buzunis", year: 1968, branch: "B", steps: 1, lateral: 1, desc: "Aunt / Uncle" },
+                                    { name: "Timothy Buzunis", year: 1970, branch: "B", steps: 1, lateral: 1, desc: "Aunt / Uncle", children: [
                                         { name: "Kerry", year: 1970, branch: "B", steps: 1, lateral: 1, inLaw: true }
                                     ]}
                                 ]},
-                                { name: "Annestasia Buzunis", year: 1932, branch: "A", steps: 2, lateral: 0, desc: "Step Mother's Mother" }
+                                { name: "Annestasia Buzunis", year: 1932, branch: "A", steps: 2, lateral: 0, desc: "Grandparent" }
                             ]},
-                            { name: "Andrea Nicole Killebrew", year: 1985, branch: "K", steps: 0, lateral: 1 },
-                            { name: "Eric Scott Killebrew, Jr.", year: 1988, branch: "K", steps: 0, lateral: 1 }
+                            { name: "Andrea Nicole Killebrew", year: 1985, branch: "K", steps: 0, lateral: 1, desc: "Sister / Brother" },
+                            { name: "Eric Scott Killebrew, Jr.", year: 1988, branch: "K", steps: 0, lateral: 1, desc: "Sister / Brother" }
                         ]
                     },
                     {
-                        name: "Christina Vanderhoop", year: 1961, branch: "V", steps: 1, lateral: 0, desc: "Biological Mother",
+                        name: "Christina Vanderhoop", year: 1961, branch: "V", steps: 1, lateral: 0, desc: "Parent",
                         children: [
-                            { name: "John O. Vanderhoop", year: 1934, branch: "V", steps: 2, lateral: 0, desc: "Grandfather", children: [
-                                { name: "Leonard V.", year: 1895, branch: "V", steps: 3, lateral: 0, children: [
-                                    { name: "Edwin DeVries V.", year: 1848, branch: "V", steps: 4, lateral: 0, children: [
-                                        { name: "William A. V.", year: 1816, branch: "V", steps: 5, lateral: 0, children: [
+                            { name: "John O. Vanderhoop", year: 1934, branch: "V", steps: 2, lateral: 0, desc: "Grandparent", children: [
+                                { name: "Leonard V.", year: 1895, branch: "V", steps: 3, lateral: 0, desc: "Great Grandparent", children: [
+                                    { name: "Edwin DeVries V.", year: 1848, branch: "V", steps: 4, lateral: 0, desc: "Great Great Grandparent", children: [
+                                        { name: "William A. V.", year: 1816, branch: "V", steps: 5, lateral: 0, desc: "3x Great Grandparent", children: [
                                             { name: "Beulah Salisbury", year: 1814, branch: "V", steps: 5, lateral: 0, inLaw: true }
                                         ]}
                                     ]},
-                                    { name: "Leonard Jr. V.", year: 1925, branch: "V", steps: 2, lateral: 1 },
-                                    { name: "William (Billy) V.", year: 1928, branch: "V", steps: 2, lateral: 1 },
-                                    { name: "Edmund V.", year: 1930, branch: "V", steps: 2, lateral: 1 },
-                                    { name: "Margery V.", year: 1932, branch: "V", steps: 2, lateral: 1, children: [
+                                    { name: "Leonard Jr. V.", year: 1925, branch: "V", steps: 2, lateral: 1, desc: "Aunt / Uncle" },
+                                    { name: "William (Billy) V.", year: 1928, branch: "V", steps: 2, lateral: 1, desc: "Aunt / Uncle" },
+                                    { name: "Edmund V.", year: 1930, branch: "V", steps: 2, lateral: 1, desc: "Aunt / Uncle" },
+                                    { name: "Margery V.", year: 1932, branch: "V", steps: 2, lateral: 1, desc: "Aunt / Uncle", children: [
                                         { name: "Paul", year: 1932, branch: "V", steps: 2, lateral: 1, inLaw: true },
-                                        { name: "Maushup", year: 1960, branch: "V", steps: 1, lateral: 2 },
-                                        { name: "Nashawn", year: 1962, branch: "V", steps: 1, lateral: 2 }
+                                        { name: "Maushup", year: 1960, branch: "V", steps: 1, lateral: 2, desc: "First Cousin" },
+                                        { name: "Nashawn", year: 1962, branch: "V", steps: 1, lateral: 2, desc: "First Cousin" }
                                     ]}
                                 ]},
-                                { name: "Johnny Vanderhoop", year: 1936, branch: "V", steps: 1, lateral: 1 }
+                                { name: "Johnny Vanderhoop", year: 1936, branch: "V", steps: 1, lateral: 1, desc: "Aunt / Uncle" }
                             ]},
-                            { name: "Waltrud M. Lieber", year: 1934, branch: "L", steps: 2, lateral: 0, desc: "Grandmother", children: [
-                                { name: "G. Heinrich L. Lieber", year: 1900, branch: "L", steps: 3, lateral: 0, children: [
+                            { name: "Waltrud M. Lieber", year: 1934, branch: "L", steps: 2, lateral: 0, desc: "Grandparent", children: [
+                                { name: "G. Heinrich L. Lieber", year: 1900, branch: "L", steps: 3, lateral: 0, desc: "Great Grandparent", children: [
                                     { name: "Marie Emilie Ibe", year: 1900, branch: "L", steps: 3, lateral: 0, inLaw: true },
-                                    { name: "Manfred Lieber", year: 1932, branch: "L", steps: 2, lateral: 1 }
+                                    { name: "Manfred Lieber", year: 1932, branch: "L", steps: 2, lateral: 1, desc: "Aunt / Uncle" }
                                 ]}
                             ]}
                         ]
@@ -439,9 +442,9 @@ def render_genealogy_web():
             }
 
             function calcOpacity(d) {
-                // Decay opacity by exactly 10% per lateral generation
+                // Decay opacity by exactly 20% per lateral generation
                 if (d.lateral === 0) return 1.0;
-                return Math.max(0.1, 1.0 - (0.10 * d.lateral));
+                return Math.max(0.1, 1.0 - (0.2 * d.lateral));
             }
 
             function calcLinkWidth(d) {
@@ -490,11 +493,11 @@ def render_genealogy_web():
                         if (d.type === "marriage" || d.type === "inlaw") return 15; 
                         if (d.type === "leaf") return 25 * shrinkFactor; 
                         
-                        // Main branches start shorter (55) and shrink exactly 10% per generation
-                        return 55 * shrinkFactor;
+                        // Main branches start longer (65) and shrink exactly 10% per generation
+                        return 65 * shrinkFactor;
                     })
                     .strength(d => {
-                        if (d.type === "marriage") return 0.1; // Keep spouses tethered closely
+                        if (d.type === "marriage") return 0.1; 
                         if (d.type === "leaf" || d.type === "inlaw") return 2; 
                         return 1;
                     }) 
@@ -504,7 +507,6 @@ def render_genealogy_web():
                     let shrinkFactor = Math.max(0.2, 1 - 0.10 * rootStep);
                     
                     if (d.inLaw) return -5;
-                    // Lower base repulsion forces that scale down with generational depth
                     if (d.lateral > 0) return -15 * shrinkFactor; 
                     return -200 * shrinkFactor; 
                 }))
@@ -531,10 +533,9 @@ def render_genealogy_web():
                 .attr("opacity", d => calcOpacity(d))
                 .on("mouseover", (e,d) => {
                     tooltip.transition().duration(200).style("opacity", 1);
-                    let stat = d.lateral === 0 ? "Direct Ancestor" : "Lateral Relative";
-                    if(d.inLaw) stat = "In-Law (Spouse)";
-                    // FIX: Reverted to standard JS single-brace interpolation
-                    tooltip.html(`<strong>${d.id}</strong><br/>${d.desc || stat}<br/><span style="color:#94A3B8; font-size:10px;">Opacity: ${Math.round(calcOpacity(d)*100)}% | Size: ${Math.round(calcRadius(d))}px</span>`)
+                    let stat = d.desc;
+                    if(d.inLaw && !d.desc) stat = "In-Law (Spouse)";
+                    tooltip.html(`<strong>${d.id}</strong><br/>${stat}`)
                         .style("left", (e.pageX + 15) + "px").style("top", (e.pageY - 28) + "px");
                 })
                 .on("mouseout", () => tooltip.transition().duration(500).style("opacity", 0));
@@ -627,9 +628,9 @@ def render_genealogy_web():
                 .attr("opacity", d => calcOpacity(d.data))
                 .on("mouseover", (e,d) => {
                     tooltip.transition().duration(200).style("opacity", 1);
-                    let stat = d.data.lateral === 0 ? "Direct Ancestor" : "Lateral Relative";
-                    if(d.data.inLaw) stat = "In-Law (Spouse)";
-                    tooltip.html(`<strong>${d.data.name}</strong><br/>${d.data.year} | ${d.data.desc || stat}<br/><span style="color:#94A3B8; font-size:10px;">Opacity: ${Math.round(calcOpacity(d.data)*100)}% | Size: ${Math.round(calcRadius(d.data))}px</span>`)
+                    let stat = d.data.desc;
+                    if(d.data.inLaw && !d.data.desc) stat = "In-Law (Spouse)";
+                    tooltip.html(`<strong>${d.data.name}</strong><br/>${stat}`)
                         .style("left", (e.pageX + 15) + "px").style("top", (e.pageY - 28) + "px");
                 })
                 .on("mouseout", () => tooltip.transition().duration(500).style("opacity", 0));
