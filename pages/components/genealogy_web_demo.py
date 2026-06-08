@@ -544,23 +544,18 @@ def render_genealogy_web():
                     r = 240;
                     g = Math.round(0 + (240 - 0) * t);
                     b = Math.round(220 + (0 - 220) * t);
-                } else if (d.branch === "B") { // RESTORED RED 
+                } else if (d.branch === "B") { // Red 
                     r = 240;
                     g = Math.round(220 + (0 - 220) * t);
                     b = Math.round(220 + (0 - 220) * t);
-                } else if (d.branch === "A") { // RESTORED ORANGE
+                } else if (d.branch === "A") { // Orange
                     r = 240;
                     g = Math.round(220 + (128 - 220) * t);
                     b = Math.round(220 + (0 - 220) * t);
                 }
 
-                if (d.lateral > 0) {
-                    let wT = d.lateral / maxLateral; 
-                    r = Math.round(r + (240 - r) * wT);
-                    g = Math.round(g + (240 - g) * wT);
-                    b = Math.round(b + (240 - b) * wT);
-                }
-
+                // FIX: Buggy maxLateral RGB washout logic removed.
+                // Node colors are locked to their lineage, while opacity handles the lateral fading!
                 return `rgb(${r}, ${g}, ${b})`;
             }
 
