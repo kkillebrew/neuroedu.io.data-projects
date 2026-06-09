@@ -25,14 +25,29 @@ def render_migration_map():
         bc = data["base_color"]
         max_steps = len(nodes) - 1
 
-        # Hidden trace to populate the legend with the solid branch color
-        fig.add_trace(go.Scattergeo(
-            lon=[None], lat=[None],
-            mode="markers",
-            marker=dict(size=10, color=f"rgb({bc[0]},{bc[1]},{bc[2]})"),
-            name=branch_name.replace("_", "/"),
-            showlegend=True
-        ))
+        # --- CUSTOM LEGEND HANDLING ---
+        # If it's the spouse line, we inject the vertically stacked Tri-Color marker via HTML
+        if branch_name == "Robinson_Impson":
+            legend_html = (
+                "<span style='color:rgb(255, 105, 180)'>●</span><br>"
+                "<span style='color:rgb(0, 255, 255)'>●</span> Side Trees<br>"
+                "<span style='color:rgb(205, 127, 50)'>●</span>"
+            )
+            fig.add_trace(go.Scattergeo(
+                lon=[None], lat=[None],
+                mode="markers",
+                marker=dict(size=1, color="rgba(0,0,0,0)"), # Hides the native single-color marker
+                name=legend_html,
+                showlegend=True
+            ))
+        else:
+            fig.add_trace(go.Scattergeo(
+                lon=[None], lat=[None],
+                mode="markers",
+                marker=dict(size=10, color=f"rgb({bc[0]},{bc[1]},{bc[2]})"),
+                name=branch_name.replace("_", "/"),
+                showlegend=True
+            ))
 
         # Iterating through nodes to construct lines and aggregated tooltips
         for i in range(max_steps):
@@ -52,13 +67,13 @@ def render_migration_map():
             b2 = int(bc[2] + (240 - bc[2]) * t_end)
             c_end = f"rgb({r2},{g2},{b2})"
 
-            # Build Rich Tooltip for Start Node
-            hover_text_start = f"<b>{start_node['city']}</b><br><hr style='margin:2px'>"
+            # --- HOVER HTML BUG FIX ---
+            # Replaced <hr> with Unicode line-drawing to bypass Plotly's strict HTML sanitizer
+            hover_text_start = f"<b>{start_node['city']}</b><br>──────────<br>"
             for p in start_node['people']:
                 hover_text_start += f"<b>{p['name']}</b> ({p['years']})<br>{p['desc']}<br><br>"
 
-            # Build Rich Tooltip for End Node
-            hover_text_end = f"<b>{end_node['city']}</b><br><hr style='margin:2px'>"
+            hover_text_end = f"<b>{end_node['city']}</b><br>──────────<br>"
             for p in end_node['people']:
                 hover_text_end += f"<b>{p['name']}</b> ({p['years']})<br>{p['desc']}<br><br>"
 
