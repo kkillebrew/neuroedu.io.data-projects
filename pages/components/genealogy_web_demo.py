@@ -41,6 +41,7 @@ def render_genealogy_web():
             .link-marriage { fill: none; stroke: #94A3B8; stroke-dasharray: 6,6; }
             .link-leaf { fill: none; stroke: #475569; }
             .link-inlaw { fill: none; stroke: #64748B; stroke-dasharray: 4,4; }
+            .link-spouse_main { fill: none; stroke: #64748B; stroke-opacity: 0.5; stroke-width: 1.5px; }
             
             /* TIMELINE TREE LINK STYLES */
             .tree-link { fill: none; stroke: #334155; }
@@ -91,6 +92,20 @@ def render_genealogy_web():
                     
                     // --- KILLEBREW BRANCH (K) ---
                     { id: "William H. K.", branch: "K", steps: 3, lateral: 0, desc: "Great Grandparent (1898 - 1970)" },
+                    { id: "Mary Esther Robinson", branch: "K", steps: 3, inLaw: true, anchorStep: 3, desc: "Great Grandmother (1902-1981)" },
+                    { id: "James Wesley Robinson", branch: "K", steps: 4, lateral: 1, isSpouseLine: true, anchorStep: 3, desc: "2x Great Grandparent (1847-1916)" },
+                    { id: "Jane Jincey Impson", branch: "K", steps: 4, lateral: 1, isSpouseLine: true, anchorStep: 3, desc: "2x Great Grandparent (1862-1940)" },
+                    { id: "Niel C. Robinson", branch: "K", steps: 5, lateral: 1, isSpouseLine: true, anchorStep: 3, desc: "3x Great Grandparent (d. 1864)" },
+                    { id: "Huldah Jennie Wood", branch: "K", steps: 5, lateral: 1, isSpouseLine: true, anchorStep: 3, desc: "3x Great Grandparent (1830-1880)" },
+                    { id: "Neal Clark Robeson", branch: "K", steps: 6, lateral: 1, isSpouseLine: true, anchorStep: 3, desc: "4x Great Grandparent (1785-1836)" },
+                    { id: "Ileyvina Robinson", branch: "K", steps: 6, lateral: 1, isSpouseLine: true, anchorStep: 3, desc: "4x Great Grandparent (1788-1868)" },
+                    { id: "Neal Clark Robeson Sr.", branch: "K", steps: 7, lateral: 1, isSpouseLine: true, anchorStep: 3, desc: "5x Great Grandparent (1760-1841)" },
+                    { id: "Josiah Impson", branch: "K", steps: 5, lateral: 1, isSpouseLine: true, anchorStep: 3, desc: "3x Great Grandparent (1824-1896)" },
+                    { id: "Isaac Impson", branch: "K", steps: 6, lateral: 1, isSpouseLine: true, anchorStep: 3, desc: "4x Great Grandparent (1800-1899)" },
+                    { id: "John Adam Josiah Impson", branch: "K", steps: 7, lateral: 1, isSpouseLine: true, anchorStep: 3, desc: "5x Great Grandparent (1745-1833)" },
+                    { id: "John Adam Impson", branch: "K", steps: 8, lateral: 1, isSpouseLine: true, anchorStep: 3, desc: "6x Great Grandparent (1718-?)" },
+                    { id: "William John Impson", branch: "K", steps: 9, lateral: 1, isSpouseLine: true, anchorStep: 3, desc: "7x Great Grandparent (1700-?)" },
+
                     { id: "Daniel Boone K.", branch: "K", steps: 4, lateral: 0, desc: "Great Great Grandparent (1860 - 1939)" },
                     { id: "George W. K.", branch: "K", steps: 5, lateral: 0, desc: "3x Great Grandparent (1812 - 1871)" },
                     { id: "Whitfield K.", branch: "K", steps: 6, lateral: 0, desc: "4x Great Grandparent (1793 - 1859)" },
@@ -294,6 +309,19 @@ def render_genealogy_web():
                     { source: "G. Heinrich L. Lieber", target: "Waltrud M. Lieber", type: "main"},
                     { source: "G. Heinrich L. Lieber", target: "Marie Emilie Ibe", type: "inlaw" },
                     { source: "G. Heinrich L. Lieber", target: "Manfred Lieber", type: "leaf"},
+                    { source: "William H. K.", target: "Mary Esther Robinson", type: "marriage" },
+                    { source: "Mary Esther Robinson", target: "James Wesley Robinson", type: "spouse_main" },
+                    { source: "Mary Esther Robinson", target: "Jane Jincey Impson", type: "spouse_main" },
+                    { source: "James Wesley Robinson", target: "Niel C. Robinson", type: "spouse_main" },
+                    { source: "James Wesley Robinson", target: "Huldah Jennie Wood", type: "spouse_main" },
+                    { source: "Niel C. Robinson", target: "Neal Clark Robeson", type: "spouse_main" },
+                    { source: "Niel C. Robinson", target: "Ileyvina Robinson", type: "spouse_main" },
+                    { source: "Neal Clark Robeson", target: "Neal Clark Robeson Sr.", type: "spouse_main" },
+                    { source: "Jane Jincey Impson", target: "Josiah Impson", type: "spouse_main" },
+                    { source: "Josiah Impson", target: "Isaac Impson", type: "spouse_main" },
+                    { source: "Isaac Impson", target: "John Adam Josiah Impson", type: "spouse_main" },
+                    { source: "John Adam Josiah Impson", target: "John Adam Impson", type: "spouse_main" },
+                    { source: "John Adam Impson", target: "William John Impson", type: "spouse_main" },
 
                     // Siblings & Relatives (Buzunis / Ginakes)
                     { source: "George Constantine Buzunis", target: "William Buzunis", type: "leaf" },
@@ -330,6 +358,28 @@ def render_genealogy_web():
                         children: [
                             { name: "Robert Killebrew", year: 1930, branch: "K", steps: 2, lateral: 0, desc: "Grandparent", children: [
                                 { name: "William H. K.", year: 1898, branch: "K", steps: 3, lateral: 0, desc: "Great Grandparent", children: [
+                                    { name: "Mary Esther Robinson", year: 1902, branch: "K", steps: 3, inLaw: true, anchorStep: 3, desc: "Great Grandmother", children: [
+                                        { name: "James Wesley Robinson", year: 1847, branch: "K", steps: 4, lateral: 1, isSpouseLine: true, anchorStep: 3, desc: "2x Great Grandparent", children: [
+                                            { name: "Niel C. Robinson", year: 1820, branch: "K", steps: 5, lateral: 1, isSpouseLine: true, anchorStep: 3, desc: "3x Great Grandparent", children: [
+                                                { name: "Neal Clark Robeson", year: 1785, branch: "K", steps: 6, lateral: 1, isSpouseLine: true, anchorStep: 3, desc: "4x Great Grandparent", children: [
+                                                    { name: "Neal Clark Robeson Sr.", year: 1760, branch: "K", steps: 7, lateral: 1, isSpouseLine: true, anchorStep: 3, desc: "5x Great Grandparent" }
+                                                ]},
+                                                { name: "Ileyvina Robinson", year: 1788, branch: "K", steps: 6, lateral: 1, isSpouseLine: true, anchorStep: 3, desc: "4x Great Grandparent" }
+                                            ]},
+                                            { name: "Huldah Jennie Wood", year: 1830, branch: "K", steps: 5, lateral: 1, isSpouseLine: true, anchorStep: 3, desc: "3x Great Grandparent" }
+                                        ]},
+                                        { name: "Jane Jincey Impson", year: 1862, branch: "K", steps: 4, lateral: 1, isSpouseLine: true, anchorStep: 3, desc: "2x Great Grandparent", children: [
+                                            { name: "Josiah Impson", year: 1824, branch: "K", steps: 5, lateral: 1, isSpouseLine: true, anchorStep: 3, desc: "3x Great Grandparent", children: [
+                                                { name: "Isaac Impson", year: 1800, branch: "K", steps: 6, lateral: 1, isSpouseLine: true, anchorStep: 3, desc: "4x Great Grandparent", children: [
+                                                    { name: "John Adam Josiah Impson", year: 1745, branch: "K", steps: 7, lateral: 1, isSpouseLine: true, anchorStep: 3, desc: "5x Great Grandparent", children: [
+                                                        { name: "John Adam Impson", year: 1718, branch: "K", steps: 8, lateral: 1, isSpouseLine: true, anchorStep: 3, desc: "6x Great Grandparent", children: [
+                                                            { name: "William John Impson", year: 1700, branch: "K", steps: 9, lateral: 1, isSpouseLine: true, anchorStep: 3, desc: "7x Great Grandparent" }
+                                                        ]}
+                                                    ]}
+                                                ]}
+                                            ]}
+                                        ]}
+                                    ]},
                                     { name: "Daniel Boone K.", year: 1860, branch: "K", steps: 4, lateral: 0, desc: "Great Great Grandparent", children: [
                                         { name: "George W. K.", year: 1812, branch: "K", steps: 5, lateral: 0, desc: "3x Great Grandparent", children: [
                                             { name: "Whitfield K.", year: 1793, branch: "K", steps: 6, lateral: 0, desc: "4x Great Grandparent", children: [
@@ -492,36 +542,29 @@ def render_genealogy_web():
                 const ROOT_SIZE = 25;
                 if (d.id === "Kyle Killebrew" || d.name === "Kyle Killebrew") return ROOT_SIZE;
 
-                // NEW: Spouses are explicitly scaled down to be much smaller than bloodline nodes
-                if (d.inLaw) {
-                    let rootStep = d.lateral > 0 ? d.steps + d.lateral : d.steps;
-                    let spouseSize = ROOT_SIZE * (1 - 0.10 * rootStep);
-                    if (d.lateral > 0) spouseSize *= 0.3333; // Apply lateral sibling reduction
-                    return Math.max(2, spouseSize * 0.4); // Exactly 40% of their partner's size
+                // Spouses AND their ancestral lines are locked to 40% of their anchor generation
+                if (d.inLaw || d.isSpouseLine) {
+                    let anchor = d.anchorStep || d.steps;
+                    let spouseSize = ROOT_SIZE * (1 - 0.10 * anchor);
+                    if (d.lateral > 0 && !d.isSpouseLine) spouseSize *= 0.3333; 
+                    return Math.max(2, spouseSize * 0.4); 
                 }
 
                 if (d.lateral === 0) {
-                    // Male Line: Decrease by 10% per generation
                     let sz = ROOT_SIZE * (1 - 0.10 * d.steps);
                     return Math.max(2, sz);
                 } else {
-                    // Lock lateral descendants to their main-line ancestor's generation
                     let rootStep = d.steps + d.lateral; 
                     let rootSize = ROOT_SIZE * (1 - 0.10 * rootStep);
                     let siblingSize = rootSize * 0.3333;
                     
-                    if (d.lateral === 1) {
-                        return Math.max(2, siblingSize);
-                    } else {
-                        // Descendants of Siblings: Decrease 5% per lateral step
-                        let factor = Math.pow(0.95, d.lateral - 1);
-                        return Math.max(2, siblingSize * factor);
-                    }
+                    if (d.lateral === 1) return Math.max(2, siblingSize);
+                    let factor = Math.pow(0.95, d.lateral - 1);
+                    return Math.max(2, siblingSize * factor);
                 }
             }
 
             function calcOpacity(d) {
-                // Decay opacity by exactly 20% per lateral generation
                 if (d.lateral === 0) return 1.0;
                 return Math.max(0.1, 1.0 - (0.2 * d.lateral));
             }
@@ -530,37 +573,29 @@ def render_genealogy_web():
                 if (d.type === "marriage" || (d.target && d.target.inLaw)) return 2;
                 let targetNode = d.target.data ? d.target.data : d.target;
                 let targetRadius = calcRadius(targetNode);
-                return Math.max(1, targetRadius * 0.2); // 20% of the target node's size
+                return Math.max(1, targetRadius * 0.2); 
             }
 
             function calcColor(d) {
-                if (d.inLaw) return "rgb(255, 215, 0)"; // GOLD for Spouses
+                // NEW: Branch-specific Spouse Colors!
+                if (d.inLaw || d.isSpouseLine) {
+                    if (d.branch === "K" || d.branch === "R") return "rgb(0, 255, 255)"; // Cyan (Dad)
+                    if (d.branch === "B" || d.branch === "A") return "rgb(255, 105, 180)"; // Hot Pink (Step-Mom)
+                    if (d.branch === "V" || d.branch === "L") return "rgb(205, 127, 50)"; // Bright Bronze (Bio Mom)
+                    return "rgb(255, 215, 0)"; // Fallback
+                }
 
                 let mainSteps = d.steps + d.lateral; 
                 let mMax = maxSteps[d.branch] || 1;
-                
-                // Linear interpolation from 0 (White) to 1 (Full Color)
-                let t = Math.min(1, Math.max(0, mainSteps / mMax));
-                let r = 240, g = 240, b = 240; 
+                let t = (mainSteps <= 1) ? 0 : (mainSteps - 1) / Math.max(1, mMax - 1);
+                let r = 240, g = 0, b = 240; 
 
-                if (d.branch === "K") { // Blue
-                    r = Math.round(240 - 240 * t);
-                    g = Math.round(240 - 240 * t);
-                } else if (d.branch === "R") { // Purple
-                    r = Math.round(240 - 80 * t);
-                    g = Math.round(240 - 208 * t);
-                } else if (d.branch === "V") { // Green
-                    r = Math.round(240 - 240 * t);
-                    b = Math.round(240 - 240 * t);
-                } else if (d.branch === "L") { // Yellow
-                    b = Math.round(240 - 240 * t);
-                } else if (d.branch === "B") { // Red
-                    g = Math.round(240 - 240 * t);
-                    b = Math.round(240 - 240 * t);
-                } else if (d.branch === "A") { // Orange
-                    g = Math.round(240 - 112 * t);
-                    b = Math.round(240 - 240 * t);
-                }
+                if (d.branch === "K") { r = Math.round(220 + (0 - 220) * t); b = 240; } 
+                else if (d.branch === "V") { r = 240; b = Math.round(220 + (0 - 220) * t); } 
+                else if (d.branch === "R") { r = Math.round(220 + (0 - 220) * t); g = Math.round(0 + (240 - 0) * t); b = Math.round(240 + (0 - 240) * t); } 
+                else if (d.branch === "L") { r = 240; g = Math.round(0 + (240 - 0) * t); b = Math.round(220 + (0 - 220) * t); } 
+                else if (d.branch === "B") { r = 240; g = Math.round(220 + (0 - 220) * t); b = Math.round(220 + (0 - 220) * t); } 
+                else if (d.branch === "A") { r = 240; g = Math.round(220 + (128 - 220) * t); b = Math.round(220 + (0 - 220) * t); }
 
                 return `rgb(${r}, ${g}, ${b})`;
             }
@@ -579,6 +614,10 @@ def render_genealogy_web():
                 .force("link", d3.forceLink(graphData.links).id(d => d.id)
                     .distance(d => {
                         let targetNode = d.target.data ? d.target.data : d.target;
+
+                        // NEW: Ultra-short links to keep offshoot spouse branches clustered tightly
+                        if (d.type === "spouse_main") return 8;
+
                         let rootStep = targetNode.lateral > 0 ? (targetNode.steps + targetNode.lateral) : targetNode.steps;
                         let shrinkFactor = Math.max(0.2, 1 - 0.10 * rootStep);
                         
@@ -666,9 +705,14 @@ def render_genealogy_web():
                 legend.append("rect").attr("y", i*20).attr("width", 50).attr("height", 10).style("fill", grads[i]);
                 legend.append("text").attr("x", 60).attr("y", i*20 + 9).attr("fill", "#64748B").attr("font-size", "10px").text(l);
             });
-            legend.append("circle").attr("cx", 25).attr("cy", 145).attr("r", 5).attr("fill", "rgb(255,215,0)");
-            legend.append("text").attr("x", 60).attr("y", 149).attr("fill", "#64748B").attr("font-size", "10px").text("In-laws (Gold)");
-            legend.append("text").attr("x", 0).attr("y", 150).attr("fill", "#64748B").attr("font-size", "10px").text("Lines: 20% of Target Node");
+            
+            // Render the Spousal Color Map
+            legend.append("rect").attr("x", 0).attr("y", 125).attr("width", 10).attr("height", 10).style("fill", "rgb(0, 255, 255)");
+            legend.append("text").attr("x", 15).attr("y", 134).attr("fill", "#64748B").attr("font-size", "10px").text("Dad's In-Laws");
+            legend.append("rect").attr("x", 85).attr("y", 125).attr("width", 10).attr("height", 10).style("fill", "rgb(205, 127, 50)");
+            legend.append("text").attr("x", 100).attr("y", 134).attr("fill", "#64748B").attr("font-size", "10px").text("Mom's In-Laws");
+            legend.append("rect").attr("x", 0).attr("y", 140).attr("width", 10).attr("height", 10).style("fill", "rgb(255, 105, 180)");
+            legend.append("text").attr("x", 15).attr("y", 149).attr("fill", "#64748B").attr("font-size", "10px").text("Step-Mom's In-Laws");
 
             // ==========================================
             // 4. RIGHT PANEL: GENERATIONAL TREE
@@ -719,10 +763,9 @@ def render_genealogy_web():
 
             // 4. Second Pass: Spousal Abutment 
             root.each(d => {
-                if (d.data.inLaw && d.parent) {
-                    // Abut strictly to the direct right of the spouse's radius + 2px buffer
+                // Snap the spouse, but let the spouse's ancestors flow naturally!
+                if (d.data.inLaw && !d.data.isSpouseLine && d.parent) {
                     d.x = d.parent.x + tRad(d.parent.data) + tRad(d.data) + 2;
-                    // Lock exact vertical height of spouse (this safely inherits any zipper offset the parent has)
                     d.y = d.parent.y; 
                 }
             });
@@ -755,11 +798,11 @@ def render_genealogy_web():
                 })
                 .attr("d", d3.linkVertical().x(d => d.x).y(d => d.y))
                 .attr("stroke-width", d => {
-                    // SPOSUAL LINK OVERRIDE: 0 thickness for in-laws
-                    if (d.target.data.inLaw) return 0;
+                    // SPOSUAL LINK OVERRIDE: 0 thickness for the actual marriage, but normal thickness for their ancestors
+                    if (d.target.data.inLaw && !d.target.data.isSpouseLine) return 0;
                     return Math.max(1.5, (calcRadius(d.target.data) * 0.2) * tScale);
                 })
-                .attr("stroke-opacity", d => d.target.data.inLaw ? 0 : 0.8);
+                .attr("stroke-opacity", d => (d.target.data.inLaw && !d.target.data.isSpouseLine) ? 0 : 0.8);
 
             const tNode = treeGroup.selectAll(".tree-node").data(root.descendants()).enter().append("g")
                 .attr("transform", d => `translate(${d.x},${d.y})`);
