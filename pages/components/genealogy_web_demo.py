@@ -140,16 +140,24 @@ def render_genealogy_web():
             }
 
             function calcColor(d) {
-                if (d.inLaw || d.isSpouseLine) {
-                    if (d.branch === "K" || d.branch === "R") return "rgb(0, 255, 255)"; 
-                    if (d.branch === "B" || d.branch === "A") return "rgb(255, 105, 180)"; 
-                    if (d.branch === "V" || d.branch === "L") return "rgb(205, 127, 50)"; 
-                    return "rgb(255, 215, 0)";
+                // 1. Force the root node to always be pure white
+                if (d.id === "Kyle Killebrew" || d.name === "Kyle Killebrew") {
+                    return "rgb(240, 240, 240)";
                 }
 
+                // 2. Assign the static spousal accent colors
+                if (d.inLaw || d.isSpouseLine) {
+                    if (d.branch === "K" || d.branch === "R") return "rgb(0, 255, 255)"; // Cyan (Dad)
+                    if (d.branch === "B" || d.branch === "A") return "rgb(255, 105, 180)"; // Hot Pink (Step-Mom)
+                    if (d.branch === "V" || d.branch === "L") return "rgb(205, 127, 50)"; // Bright Bronze (Bio Mom)
+                    return "rgb(255, 215, 0)"; // Fallback Gold
+                }
+
+                // 3. Dynamic Generation Fading (White to Full Saturation)
                 let mainSteps = d.steps + d.lateral; 
                 let mMax = maxSteps[d.branch] || 1;
-                let t = (mainSteps <= 1) ? 0 : (mainSteps - 1) / Math.max(1, mMax - 1);
+                let t = Math.min(1, Math.max(0, mainSteps / mMax));
+                
                 let r = 240, g = 240, b = 240; 
 
                 if (d.branch === "K") { r = Math.round(240 - 240 * t); g = Math.round(240 - 240 * t); } 
