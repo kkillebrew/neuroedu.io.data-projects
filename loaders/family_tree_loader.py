@@ -17,7 +17,7 @@ def get_family_tree_data():
     
     graph_data = {
         "nodes": [
-            // --- CORE / IMMEDIATE FAMILY ---
+            # --- CORE / IMMEDIATE FAMILY ---
             {"id": "Kyle Killebrew", "branch": "M", "steps": 0, "lateral": 0, "desc": "You (Present)", "bio": "1990-Present; Las Vegas, NV"},
             {"id": "Eric Killebrew", "branch": "K", "steps": 1, "lateral": 0, "desc": "Parent", "bio": "1961-Present; Las Vegas, NV"},
             {"id": "Christina Vanderhoop", "branch": "V", "steps": 1, "lateral": 0, "desc": "Parent"},
@@ -25,7 +25,7 @@ def get_family_tree_data():
             {"id": "Andrea Nicole Killebrew", "branch": "K", "steps": 0, "lateral": 1, "desc": "Sister / Brother"},
             {"id": "Eric Scott Killebrew, Jr.", "branch": "K", "steps": 0, "lateral": 1, "desc": "Sister / Brother"},
 
-            // --- GRANDPARENTS ---
+            # --- GRANDPARENTS ---
             {"id": "Robert Killebrew", "branch": "K", "steps": 2, "lateral": 0, "desc": "Grandparent (1930 - 2017)", "bio": "Hartshorne, OK; Las Vegas, NV"},
             {"id": "Bonnie Rasmussen", "branch": "R", "steps": 2, "lateral": 0, "desc": "Grandparent (1934 - 2020)", "bio": "Monroe, UT"},
             {"id": "John O. Vanderhoop", "branch": "V", "steps": 2, "lateral": 0, "desc": "Grandparent (1934 - 2022)", "bio": "<b>Born:</b> July 15, 1934, Gay Head, MA.<br>Proud member of the Wampanoag tribe of Aquinnah. Earned a degree in Classic Literature at Brown University.<br><b>Military:</b> Retired Major USAF (Germany, Thailand, Vietnam). Awarded Bronze Star & Meritorious Service Medal.<br>Married Waltrud 'Gaby' Lieber in 1965.<br><a href='#' target='_blank'>[View Obituary/Pic]</a>"},
@@ -33,7 +33,7 @@ def get_family_tree_data():
             {"id": "Peter Buzunis", "branch": "B", "steps": 2, "lateral": 0, "desc": "Grandparent (1917 - 2007)", "bio": "Vanguard, SK, Canada; Winnipeg, MB.<br><a href='#' target='_blank'>[Find A Grave]</a>"},
             {"id": "Anastasia Ginakes", "branch": "A", "steps": 2, "lateral": 0, "desc": "Grandparent (1925 - 2018)", "bio": "Fargo, ND; Winnipeg, MB.<br><a href='#' target='_blank'>[Find A Grave]</a>"},
             
-            // --- KILLEBREW BRANCH (K) ---
+            # --- KILLEBREW BRANCH (K) ---
             {"id": "William H. K.", "branch": "K", "steps": 3, "lateral": 0, "desc": "Great Grandparent (1898 - 1970)", "bio": "Montgomery County, TN; Henderson, NV.<br><a href='#' target='_blank'>[Find A Grave]</a>"},
             {"id": "Mary Esther Robinson", "branch": "K", "steps": 3, "inLaw": True, "anchorStep": 3, "desc": "Great Grandmother (1902-1981)", "bio": "Hartshorne, OK; Henderson, NV.<br><a href='#' target='_blank'>[My Heritage / Gravestone]</a>"},
             {"id": "Daniel Boone K.", "branch": "K", "steps": 4, "lateral": 0, "desc": "Great Great Grandparent (1860 - 1939)", "bio": "Christian County, KY; McAlester, OK"},
@@ -42,7 +42,7 @@ def get_family_tree_data():
             {"id": "Joseph K.", "branch": "K", "steps": 7, "lateral": 0, "desc": "5x Great Grandparent (1753 - 1824)", "bio": "Tarboro, NC; Clarksville, TN"},
             {"id": "Francis K.", "branch": "K", "steps": 8, "lateral": 0, "desc": "6x Great Grandparent (1619 - 1673)", "bio": "Cornwall, England; Westmoreland, Virginia"},
             
-            // --- ROBINSON / IMPSON SPOSUAL OFFSHOOTS ---
+            # --- ROBINSON / IMPSON SPOSUAL OFFSHOOTS ---
             {"id": "James Wesley Robinson", "branch": "K", "steps": 4, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "2x Great Grandparent (1847-1916)", "bio": "Civil War Veteran. Married Jane 'Jincey' Impson and became Choctaw citizen."},
             {"id": "Jane Jincey Impson", "branch": "K", "steps": 4, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "2x Great Grandparent (1862-1940)"},
             {"id": "Niel C. Robinson", "branch": "K", "steps": 5, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "3x Great Grandparent (d. 1864)", "bio": "<b>Military:</b> Union Soldier, Kansas 2nd Cavalry. Died of wounds received in action at Roseville, AR.<br><a href='#' target='_blank'>[Registry]</a>"},
@@ -56,7 +56,7 @@ def get_family_tree_data():
             {"id": "John Adam Impson", "branch": "K", "steps": 8, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "6x Great Grandparent (1718-?)"},
             {"id": "William John Impson", "branch": "K", "steps": 9, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "7x Great Grandparent (1700-?)"},
 
-            // Killebrew Laterals
+            # Killebrew Laterals
             {"id": "Ron K.", "branch": "K", "steps": 2, "lateral": 1, "desc": "Great Aunt / Uncle"},
             {"id": "Urma K.", "branch": "K", "steps": 2, "lateral": 1, "desc": "Great Aunt / Uncle"},
             {"id": "Kelly K.", "branch": "K", "steps": 1, "lateral": 1, "desc": "Aunt / Uncle"},
@@ -84,13 +84,13 @@ def get_family_tree_data():
             {"id": "Ellie Snisky", "branch": "K", "steps": 0, "lateral": 2, "desc": "First Cousin"},
             {"id": "Ava Snisky", "branch": "K", "steps": 0, "lateral": 2, "desc": "First Cousin"},
 
-            // --- RASMUSSEN BRANCH (R) ---
+            # --- RASMUSSEN BRANCH (R) ---
             {"id": "Clinton Rasmussen", "branch": "R", "steps": 3, "lateral": 0, "desc": "Great Grandparent (1904 - 1979)"},
             {"id": "James A. R.", "branch": "R", "steps": 4, "lateral": 0, "desc": "Great Great Grandparent (1877 - 1965)"},
             {"id": "Rasmus J. R.", "branch": "R", "steps": 5, "lateral": 0, "desc": "3x Great Grandparent (1842 - 1920)"},
             {"id": "Jens Rasmussen", "branch": "R", "steps": 6, "lateral": 0, "desc": "4x Great Grandparent (1810 - 1888)", "bio": "Immigrated from Denmark. Weaver. Served in Utah Territorial Militia (Black Hawk War). Wife Maren died of Cholera en route to Utah in 1866."},
             
-            // Rasmussen Laterals
+            # Rasmussen Laterals
             {"id": "Richard R.", "branch": "R", "steps": 2, "lateral": 1, "desc": "Great Aunt / Uncle"},
             {"id": "Bettie R.", "branch": "R", "steps": 2, "lateral": 1, "desc": "Great Aunt / Uncle"},
             {"id": "Rhett R.", "branch": "R", "steps": 2, "lateral": 1, "desc": "Great Aunt / Uncle"},
@@ -102,13 +102,13 @@ def get_family_tree_data():
             {"id": "Bob", "branch": "R", "steps": 2, "lateral": 1, "inLaw": True},
             {"id": "Michelle", "branch": "R", "steps": 1, "lateral": 2, "desc": "First Cousin Once Removed"},
 
-            // --- VANDERHOOP BRANCH (V) ---
+            # --- VANDERHOOP BRANCH (V) ---
             {"id": "Leonard V.", "branch": "V", "steps": 3, "lateral": 0, "desc": "Great Grandparent (1895 - 1989)", "bio": "Gay Head, Dukes, MA.<br><a href='#' target='_blank'>[Wampanoag Recording: The Cranberry Hunt]</a>"},
             {"id": "Edwin DeVries V.", "branch": "V", "steps": 4, "lateral": 0, "desc": "Great Great Grandparent (1848 - 1923)", "bio": "Served in the Navy on the gunboat Maheska during the Civil War (Union)."},
             {"id": "William A. V.", "branch": "V", "steps": 5, "lateral": 0, "desc": "3x Great Grandparent (~1816 - 1893)", "bio": "Dutch Surinamese Immigrant from Paramaribo. First Vanderhoop on Martha's Vineyard. Built the Vanderhoop homestead in Gay Head."},
             {"id": "Beulah Salisbury", "branch": "V", "steps": 5, "lateral": 0, "inLaw": True, "desc": "3x Great Grandmother (1814-1892)", "bio": "Known as the 'Princess of Aquinnah'. Assisted the Underground Railroad by hiding escaped slaves under a false floor in her family's barn."},
             
-            // Vanderhoop Laterals
+            # Vanderhoop Laterals
             {"id": "Johnny Vanderhoop", "branch": "V", "steps": 1, "lateral": 1, "desc": "Aunt / Uncle"},
             {"id": "Leonard Jr. V.", "branch": "V", "steps": 2, "lateral": 1, "desc": "Great Aunt / Uncle"},
             {"id": "William (Billy) V.", "branch": "V", "steps": 2, "lateral": 1, "desc": "Great Aunt / Uncle"},
@@ -120,18 +120,18 @@ def get_family_tree_data():
             {"id": "Maushup V.", "branch": "V", "steps": 0, "lateral": 3, "desc": "Second Cousin"},
             {"id": "Nashawn V.", "branch": "V", "steps": 0, "lateral": 3, "desc": "Second Cousin"},
 
-            // --- LIEBER BRANCH (L) ---
+            # --- LIEBER BRANCH (L) ---
             {"id": "G. Heinrich L. Lieber", "branch": "L", "steps": 3, "lateral": 0, "desc": "Great Grandparent"},
             {"id": "Marie Emilie Ibe", "branch": "L", "steps": 3, "lateral": 0, "inLaw": True},
             {"id": "Manfred Lieber", "branch": "L", "steps": 2, "lateral": 1, "desc": "Great Aunt / Uncle"},
 
-            // --- BUZUNIS BRANCH (B) ---
+            # --- BUZUNIS BRANCH (B) ---
             {"id": "George Constantine Buzunis", "branch": "B", "steps": 4, "lateral": 0, "desc": "Great Great Grandparent (1846 - 1912)", "bio": "Levidion, Greece"},
             {"id": "Elenis 'Helen' Georgakopoulis", "branch": "B", "steps": 4, "lateral": 0, "inLaw": True, "desc": "Great Great Grandmother (1867-1912)"},
             {"id": "Theodore Buzunis", "branch": "B", "steps": 3, "lateral": 0, "desc": "Great Grandparent (1885 - 1978)", "bio": "Tripoli, Peloponnese, Greece; Winnipeg, MB"},
             {"id": "Constantina Colilos", "branch": "B", "steps": 3, "lateral": 0, "inLaw": True, "desc": "Great Grandmother (1887-1963)"},
             
-            // Buzunis Laterals
+            # Buzunis Laterals
             {"id": "William Buzunis", "branch": "B", "steps": 3, "lateral": 1, "desc": "Great Grand Aunt / Uncle"},
             {"id": "Alexander Buzunis", "branch": "B", "steps": 3, "lateral": 1, "desc": "Great Grand Aunt / Uncle"},
             {"id": "Nickolas Buzunis", "branch": "B", "steps": 3, "lateral": 1, "desc": "Great Grand Aunt / Uncle"},
@@ -147,12 +147,12 @@ def get_family_tree_data():
             {"id": "Timothy Buzunis", "branch": "B", "steps": 1, "lateral": 1, "desc": "Aunt / Uncle"},
             {"id": "Kerry", "branch": "B", "steps": 1, "lateral": 1, "inLaw": True},
 
-            // --- GINAKES BRANCH (A) ---
+            # --- GINAKES BRANCH (A) ---
             {"id": "Unknown Ginakes", "branch": "A", "steps": 4, "lateral": 0, "desc": "Great Great Grandparent"},
             {"id": "Andrew Demetrius Ginakes", "branch": "A", "steps": 3, "lateral": 0, "desc": "Great Grandparent (1895 - 1967)", "bio": "Greece; Fargo, ND"},
             {"id": "Arcondo A. Boosalis", "branch": "A", "steps": 3, "lateral": 0, "inLaw": True, "desc": "Great Grandmother (1895-1984)"},
             
-            // Ginakes Laterals
+            # Ginakes Laterals
             {"id": "Constantine D Ginakes", "branch": "A", "steps": 3, "lateral": 1, "desc": "Great Grand Aunt / Uncle (1908 - 1965)"},
             {"id": "Anastasia Mirras", "branch": "A", "steps": 3, "lateral": 1, "inLaw": True},
             {"id": "Nicholas Ginakes", "branch": "A", "steps": 3, "lateral": 1, "desc": "Great Grand Aunt / Uncle"},
@@ -161,7 +161,7 @@ def get_family_tree_data():
             {"id": "Mary Ginakes", "branch": "A", "steps": 2, "lateral": 1, "desc": "Great Aunt / Uncle (1928 - 2013)"}
         ],
         "links": [
-            // Core Lines
+            # Core Lines
             {"source": "Eric Killebrew", "target": "Kyle Killebrew", "type": "main"},
             {"source": "Christina Vanderhoop", "target": "Kyle Killebrew", "type": "main"},
             {"source": "Robert Killebrew", "target": "Eric Killebrew", "type": "main"},
@@ -175,7 +175,7 @@ def get_family_tree_data():
             {"source": "Andrew Demetrius Ginakes", "target": "Anastasia Ginakes", "type": "main"},
             {"source": "Unknown Ginakes", "target": "Andrew Demetrius Ginakes", "type": "main"},
 
-            // Marriages
+            # Marriages
             {"source": "Eric Killebrew", "target": "Christina Vanderhoop", "type": "marriage"},
             {"source": "Eric Killebrew", "target": "Antonia Constance Buzunis", "type": "marriage"},
             {"source": "Robert Killebrew", "target": "Bonnie Rasmussen", "type": "marriage"},
@@ -187,7 +187,7 @@ def get_family_tree_data():
             {"source": "Constantine D Ginakes", "target": "Anastasia Mirras", "type": "marriage"},
             {"source": "Antonia Constance Buzunis", "target": "Kyle Killebrew", "type": "inlaw"},
             
-            // Robinson/Impson Spouse Line
+            # Robinson/Impson Spouse Line
             {"source": "William H. K.", "target": "Mary Esther Robinson", "type": "marriage"},
             {"source": "Mary Esther Robinson", "target": "James Wesley Robinson", "type": "spouse_main"},
             {"source": "Mary Esther Robinson", "target": "Jane Jincey Impson", "type": "spouse_main"},
@@ -202,7 +202,7 @@ def get_family_tree_data():
             {"source": "John Adam Josiah Impson", "target": "John Adam Impson", "type": "spouse_main"},
             {"source": "John Adam Impson", "target": "William John Impson", "type": "spouse_main"},
 
-            // Laterals (Killebrew/Rasmussen/Vanderhoop/Lieber/Buzunis/Ginakes)
+            # Laterals (Killebrew/Rasmussen/Vanderhoop/Lieber/Buzunis/Ginakes)
             {"source": "Eric Killebrew", "target": "Andrea Nicole Killebrew", "type": "leaf"},
             {"source": "Eric Killebrew", "target": "Eric Scott Killebrew, Jr.", "type": "leaf"},
             {"source": "William H. K.", "target": "Robert Killebrew", "type": "main"},
