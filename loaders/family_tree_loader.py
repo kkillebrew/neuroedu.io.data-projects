@@ -104,7 +104,16 @@ def get_family_tree_data():
 
             # --- VANDERHOOP BRANCH (V) ---
             {"id": "Leonard V.", "branch": "V", "steps": 3, "lateral": 0, "desc": "Great Grandparent (1895 - 1989)", "bio": "Gay Head, Dukes, MA.<br><a href='#' target='_blank'>[Wampanoag Recording: The Cranberry Hunt]</a>"},
-            {"id": "Elsie Vanderhoop", "branch": "V", "steps": 3, "lateral": 0, "inLaw": True, "desc": "Great Grandmother"},
+            {"id": "Baroness Elsie Ester (Diamond) Vanderhoop", "branch": "V", "steps": 3, "inLaw": True, "anchorStep": 3, "desc": "Great Grandmother (1899-1936)", "bio": "Invested Posthumously as Baroness Consort van der Hoop of the Netherlands by Royal Proclamation issued by Queen Beatrix."},
+            
+            # --- DIAMOND SPOUSAL OFFSHOOTS ---
+            {"id": "Durwood Delmond Diamond", "branch": "V", "steps": 4, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "2x Great Grandparent (1878-1947)", "bio": "Served in Military in 1923, St. Louis, MI."},
+            {"id": "Elizabeth E. Smalley", "branch": "V", "steps": 4, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "2x Great Grandmother (1880-?)"},
+            {"id": "James Diamond", "branch": "V", "steps": 5, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "3x Great Grandparent (1820-?)", "bio": "Born in New York. Moved to Aquinnah in 1870."},
+            {"id": "Abiah Manning", "branch": "V", "steps": 5, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "3x Great Grandmother (1821-1906)"},
+            {"id": "Rosetta Ellis Diamond", "branch": "V", "steps": 4, "lateral": 2, "isSpouseLine": True, "anchorStep": 3, "desc": "Great Grand Aunt (1862-1922)"},
+            {"id": "Raymond Frances Madison", "branch": "V", "steps": 4, "lateral": 2, "isSpouseLine": True, "anchorStep": 3, "inLaw": True, "desc": "Spouse (1858-1942)"},
+
             {"id": "Edwin DeVries V.", "branch": "V", "steps": 4, "lateral": 0, "desc": "Great Great Grandparent (1848 - 1923)", "bio": "Served in the Navy on the gunboat Maheska during the Civil War (Union)."},
             {"id": "William A. V.", "branch": "V", "steps": 5, "lateral": 0, "desc": "3x Great Grandparent (~1816 - 1893)", "bio": "Dutch Surinamese Immigrant from Paramaribo. Built the Vanderhoop homestead in Gay Head."},
             {"id": "Beulah Salisbury", "branch": "V", "steps": 5, "inLaw": True, "anchorStep": 5, "desc": "3x Great Grandmother (1814-1892)", "bio": "Known as the 'Princess of Aquinnah'. Assisted the Underground Railroad by hiding escaped slaves under a false floor in her family's barn."},
@@ -200,7 +209,7 @@ def get_family_tree_data():
             {"source": "Eric Killebrew", "target": "Antonia Constance Buzunis", "type": "marriage"},
             {"source": "Robert Killebrew", "target": "Bonnie Rasmussen", "type": "marriage"},
             {"source": "John O. Vanderhoop", "target": "Waltrud M. Lieber", "type": "marriage"},
-            {"source": "Leonard V.", "target": "Elsie Vanderhoop", "type": "marriage"},
+            {"source": "Leonard V.", "target": "Baroness Elsie Ester (Diamond) Vanderhoop", "type": "marriage"},
             {"source": "Peter Buzunis", "target": "Anastasia Ginakes", "type": "marriage"},
             {"source": "Theodore Buzunis", "target": "Constantina Colilos", "type": "marriage"},
             {"source": "George Constantine Buzunis", "target": "Elenis 'Helen' Georgakopoulis", "type": "marriage"},
@@ -231,6 +240,14 @@ def get_family_tree_data():
             # Salisbury Spouse Line
             {"source": "Beulah Salisbury", "target": "John Salisbury", "type": "spouse_main"},
             {"source": "Beulah Salisbury", "target": "Naomi Occouch Salisbury", "type": "spouse_main"},
+
+            # Diamond Spouse Line
+            {"source": "Baroness Elsie Ester (Diamond) Vanderhoop", "target": "Durwood Delmond Diamond", "type": "spouse_main"},
+            {"source": "Baroness Elsie Ester (Diamond) Vanderhoop", "target": "Elizabeth E. Smalley", "type": "spouse_main"},
+            {"source": "Durwood Delmond Diamond", "target": "James Diamond", "type": "spouse_main"},
+            {"source": "Durwood Delmond Diamond", "target": "Abiah Manning", "type": "spouse_main"},
+            {"source": "James Diamond", "target": "Rosetta Ellis Diamond", "type": "leaf"},
+            {"source": "Rosetta Ellis Diamond", "target": "Raymond Frances Madison", "type": "inlaw"},
 
             # Laterals (Killebrew/Rasmussen/Vanderhoop/Lieber/Buzunis/Ginakes)
             {"source": "Eric Killebrew", "target": "Andrea Nicole Killebrew", "type": "leaf"},
@@ -465,7 +482,17 @@ def get_family_tree_data():
                 "children": [
                     {"name": "John O. Vanderhoop", "year": 1934, "branch": "V", "steps": 2, "lateral": 0, "desc": "Grandparent", "children": [
                         {"name": "Leonard V.", "year": 1895, "branch": "V", "steps": 3, "lateral": 0, "desc": "Great Grandparent", "children": [
-                            {"name": "Elsie Vanderhoop", "year": 1895, "branch": "V", "steps": 3, "lateral": 0, "inLaw": True, "desc": "Great Grandmother"},
+                            {"name": "Baroness Elsie Ester (Diamond) Vanderhoop", "year": 1899, "branch": "V", "steps": 3, "inLaw": True, "anchorStep": 3, "desc": "Great Grandmother", "children": [
+                                {"name": "Durwood Delmond Diamond", "year": 1878, "branch": "V", "steps": 4, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "2x Great Grandparent", "children": [
+                                    {"name": "James Diamond", "year": 1820, "branch": "V", "steps": 5, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "3x Great Grandparent", "children": [
+                                        {"name": "Rosetta Ellis Diamond", "year": 1862, "branch": "V", "steps": 4, "lateral": 2, "isSpouseLine": True, "anchorStep": 3, "desc": "Great Grand Aunt", "children": [
+                                            {"name": "Raymond Frances Madison", "year": 1858, "branch": "V", "steps": 4, "lateral": 2, "isSpouseLine": True, "anchorStep": 3, "inLaw": True}
+                                        ]}
+                                    ]},
+                                    {"name": "Abiah Manning", "year": 1821, "branch": "V", "steps": 5, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "3x Great Grandmother"}
+                                ]},
+                                {"name": "Elizabeth E. Smalley", "year": 1880, "branch": "V", "steps": 4, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "2x Great Grandmother"}
+                            ]},
                             {"name": "Edwin DeVries V.", "year": 1848, "branch": "V", "steps": 4, "lateral": 0, "desc": "Great Great Grandparent", "children": [
                                 {"name": "William A. V.", "year": 1816, "branch": "V", "steps": 5, "lateral": 0, "desc": "3x Great Grandparent", "children": [
                                     {"name": "Baron Adriaan vanDel Vanderhoop Sr.", "year": 1778, "branch": "V", "steps": 6, "lateral": 0, "desc": "4x Great Grandparent", "children": [
@@ -632,6 +659,27 @@ def get_migration_data():
                     {"name": "John Salisbury", "years": "~1792-~1870", "desc": "Wampanoag Tribal Member."},
                     {"name": "Naomi Occouch Salisbury", "years": "1788-?", "desc": "Wampanoag Tribal Member."},
                     {"name": "Beulah Salisbury", "years": "1814-1892", "desc": "'Princess of Aquinnah'. Hid escaped slaves under a false barn floor (Underground Railroad)."}
+                ]},
+                {"city": "Las Vegas, NV", "lat": 36.1699, "lon": -115.1398, "people": [
+                    {"name": "Christina Vanderhoop", "years": "1961-Present", "desc": "Current resident."}
+                ]}
+            ]
+        },
+        "Vanderhoop_Diamond": {
+            "base_color": (205, 127, 50), # Bright Bronze (Mom's In-Laws)
+            "nodes": [
+                {"city": "New York, NY", "lat": 40.7128, "lon": -74.0060, "people": [
+                    {"name": "James Diamond", "years": "b. 1820", "desc": "Born in New York."}
+                ]},
+                {"city": "Gay Head (Aquinnah), MA", "lat": 41.3368, "lon": -70.8316, "people": [
+                    {"name": "James Diamond", "years": "Moved 1870", "desc": "Relocated from New York."},
+                    {"name": "Abiah Manning", "years": "1821-1906", "desc": "Married James Diamond in Chilmark."},
+                    {"name": "Rosetta Ellis Diamond", "years": "1862-1922", "desc": "Born and lived here."},
+                    {"name": "Durwood Delmond Diamond", "years": "1878-1947", "desc": "Born and passed away here."},
+                    {"name": "Baroness Elsie Ester (Diamond) Vanderhoop", "years": "1899-1936", "desc": "Invested Posthumously as Baroness Consort van der Hoop of the Netherlands."}
+                ]},
+                {"city": "St. Louis, MI", "lat": 43.4092, "lon": -84.6067, "people": [
+                    {"name": "Durwood Delmond Diamond", "years": "1923", "desc": "Served in the Military here."}
                 ]},
                 {"city": "Las Vegas, NV", "lat": 36.1699, "lon": -115.1398, "people": [
                     {"name": "Christina Vanderhoop", "years": "1961-Present", "desc": "Current resident."}
