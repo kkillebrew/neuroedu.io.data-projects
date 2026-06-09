@@ -42,7 +42,7 @@ def get_family_tree_data():
             {"id": "Joseph K.", "branch": "K", "steps": 7, "lateral": 0, "desc": "5x Great Grandparent (1753 - 1824)"},
             {"id": "Francis K.", "branch": "K", "steps": 8, "lateral": 0, "desc": "6x Great Grandparent (1619 - 1673)"},
             
-            # --- ROBINSON / IMPSON SPOSUAL OFFSHOOTS ---
+            # --- ROBINSON / IMPSON SPOUSAL OFFSHOOTS ---
             {"id": "James Wesley Robinson", "branch": "K", "steps": 4, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "2x Great Grandparent (1847-1916)", "bio": "Civil War Veteran. Married Jane 'Jincey' Impson, became Choctaw citizen."},
             {"id": "Jane Jincey Impson", "branch": "K", "steps": 4, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "2x Great Grandparent (1862-1940)"},
             {"id": "Niel C. Robinson", "branch": "K", "steps": 5, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "3x Great Grandparent (d. 1864)", "bio": "<b>Military:</b> Union Soldier, Kansas 2nd Cavalry. Died of wounds in action at Roseville, AR."},
@@ -104,32 +104,37 @@ def get_family_tree_data():
 
             # --- VANDERHOOP BRANCH (V) ---
             {"id": "Leonard V.", "branch": "V", "steps": 3, "lateral": 0, "desc": "Great Grandparent (1895 - 1989)", "bio": "Gay Head, Dukes, MA.<br><a href='#' target='_blank'>[Wampanoag Recording: The Cranberry Hunt]</a>"},
-            {"id": "Baroness Elsie Ester (Diamond) Vanderhoop", "branch": "V", "steps": 3, "inLaw": True, "anchorStep": 3, "desc": "Great Grandmother (1899-1936)", "bio": "Invested Posthumously as Baroness Consort van der Hoop of the Netherlands by Royal Proclamation issued by Queen Beatrix."},
-            
-            # --- DIAMOND SPOUSAL OFFSHOOTS ---
-            {"id": "Durwood Delmond Diamond", "branch": "V", "steps": 4, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "2x Great Grandparent (1878-1947)", "bio": "Served in Military in 1923, St. Louis, MI."},
-            {"id": "Elizabeth E. Smalley", "branch": "V", "steps": 4, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "2x Great Grandmother (1880-?)"},
-            {"id": "James Diamond", "branch": "V", "steps": 5, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "3x Great Grandparent (1820-?)", "bio": "Born in New York. Moved to Aquinnah in 1870."},
-            {"id": "Abiah Manning", "branch": "V", "steps": 5, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "3x Great Grandmother (1821-1906)"},
-            {"id": "Rosetta Ellis Diamond", "branch": "V", "steps": 4, "lateral": 2, "isSpouseLine": True, "anchorStep": 3, "desc": "Great Grand Aunt (1862-1922)"},
-            {"id": "Raymond Frances Madison", "branch": "V", "steps": 4, "lateral": 2, "isSpouseLine": True, "anchorStep": 3, "inLaw": True, "desc": "Spouse (1858-1942)"},
-
             {"id": "Edwin DeVries V.", "branch": "V", "steps": 4, "lateral": 0, "desc": "Great Great Grandparent (1848 - 1923)", "bio": "Served in the Navy on the gunboat Maheska during the Civil War (Union)."},
             {"id": "William A. V.", "branch": "V", "steps": 5, "lateral": 0, "desc": "3x Great Grandparent (~1816 - 1893)", "bio": "Dutch Surinamese Immigrant from Paramaribo. Built the Vanderhoop homestead in Gay Head."},
             {"id": "Beulah Salisbury", "branch": "V", "steps": 5, "inLaw": True, "anchorStep": 5, "desc": "3x Great Grandmother (1814-1892)", "bio": "Known as the 'Princess of Aquinnah'. Assisted the Underground Railroad by hiding escaped slaves under a false floor in her family's barn."},
             
             # --- VANDERHOOP ANCESTRY EXPANSION ---
-            {"id": "Baron Adriaan vanDel Vanderhoop Sr.", "branch": "V", "steps": 6, "lateral": 0, "desc": "4x Great Grandparent (1778-1854)", "bio": "Amsterdam, Netherlands; Santpoort Estate.<br><a href='#' target='_blank'>[Wiki Page / Picture]</a>"},
+            {"id": "Baron Adriaan vanDel Vanderhoop Sr.", "branch": "V", "steps": 6, "lateral": 0, "desc": "4x Great Grandparent (1778-1854)", "bio": "Amsterdam, Netherlands; Santpoort Estate."},
             {"id": "Anthonia Immerentia Weveringh", "branch": "V", "steps": 6, "lateral": 0, "inLaw": True, "desc": "4x Great Grandmother (1775-1832)"},
-            {"id": "Joan Cornelis Vanderhoop", "branch": "V", "steps": 7, "lateral": 0, "desc": "5x Great Grandparent (1742-1825)", "bio": "The Hague, South Holland, Netherlands.<br><a href='#' target='_blank'>[Picture]</a>"},
+            {"id": "Joan Cornelis Vanderhoop", "branch": "V", "steps": 7, "lateral": 0, "desc": "5x Great Grandparent (1742-1825)", "bio": "The Hague, South Holland, Netherlands."},
             {"id": "Agnes Maria Dedel", "branch": "V", "steps": 7, "lateral": 0, "inLaw": True, "desc": "5x Great Grandmother (1742-1825)"},
             {"id": "Baron Adriaan Vanderhoop I", "branch": "V", "steps": 8, "lateral": 0, "desc": "6x Great Grandparent (1701-1767)", "bio": "'s-Gravenhage; Naaldwijk, Netherlands."},
             {"id": "Susana Sophia Dedel", "branch": "V", "steps": 8, "lateral": 0, "inLaw": True, "desc": "6x Great Grandmother (1708-1796)"},
-            {"id": "Baron Francois Adrien Vanderhoop", "branch": "V", "steps": 9, "lateral": 0, "desc": "7x Great Grandparent (1675-1741)", "bio": "Born in Batavia, Indonesia; died in 's-Gravenhage, Netherlands.<br><a href='#' target='_blank'>[Family Crest]</a>"},
+            {"id": "Baron Francois Adrien Vanderhoop", "branch": "V", "steps": 9, "lateral": 0, "desc": "7x Great Grandparent (1675-1741)", "bio": "Born in Batavia, Indonesia; died in 's-Gravenhage, Netherlands."},
             
-            # --- SALISBURY SPOSUAL OFFSHOOTS ---
-            {"id": "John Salisbury", "branch": "V", "steps": 6, "lateral": 1, "isSpouseLine": True, "anchorStep": 5, "desc": "4x Great Grandparent (~1792-~1870)", "bio": "Gay Head, MA.<br><a href='#' target='_blank'>[Native Northeast Portal]</a>"},
-            {"id": "Naomi Occouch Salisbury", "branch": "V", "steps": 6, "lateral": 1, "isSpouseLine": True, "anchorStep": 5, "desc": "4x Great Grandparent (1788-?)", "bio": "Gay Head, MA.<br><a href='#' target='_blank'>[Native Northeast Portal]</a>"},
+            # --- SALISBURY SPOUSAL OFFSHOOTS ---
+            {"id": "John Salisbury", "branch": "V", "steps": 6, "lateral": 1, "isSpouseLine": True, "anchorStep": 5, "desc": "4x Great Grandparent (~1792-~1870)", "bio": "Gay Head, MA."},
+            {"id": "Naomi Occouch Salisbury", "branch": "V", "steps": 6, "lateral": 1, "isSpouseLine": True, "anchorStep": 5, "desc": "4x Great Grandparent (1788-?)", "bio": "Gay Head, MA."},
+
+            # --- DIAMOND/SMALLEY SPOUSAL OFFSHOOTS ---
+            {"id": "Baroness Elsie Ester (Diamond) Vanderhoop", "branch": "V", "steps": 3, "inLaw": True, "anchorStep": 3, "desc": "Great Grandmother (1899-1936)", "bio": "Invested Posthumously as Baroness Consort van der Hoop of the Netherlands by Royal Proclamation issued by Queen Beatrix."},
+            {"id": "Durwood Delmond Diamond", "branch": "V", "steps": 4, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "2x Great Grandparent (1878-1947)", "bio": "Served in Military in 1923, St. Louis, MI."},
+            {"id": "Elizabeth E. Smalley", "branch": "V", "steps": 4, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "2x Great Grandmother (1880-?)"},
+            {"id": "Samuel Smalley", "branch": "V", "steps": 5, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "3x Great Grandparent (1829-1893)", "bio": "Born in New York, migrated to Gay Head."},
+            {"id": "Julia Bassett Smalley", "branch": "V", "steps": 5, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "3x Great Grandmother (1838-1888)", "bio": "Owned cottage at 19 Dukes County Ave."},
+            {"id": "John Smalley", "branch": "V", "steps": 6, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "4x Great Grandparent", "bio": "New York, USA."},
+            {"id": "Amos Peters Smalley", "branch": "V", "steps": 4, "lateral": 2, "isSpouseLine": True, "anchorStep": 3, "desc": "Great Grand Uncle (1877-1961)", "bio": "Legendary Gay Head harpooner credited with being the only person ever to kill a white whale."},
+            {"id": "Leander Bassett", "branch": "V", "steps": 6, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "4x Great Grandparent (1810-1879)", "bio": "From Edgartown."},
+            {"id": "Huldah Jeffers", "branch": "V", "steps": 6, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "4x Great Grandmother (1807-1879)", "bio": "Aquinnah Wampanoag native."},
+            {"id": "James Diamond", "branch": "V", "steps": 5, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "3x Great Grandparent (1820-?)", "bio": "Born in New York. Moved to Aquinnah in 1870."},
+            {"id": "Abiah Manning", "branch": "V", "steps": 5, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "3x Great Grandmother (1821-1906)"},
+            {"id": "Rosetta Ellis Diamond", "branch": "V", "steps": 4, "lateral": 2, "isSpouseLine": True, "anchorStep": 3, "desc": "Great Grand Aunt (1862-1922)"},
+            {"id": "Raymond Frances Madison", "branch": "V", "steps": 4, "lateral": 2, "isSpouseLine": True, "anchorStep": 3, "inLaw": True, "desc": "Spouse (1858-1942)"},
 
             # Vanderhoop Laterals
             {"id": "Johnny Vanderhoop", "branch": "V", "steps": 1, "lateral": 1, "desc": "Aunt / Uncle"},
@@ -241,13 +246,19 @@ def get_family_tree_data():
             {"source": "Beulah Salisbury", "target": "John Salisbury", "type": "spouse_main"},
             {"source": "Beulah Salisbury", "target": "Naomi Occouch Salisbury", "type": "spouse_main"},
 
-            # Diamond Spouse Line
+            # Diamond / Smalley Spouse Line
             {"source": "Baroness Elsie Ester (Diamond) Vanderhoop", "target": "Durwood Delmond Diamond", "type": "spouse_main"},
             {"source": "Baroness Elsie Ester (Diamond) Vanderhoop", "target": "Elizabeth E. Smalley", "type": "spouse_main"},
+            {"source": "Elizabeth E. Smalley", "target": "Samuel Smalley", "type": "spouse_main"},
+            {"source": "Elizabeth E. Smalley", "target": "Julia Bassett Smalley", "type": "spouse_main"},
+            {"source": "Samuel Smalley", "target": "John Smalley", "type": "spouse_main"},
+            {"source": "Julia Bassett Smalley", "target": "Leander Bassett", "type": "spouse_main"},
+            {"source": "Julia Bassett Smalley", "target": "Huldah Jeffers", "type": "spouse_main"},
             {"source": "Durwood Delmond Diamond", "target": "James Diamond", "type": "spouse_main"},
             {"source": "Durwood Delmond Diamond", "target": "Abiah Manning", "type": "spouse_main"},
             {"source": "James Diamond", "target": "Rosetta Ellis Diamond", "type": "leaf"},
             {"source": "Rosetta Ellis Diamond", "target": "Raymond Frances Madison", "type": "inlaw"},
+            {"source": "Samuel Smalley", "target": "Amos Peters Smalley", "type": "leaf"},
 
             # Laterals (Killebrew/Rasmussen/Vanderhoop/Lieber/Buzunis/Ginakes)
             {"source": "Eric Killebrew", "target": "Andrea Nicole Killebrew", "type": "leaf"},
@@ -491,7 +502,16 @@ def get_family_tree_data():
                                     ]},
                                     {"name": "Abiah Manning", "year": 1821, "branch": "V", "steps": 5, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "3x Great Grandmother"}
                                 ]},
-                                {"name": "Elizabeth E. Smalley", "year": 1880, "branch": "V", "steps": 4, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "2x Great Grandmother"}
+                                {"name": "Elizabeth E. Smalley", "year": 1880, "branch": "V", "steps": 4, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "2x Great Grandmother", "children": [
+                                    {"name": "Samuel Smalley", "year": 1829, "branch": "V", "steps": 5, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "3x Great Grandparent", "children": [
+                                        {"name": "John Smalley", "year": 1800, "branch": "V", "steps": 6, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "4x Great Grandparent"},
+                                        {"name": "Amos Peters Smalley", "year": 1877, "branch": "V", "steps": 4, "lateral": 2, "isSpouseLine": True, "anchorStep": 3, "desc": "Great Grand Uncle"}
+                                    ]},
+                                    {"name": "Julia Bassett Smalley", "year": 1838, "branch": "V", "steps": 5, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "3x Great Grandmother", "children": [
+                                        {"name": "Leander Bassett", "year": 1810, "branch": "V", "steps": 6, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "4x Great Grandparent"},
+                                        {"name": "Huldah Jeffers", "year": 1807, "branch": "V", "steps": 6, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "4x Great Grandmother"}
+                                    ]}
+                                ]}
                             ]},
                             {"name": "Edwin DeVries V.", "year": 1848, "branch": "V", "steps": 4, "lateral": 0, "desc": "Great Great Grandparent", "children": [
                                 {"name": "William A. V.", "year": 1816, "branch": "V", "steps": 5, "lateral": 0, "desc": "3x Great Grandparent", "children": [
@@ -669,11 +689,17 @@ def get_migration_data():
             "base_color": (205, 127, 50), # Bright Bronze (Mom's In-Laws)
             "nodes": [
                 {"city": "New York, NY", "lat": 40.7128, "lon": -74.0060, "people": [
-                    {"name": "James Diamond", "years": "b. 1820", "desc": "Born in New York."}
+                    {"name": "James Diamond", "years": "b. 1820", "desc": "Born in New York."},
+                    {"name": "Samuel Smalley", "years": "1829-1893", "desc": "Born in NY, later moved to Gay Head."},
+                    {"name": "John Smalley", "years": "Unknown", "desc": "Lived in New York."}
                 ]},
                 {"city": "Gay Head (Aquinnah), MA", "lat": 41.3368, "lon": -70.8316, "people": [
                     {"name": "James Diamond", "years": "Moved 1870", "desc": "Relocated from New York."},
                     {"name": "Abiah Manning", "years": "1821-1906", "desc": "Married James Diamond in Chilmark."},
+                    {"name": "Julia Bassett Smalley", "years": "1838-1888", "desc": "Owned cottage at 19 Dukes County Ave."},
+                    {"name": "Amos Peters Smalley", "years": "1877-1961", "desc": "Legendary Gay Head harpooner credited with killing a white whale."},
+                    {"name": "Leander Bassett", "years": "1810-1879", "desc": "From Edgartown."},
+                    {"name": "Huldah Jeffers", "years": "1807-1879", "desc": "Aquinnah Wampanoag native."},
                     {"name": "Rosetta Ellis Diamond", "years": "1862-1922", "desc": "Born and lived here."},
                     {"name": "Durwood Delmond Diamond", "years": "1878-1947", "desc": "Born and passed away here."},
                     {"name": "Baroness Elsie Ester (Diamond) Vanderhoop", "years": "1899-1936", "desc": "Invested Posthumously as Baroness Consort van der Hoop of the Netherlands."}
