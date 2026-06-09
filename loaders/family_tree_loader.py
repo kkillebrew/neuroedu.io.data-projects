@@ -3,7 +3,7 @@
 MODULE: loaders/family_tree_loader.py
 AUTHOR: Kyle W. Killebrew, PhD
 DESCRIPTION: 
-    Data extraction and hydration script for the Genealogy Web.
+    Data extraction and hydration script for the Genealogy Web & Migration Map.
     This acts similar to a .mat data file, isolating the raw nested dictionaries
     and node arrays from the visualization logic. Contains rich bio data.
 =============================================================================
@@ -28,29 +28,29 @@ def get_family_tree_data():
             # --- GRANDPARENTS ---
             {"id": "Robert Killebrew", "branch": "K", "steps": 2, "lateral": 0, "desc": "Grandparent (1930 - 2017)", "bio": "Hartshorne, OK; Las Vegas, NV"},
             {"id": "Bonnie Rasmussen", "branch": "R", "steps": 2, "lateral": 0, "desc": "Grandparent (1934 - 2020)", "bio": "Monroe, UT"},
-            {"id": "John O. Vanderhoop", "branch": "V", "steps": 2, "lateral": 0, "desc": "Grandparent (1934 - 2022)", "bio": "<b>Born:</b> July 15, 1934, Gay Head, MA.<br>Proud member of the Wampanoag tribe of Aquinnah. Earned a degree in Classic Literature at Brown University.<br><b>Military:</b> Retired Major USAF (Germany, Thailand, Vietnam). Awarded Bronze Star & Meritorious Service Medal.<br>Married Waltrud 'Gaby' Lieber in 1965.<br><a href='#' target='_blank'>[View Obituary/Pic]</a>"},
-            {"id": "Waltrud M. Lieber", "branch": "L", "steps": 2, "lateral": 0, "desc": "Grandparent (1934 - 2022)", "bio": "Met John in Hofgeismar, Germany in 1961. Married 57 years."},
-            {"id": "Peter Buzunis", "branch": "B", "steps": 2, "lateral": 0, "desc": "Grandparent (1917 - 2007)", "bio": "Vanguard, SK, Canada; Winnipeg, MB.<br><a href='#' target='_blank'>[Find A Grave]</a>"},
-            {"id": "Anastasia Ginakes", "branch": "A", "steps": 2, "lateral": 0, "desc": "Grandparent (1925 - 2018)", "bio": "Fargo, ND; Winnipeg, MB.<br><a href='#' target='_blank'>[Find A Grave]</a>"},
+            {"id": "John O. Vanderhoop", "branch": "V", "steps": 2, "lateral": 0, "desc": "Grandparent (1934 - 2022)", "bio": "<b>Born:</b> July 15, 1934, Gay Head, MA.<br>Proud Wampanoag tribe member. <b>Military:</b> Retired Major USAF (Germany, Thailand, Vietnam). Bronze Star.<br><a href='#' target='_blank'>[View Obituary]</a>"},
+            {"id": "Waltrud M. Lieber", "branch": "L", "steps": 2, "lateral": 0, "desc": "Grandparent (1934 - 2022)", "bio": "Met John in Hofgeismar, Germany in 1961."},
+            {"id": "Peter Buzunis", "branch": "B", "steps": 2, "lateral": 0, "desc": "Grandparent (1917 - 2007)", "bio": "Vanguard, SK, Canada; Winnipeg, MB."},
+            {"id": "Anastasia Ginakes", "branch": "A", "steps": 2, "lateral": 0, "desc": "Grandparent (1925 - 2018)", "bio": "Fargo, ND; Winnipeg, MB."},
             
             # --- KILLEBREW BRANCH (K) ---
-            {"id": "William H. K.", "branch": "K", "steps": 3, "lateral": 0, "desc": "Great Grandparent (1898 - 1970)", "bio": "Montgomery County, TN; Henderson, NV.<br><a href='#' target='_blank'>[Find A Grave]</a>"},
-            {"id": "Mary Esther Robinson", "branch": "K", "steps": 3, "inLaw": True, "anchorStep": 3, "desc": "Great Grandmother (1902-1981)", "bio": "Hartshorne, OK; Henderson, NV.<br><a href='#' target='_blank'>[My Heritage / Gravestone]</a>"},
-            {"id": "Daniel Boone K.", "branch": "K", "steps": 4, "lateral": 0, "desc": "Great Great Grandparent (1860 - 1939)", "bio": "Christian County, KY; McAlester, OK"},
-            {"id": "George W. K.", "branch": "K", "steps": 5, "lateral": 0, "desc": "3x Great Grandparent (1812 - 1871)", "bio": "Montgomery County, TN. Buried: Osburn-Killebrew Cemetery."},
-            {"id": "Whitfield K.", "branch": "K", "steps": 6, "lateral": 0, "desc": "4x Great Grandparent (1793 - 1859)", "bio": "Duplin County, NC"},
-            {"id": "Joseph K.", "branch": "K", "steps": 7, "lateral": 0, "desc": "5x Great Grandparent (1753 - 1824)", "bio": "Tarboro, NC; Clarksville, TN"},
-            {"id": "Francis K.", "branch": "K", "steps": 8, "lateral": 0, "desc": "6x Great Grandparent (1619 - 1673)", "bio": "Cornwall, England; Westmoreland, Virginia"},
+            {"id": "William H. K.", "branch": "K", "steps": 3, "lateral": 0, "desc": "Great Grandparent (1898 - 1970)"},
+            {"id": "Mary Esther Robinson", "branch": "K", "steps": 3, "inLaw": True, "anchorStep": 3, "desc": "Great Grandmother (1902-1981)"},
+            {"id": "Daniel Boone K.", "branch": "K", "steps": 4, "lateral": 0, "desc": "Great Great Grandparent (1860 - 1939)"},
+            {"id": "George W. K.", "branch": "K", "steps": 5, "lateral": 0, "desc": "3x Great Grandparent (1812 - 1871)", "bio": "Buried: Osburn-Killebrew Cemetery."},
+            {"id": "Whitfield K.", "branch": "K", "steps": 6, "lateral": 0, "desc": "4x Great Grandparent (1793 - 1859)"},
+            {"id": "Joseph K.", "branch": "K", "steps": 7, "lateral": 0, "desc": "5x Great Grandparent (1753 - 1824)"},
+            {"id": "Francis K.", "branch": "K", "steps": 8, "lateral": 0, "desc": "6x Great Grandparent (1619 - 1673)"},
             
             # --- ROBINSON / IMPSON SPOSUAL OFFSHOOTS ---
-            {"id": "James Wesley Robinson", "branch": "K", "steps": 4, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "2x Great Grandparent (1847-1916)", "bio": "Civil War Veteran. Married Jane 'Jincey' Impson and became Choctaw citizen."},
+            {"id": "James Wesley Robinson", "branch": "K", "steps": 4, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "2x Great Grandparent (1847-1916)", "bio": "Civil War Veteran. Married Jane 'Jincey' Impson, became Choctaw citizen."},
             {"id": "Jane Jincey Impson", "branch": "K", "steps": 4, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "2x Great Grandparent (1862-1940)"},
-            {"id": "Niel C. Robinson", "branch": "K", "steps": 5, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "3x Great Grandparent (d. 1864)", "bio": "<b>Military:</b> Union Soldier, Kansas 2nd Cavalry. Died of wounds received in action at Roseville, AR.<br><a href='#' target='_blank'>[Registry]</a>"},
+            {"id": "Niel C. Robinson", "branch": "K", "steps": 5, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "3x Great Grandparent (d. 1864)", "bio": "<b>Military:</b> Union Soldier, Kansas 2nd Cavalry. Died of wounds in action at Roseville, AR."},
             {"id": "Huldah Jennie Wood", "branch": "K", "steps": 5, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "3x Great Grandparent (1830-1880)"},
             {"id": "Neal Clark Robeson", "branch": "K", "steps": 6, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "4x Great Grandparent (1785-1836)"},
             {"id": "Ileyvina Robinson", "branch": "K", "steps": 6, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "4x Great Grandparent (1788-1868)"},
             {"id": "Neal Clark Robeson Sr.", "branch": "K", "steps": 7, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "5x Great Grandparent (1760-1841)"},
-            {"id": "Josiah Impson", "branch": "K", "steps": 5, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "3x Great Grandparent (1824-1896)", "bio": "Born on Fannagusha Creek, MS. Survived the 1833 'Trail of Tears' to the Choctaw Nation."},
+            {"id": "Josiah Impson", "branch": "K", "steps": 5, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "3x Great Grandparent (1824-1896)", "bio": "Survived the 1833 'Trail of Tears' to the Choctaw Nation."},
             {"id": "Isaac Impson", "branch": "K", "steps": 6, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "4x Great Grandparent (1800-1899)", "bio": "English descent. Married into the Choctaw tribe."},
             {"id": "John Adam Josiah Impson", "branch": "K", "steps": 7, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "5x Great Grandparent (1745-1833)"},
             {"id": "John Adam Impson", "branch": "K", "steps": 8, "lateral": 1, "isSpouseLine": True, "anchorStep": 3, "desc": "6x Great Grandparent (1718-?)"},
@@ -87,8 +87,8 @@ def get_family_tree_data():
             # --- RASMUSSEN BRANCH (R) ---
             {"id": "Clinton Rasmussen", "branch": "R", "steps": 3, "lateral": 0, "desc": "Great Grandparent (1904 - 1979)"},
             {"id": "James A. R.", "branch": "R", "steps": 4, "lateral": 0, "desc": "Great Great Grandparent (1877 - 1965)"},
-            {"id": "Rasmus J. R.", "branch": "R", "steps": 5, "lateral": 0, "desc": "3x Great Grandparent (1842 - 1920)"},
-            {"id": "Jens Rasmussen", "branch": "R", "steps": 6, "lateral": 0, "desc": "4x Great Grandparent (1810 - 1888)", "bio": "Immigrated from Denmark. Weaver. Served in Utah Territorial Militia (Black Hawk War). Wife Maren died of Cholera en route to Utah in 1866."},
+            {"id": "Rasmus J. R.", "branch": "R", "steps": 5, "lateral": 0, "desc": "3x Great Grandparent (1842 - 1920)", "bio": "Served in Utah Territorial Militia during the Black Hawk War."},
+            {"id": "Jens Rasmussen", "branch": "R", "steps": 6, "lateral": 0, "desc": "4x Great Grandparent (1810 - 1888)", "bio": "Immigrated from Denmark. Weaver. Wife Maren died of Cholera en route to Utah in 1866."},
             
             # Rasmussen Laterals
             {"id": "Richard R.", "branch": "R", "steps": 2, "lateral": 1, "desc": "Great Aunt / Uncle"},
@@ -105,7 +105,7 @@ def get_family_tree_data():
             # --- VANDERHOOP BRANCH (V) ---
             {"id": "Leonard V.", "branch": "V", "steps": 3, "lateral": 0, "desc": "Great Grandparent (1895 - 1989)", "bio": "Gay Head, Dukes, MA.<br><a href='#' target='_blank'>[Wampanoag Recording: The Cranberry Hunt]</a>"},
             {"id": "Edwin DeVries V.", "branch": "V", "steps": 4, "lateral": 0, "desc": "Great Great Grandparent (1848 - 1923)", "bio": "Served in the Navy on the gunboat Maheska during the Civil War (Union)."},
-            {"id": "William A. V.", "branch": "V", "steps": 5, "lateral": 0, "desc": "3x Great Grandparent (~1816 - 1893)", "bio": "Dutch Surinamese Immigrant from Paramaribo. First Vanderhoop on Martha's Vineyard. Built the Vanderhoop homestead in Gay Head."},
+            {"id": "William A. V.", "branch": "V", "steps": 5, "lateral": 0, "desc": "3x Great Grandparent (~1816 - 1893)", "bio": "Dutch Surinamese Immigrant from Paramaribo. Built the Vanderhoop homestead in Gay Head."},
             {"id": "Beulah Salisbury", "branch": "V", "steps": 5, "lateral": 0, "inLaw": True, "desc": "3x Great Grandmother (1814-1892)", "bio": "Known as the 'Princess of Aquinnah'. Assisted the Underground Railroad by hiding escaped slaves under a false floor in her family's barn."},
             
             # Vanderhoop Laterals
@@ -202,7 +202,7 @@ def get_family_tree_data():
             {"source": "John Adam Josiah Impson", "target": "John Adam Impson", "type": "spouse_main"},
             {"source": "John Adam Impson", "target": "William John Impson", "type": "spouse_main"},
 
-            # Laterals (Killebrew/Rasmussen/Vanderhoop/Lieber/Buzunis/Ginakes)
+            # Laterals
             {"source": "Eric Killebrew", "target": "Andrea Nicole Killebrew", "type": "leaf"},
             {"source": "Eric Killebrew", "target": "Eric Scott Killebrew, Jr.", "type": "leaf"},
             {"source": "William H. K.", "target": "Robert Killebrew", "type": "main"},
@@ -466,3 +466,147 @@ def get_family_tree_data():
     }
 
     return graph_data, tree_data
+
+def get_migration_data():
+    """
+    Returns the grouped geographic migration paths.
+    Each branch is an array of 'nodes' (waypoints) containing arrays of 'people'.
+    """
+    return {
+        "Killebrew": {
+            "base_color": (0, 0, 240), # Blue
+            "nodes": [
+                {"city": "Cornwall, England", "lat": 50.2660, "lon": -5.0527, "people": [
+                    {"name": "Francis Killebrew", "years": "1619-1673", "desc": "Original immigrant from Cornwall to Virginia."}
+                ]},
+                {"city": "Westmoreland, VA", "lat": 38.1065, "lon": -76.8152, "people": [
+                    {"name": "Francis Killebrew", "years": "d. 1673", "desc": "Settled and passed away here."}
+                ]},
+                {"city": "Tarboro, NC", "lat": 35.8979, "lon": -77.5358, "people": [
+                    {"name": "Joseph Buckner Killebrew", "years": "1753-1824", "desc": "Born in Tarboro, migrated to Tennessee."}
+                ]},
+                {"city": "Clarksville / Montgomery Co., TN", "lat": 36.5298, "lon": -87.3595, "people": [
+                    {"name": "Whitfield Killebrew", "years": "1793-1859", "desc": "Buried at Osburn-Killebrew Cemetery."},
+                    {"name": "George Washington Killebrew", "years": "1812-1871", "desc": "Buried at Osburn-Killebrew Cemetery."},
+                    {"name": "William Henry Killebrew", "years": "1898-1970", "desc": "Born here before migrating west."}
+                ]},
+                {"city": "Christian County, KY", "lat": 36.8682, "lon": -87.4913, "people": [
+                    {"name": "Daniel Boone Killebrew", "years": "1860-1939", "desc": "Born here."}
+                ]},
+                {"city": "McAlester / Hartshorne, OK", "lat": 34.9334, "lon": -95.7697, "people": [
+                    {"name": "Daniel Boone Killebrew", "years": "d. 1939", "desc": "Passed away in McAlester."},
+                    {"name": "Robert 'Bob' Killebrew", "years": "1930-2017", "desc": "Born in Hartshorne."}
+                ]},
+                {"city": "Las Vegas, NV", "lat": 36.1699, "lon": -115.1398, "people": [
+                    {"name": "Robert Killebrew", "years": "d. 2017", "desc": "Final resting place."},
+                    {"name": "Eric Scott Killebrew Sr.", "years": "1961-Present", "desc": "Current resident."},
+                    {"name": "Kyle William Killebrew", "years": "1990-Present", "desc": "Current resident."}
+                ]}
+            ]
+        },
+        "Robinson_Impson": {
+            "base_color": (0, 255, 255), # Cyan (Spouse Branch of Killebrew)
+            "nodes": [
+                {"city": "Shelby County, IN", "lat": 39.5215, "lon": -85.7686, "people": [
+                    {"name": "Neal Clark Robeson Sr.", "years": "1760-1841", "desc": "Early Indiana Territory settler."}
+                ]},
+                {"city": "Fannagusha Creek, MS", "lat": 32.8809, "lon": -90.0460, "people": [
+                    {"name": "Isaac Impson", "years": "1800-1899", "desc": "English descent, married into Choctaw tribe."},
+                    {"name": "Josiah Impson", "years": "b. 1824", "desc": "Born on a 160-acre farm here."}
+                ]},
+                {"city": "Sullivan County, IN", "lat": 38.9567, "lon": -87.4093, "people": [
+                    {"name": "James Wesley Robinson", "years": "b. 1847", "desc": "Born in Carlisle."}
+                ]},
+                {"city": "Roseville, AR", "lat": 35.3948, "lon": -93.8242, "people": [
+                    {"name": "Niel C. Robinson", "years": "d. 1864", "desc": "<b>Military:</b> Union Soldier (Kansas 2nd Cavalry). Died of wounds received in action."}
+                ]},
+                {"city": "Jumbo, OK", "lat": 34.3986, "lon": -95.6961, "people": [
+                    {"name": "Josiah Impson", "years": "d. 1896", "desc": "Survived the 1833 'Trail of Tears'. Passed away in what is now a ghost town."}
+                ]},
+                {"city": "Hartshorne, OK", "lat": 34.8468, "lon": -95.5566, "people": [
+                    {"name": "James Wesley Robinson", "years": "d. 1916", "desc": "Civil War Veteran, passed away here."},
+                    {"name": "Mary Esther Robinson", "years": "1902-1981", "desc": "Born here, eventually married William H. Killebrew."}
+                ]}
+            ]
+        },
+        "Rasmussen": {
+            "base_color": (160, 32, 240), # Purple
+            "nodes": [
+                {"city": "Copenhagen, Denmark", "lat": 55.6761, "lon": 12.5683, "people": [
+                    {"name": "Jens Rasmussen", "years": "b. 1810", "desc": "Weaver. Emigrated from here in 1866 on the steamship Aurora."},
+                    {"name": "Rasmus Jensen Rasmussen", "years": "b. 1842", "desc": "Born in Denmark."}
+                ]},
+                {"city": "Wyoming, NE", "lat": 40.6322, "lon": -95.8453, "people": [
+                    {"name": "Maren Jorgensen Rasmussen", "years": "1866", "desc": "Arrived via riverboat. The sick were not allowed on board."}
+                ]},
+                {"city": "Platte River, WY", "lat": 42.8501, "lon": -106.3005, "people": [
+                    {"name": "Maren Jorgensen Rasmussen", "years": "d. 1866", "desc": "<b>Tragedy:</b> Died of cholera en route to Utah. Buried somewhere along the Platte River."}
+                ]},
+                {"city": "Ephraim, UT", "lat": 39.3602, "lon": -111.5866, "people": [
+                    {"name": "Jens Rasmussen", "years": "d. 1888", "desc": "Settled here. Served in Utah Territorial Militia."},
+                    {"name": "Rasmus Jensen Rasmussen", "years": "d. 1920", "desc": "Served in Utah Territorial Militia during the Black Hawk War."}
+                ]},
+                {"city": "Monroe, UT", "lat": 38.6270, "lon": -112.1220, "people": [
+                    {"name": "Clinton Rasmussen", "years": "1904-1979", "desc": "Passed away here."},
+                    {"name": "Bonnie Rasmussen", "years": "1934-2020", "desc": "Born here."}
+                ]},
+                {"city": "Las Vegas, NV", "lat": 36.1699, "lon": -115.1398, "people": [
+                    {"name": "Bonnie Rasmussen", "years": "d. 2020", "desc": "Final resting place."}
+                ]}
+            ]
+        },
+        "Vanderhoop": {
+            "base_color": (0, 240, 0), # Green
+            "nodes": [
+                {"city": "Paramaribo, Suriname", "lat": 5.8520, "lon": -55.2038, "people": [
+                    {"name": "William A. Vanderhoop", "years": "b. 1816", "desc": "Dutch Surinamese immigrant."}
+                ]},
+                {"city": "Gay Head (Aquinnah), MA", "lat": 41.3368, "lon": -70.8316, "people": [
+                    {"name": "William A. Vanderhoop", "years": "d. 1893", "desc": "First Vanderhoop on Martha's Vineyard. Built the homestead."},
+                    {"name": "Beulah Salisbury", "years": "1814-1892", "desc": "'Princess of Aquinnah'. Hid escaped slaves under a false barn floor (Underground Railroad)."},
+                    {"name": "Edwin Devries Vanderhoop", "years": "1848-1923", "desc": "<b>Military:</b> Union Navy gunboat Maheska (Civil War)."}
+                ]},
+                {"city": "Las Vegas, NV", "lat": 36.1699, "lon": -115.1398, "people": [
+                    {"name": "John O. Vanderhoop", "years": "1934-2022", "desc": "<b>Military:</b> USAF Major (Vietnam/Thailand/Germany). Bronze Star."}
+                ]}
+            ]
+        },
+        "Buzunis": {
+            "base_color": (240, 0, 0), # Red
+            "nodes": [
+                {"city": "Levidion, Greece", "lat": 37.6811, "lon": 22.2968, "people": [
+                    {"name": "George Constantine Buzunis", "years": "1846-1912", "desc": "Lived entire life here."}
+                ]},
+                {"city": "Tripoli, Greece", "lat": 37.5113, "lon": 22.3737, "people": [
+                    {"name": "Theodore Buzunis", "years": "b. 1885", "desc": "Born here before migrating to Canada."}
+                ]},
+                {"city": "Vanguard, SK, Canada", "lat": 49.9167, "lon": -107.0333, "people": [
+                    {"name": "Peter Buzunis", "years": "b. 1917", "desc": "Born here."}
+                ]},
+                {"city": "Winnipeg, MB, Canada", "lat": 49.8951, "lon": -97.1384, "people": [
+                    {"name": "Theodore Buzunis", "years": "d. 1978", "desc": "Passed away here."},
+                    {"name": "Peter Buzunis", "years": "d. 2007", "desc": "Passed away here."}
+                ]},
+                {"city": "Las Vegas, NV", "lat": 36.1699, "lon": -115.1398, "people": [
+                    {"name": "Antonia Constance Buzunis", "years": "1964-Present", "desc": "Current resident."}
+                ]}
+            ]
+        },
+        "Ginakes": {
+            "base_color": (240, 128, 0), # Orange
+            "nodes": [
+                {"city": "Greece (General)", "lat": 39.0742, "lon": 21.8243, "people": [
+                    {"name": "Desmos Giannakis", "years": "b. 1865", "desc": "Lived in Greece."}
+                ]},
+                {"city": "Fargo, ND", "lat": 46.8772, "lon": -96.7898, "people": [
+                    {"name": "Andrew Demetrius Ginakes", "years": "d. 1967", "desc": "Migrated from Greece and passed away here."}
+                ]},
+                {"city": "Winnipeg, MB, Canada", "lat": 49.8951, "lon": -97.1384, "people": [
+                    {"name": "Anastasia Ginakes", "years": "d. 2018", "desc": "Passed away here."}
+                ]},
+                {"city": "Las Vegas, NV", "lat": 36.1699, "lon": -115.1398, "people": [
+                    {"name": "Antonia Constance Buzunis", "years": "1964-Present", "desc": "Current resident."}
+                ]}
+            ]
+        }
+    }
