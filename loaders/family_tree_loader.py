@@ -104,10 +104,24 @@ def get_family_tree_data():
 
             # --- VANDERHOOP BRANCH (V) ---
             {"id": "Leonard V.", "branch": "V", "steps": 3, "lateral": 0, "desc": "Great Grandparent (1895 - 1989)", "bio": "Gay Head, Dukes, MA.<br><a href='#' target='_blank'>[Wampanoag Recording: The Cranberry Hunt]</a>"},
+            {"id": "Elsie Vanderhoop", "branch": "V", "steps": 3, "lateral": 0, "inLaw": True, "desc": "Great Grandmother"},
             {"id": "Edwin DeVries V.", "branch": "V", "steps": 4, "lateral": 0, "desc": "Great Great Grandparent (1848 - 1923)", "bio": "Served in the Navy on the gunboat Maheska during the Civil War (Union)."},
             {"id": "William A. V.", "branch": "V", "steps": 5, "lateral": 0, "desc": "3x Great Grandparent (~1816 - 1893)", "bio": "Dutch Surinamese Immigrant from Paramaribo. Built the Vanderhoop homestead in Gay Head."},
-            {"id": "Beulah Salisbury", "branch": "V", "steps": 5, "lateral": 0, "inLaw": True, "desc": "3x Great Grandmother (1814-1892)", "bio": "Known as the 'Princess of Aquinnah'. Assisted the Underground Railroad by hiding escaped slaves under a false floor in her family's barn."},
+            {"id": "Beulah Salisbury", "branch": "V", "steps": 5, "inLaw": True, "anchorStep": 5, "desc": "3x Great Grandmother (1814-1892)", "bio": "Known as the 'Princess of Aquinnah'. Assisted the Underground Railroad by hiding escaped slaves under a false floor in her family's barn."},
             
+            # --- VANDERHOOP ANCESTRY EXPANSION ---
+            {"id": "Baron Adriaan vanDel Vanderhoop Sr.", "branch": "V", "steps": 6, "lateral": 0, "desc": "4x Great Grandparent (1778-1854)", "bio": "Amsterdam, Netherlands; Santpoort Estate.<br><a href='#' target='_blank'>[Wiki Page / Picture]</a>"},
+            {"id": "Anthonia Immerentia Weveringh", "branch": "V", "steps": 6, "lateral": 0, "inLaw": True, "desc": "4x Great Grandmother (1775-1832)"},
+            {"id": "Joan Cornelis Vanderhoop", "branch": "V", "steps": 7, "lateral": 0, "desc": "5x Great Grandparent (1742-1825)", "bio": "The Hague, South Holland, Netherlands.<br><a href='#' target='_blank'>[Picture]</a>"},
+            {"id": "Agnes Maria Dedel", "branch": "V", "steps": 7, "lateral": 0, "inLaw": True, "desc": "5x Great Grandmother (1742-1825)"},
+            {"id": "Baron Adriaan Vanderhoop I", "branch": "V", "steps": 8, "lateral": 0, "desc": "6x Great Grandparent (1701-1767)", "bio": "'s-Gravenhage; Naaldwijk, Netherlands."},
+            {"id": "Susana Sophia Dedel", "branch": "V", "steps": 8, "lateral": 0, "inLaw": True, "desc": "6x Great Grandmother (1708-1796)"},
+            {"id": "Baron Francois Adrien Vanderhoop", "branch": "V", "steps": 9, "lateral": 0, "desc": "7x Great Grandparent (1675-1741)", "bio": "Born in Batavia, Indonesia; died in 's-Gravenhage, Netherlands.<br><a href='#' target='_blank'>[Family Crest]</a>"},
+            
+            # --- SALISBURY SPOSUAL OFFSHOOTS ---
+            {"id": "John Salisbury", "branch": "V", "steps": 6, "lateral": 1, "isSpouseLine": True, "anchorStep": 5, "desc": "4x Great Grandparent (~1792-~1870)", "bio": "Gay Head, MA.<br><a href='#' target='_blank'>[Native Northeast Portal]</a>"},
+            {"id": "Naomi Occouch Salisbury", "branch": "V", "steps": 6, "lateral": 1, "isSpouseLine": True, "anchorStep": 5, "desc": "4x Great Grandparent (1788-?)", "bio": "Gay Head, MA.<br><a href='#' target='_blank'>[Native Northeast Portal]</a>"},
+
             # Vanderhoop Laterals
             {"id": "Johnny Vanderhoop", "branch": "V", "steps": 1, "lateral": 1, "desc": "Aunt / Uncle"},
             {"id": "Leonard Jr. V.", "branch": "V", "steps": 2, "lateral": 1, "desc": "Great Aunt / Uncle"},
@@ -174,12 +188,19 @@ def get_family_tree_data():
             {"source": "George Constantine Buzunis", "target": "Theodore Buzunis", "type": "main"},
             {"source": "Andrew Demetrius Ginakes", "target": "Anastasia Ginakes", "type": "main"},
             {"source": "Unknown Ginakes", "target": "Andrew Demetrius Ginakes", "type": "main"},
+            
+            # Vanderhoop Main Expansion
+            {"source": "William A. V.", "target": "Baron Adriaan vanDel Vanderhoop Sr.", "type": "main"},
+            {"source": "Baron Adriaan vanDel Vanderhoop Sr.", "target": "Joan Cornelis Vanderhoop", "type": "main"},
+            {"source": "Joan Cornelis Vanderhoop", "target": "Baron Adriaan Vanderhoop I", "type": "main"},
+            {"source": "Baron Adriaan Vanderhoop I", "target": "Baron Francois Adrien Vanderhoop", "type": "main"},
 
             # Marriages
             {"source": "Eric Killebrew", "target": "Christina Vanderhoop", "type": "marriage"},
             {"source": "Eric Killebrew", "target": "Antonia Constance Buzunis", "type": "marriage"},
             {"source": "Robert Killebrew", "target": "Bonnie Rasmussen", "type": "marriage"},
             {"source": "John O. Vanderhoop", "target": "Waltrud M. Lieber", "type": "marriage"},
+            {"source": "Leonard V.", "target": "Elsie Vanderhoop", "type": "marriage"},
             {"source": "Peter Buzunis", "target": "Anastasia Ginakes", "type": "marriage"},
             {"source": "Theodore Buzunis", "target": "Constantina Colilos", "type": "marriage"},
             {"source": "George Constantine Buzunis", "target": "Elenis 'Helen' Georgakopoulis", "type": "marriage"},
@@ -187,6 +208,11 @@ def get_family_tree_data():
             {"source": "Constantine D Ginakes", "target": "Anastasia Mirras", "type": "marriage"},
             {"source": "Antonia Constance Buzunis", "target": "Kyle Killebrew", "type": "inlaw"},
             
+            # Vanderhoop Baron Marriages
+            {"source": "Baron Adriaan vanDel Vanderhoop Sr.", "target": "Anthonia Immerentia Weveringh", "type": "marriage"},
+            {"source": "Joan Cornelis Vanderhoop", "target": "Agnes Maria Dedel", "type": "marriage"},
+            {"source": "Baron Adriaan Vanderhoop I", "target": "Susana Sophia Dedel", "type": "marriage"},
+
             # Robinson/Impson Spouse Line
             {"source": "William H. K.", "target": "Mary Esther Robinson", "type": "marriage"},
             {"source": "Mary Esther Robinson", "target": "James Wesley Robinson", "type": "spouse_main"},
@@ -201,8 +227,12 @@ def get_family_tree_data():
             {"source": "Isaac Impson", "target": "John Adam Josiah Impson", "type": "spouse_main"},
             {"source": "John Adam Josiah Impson", "target": "John Adam Impson", "type": "spouse_main"},
             {"source": "John Adam Impson", "target": "William John Impson", "type": "spouse_main"},
+            
+            # Salisbury Spouse Line
+            {"source": "Beulah Salisbury", "target": "John Salisbury", "type": "spouse_main"},
+            {"source": "Beulah Salisbury", "target": "Naomi Occouch Salisbury", "type": "spouse_main"},
 
-            # Laterals
+            # Laterals (Killebrew/Rasmussen/Vanderhoop/Lieber/Buzunis/Ginakes)
             {"source": "Eric Killebrew", "target": "Andrea Nicole Killebrew", "type": "leaf"},
             {"source": "Eric Killebrew", "target": "Eric Scott Killebrew, Jr.", "type": "leaf"},
             {"source": "William H. K.", "target": "Robert Killebrew", "type": "main"},
@@ -435,9 +465,23 @@ def get_family_tree_data():
                 "children": [
                     {"name": "John O. Vanderhoop", "year": 1934, "branch": "V", "steps": 2, "lateral": 0, "desc": "Grandparent", "children": [
                         {"name": "Leonard V.", "year": 1895, "branch": "V", "steps": 3, "lateral": 0, "desc": "Great Grandparent", "children": [
+                            {"name": "Elsie Vanderhoop", "year": 1895, "branch": "V", "steps": 3, "lateral": 0, "inLaw": True, "desc": "Great Grandmother"},
                             {"name": "Edwin DeVries V.", "year": 1848, "branch": "V", "steps": 4, "lateral": 0, "desc": "Great Great Grandparent", "children": [
                                 {"name": "William A. V.", "year": 1816, "branch": "V", "steps": 5, "lateral": 0, "desc": "3x Great Grandparent", "children": [
-                                    {"name": "Beulah Salisbury", "year": 1814, "branch": "V", "steps": 5, "lateral": 0, "inLaw": True}
+                                    {"name": "Baron Adriaan vanDel Vanderhoop Sr.", "year": 1778, "branch": "V", "steps": 6, "lateral": 0, "desc": "4x Great Grandparent", "children": [
+                                        {"name": "Joan Cornelis Vanderhoop", "year": 1742, "branch": "V", "steps": 7, "lateral": 0, "desc": "5x Great Grandparent", "children": [
+                                            {"name": "Baron Adriaan Vanderhoop I", "year": 1701, "branch": "V", "steps": 8, "lateral": 0, "desc": "6x Great Grandparent", "children": [
+                                                {"name": "Baron Francois Adrien Vanderhoop", "year": 1675, "branch": "V", "steps": 9, "lateral": 0, "desc": "7x Great Grandparent"}
+                                            ]},
+                                            {"name": "Susana Sophia Dedel", "year": 1708, "branch": "V", "steps": 8, "lateral": 0, "inLaw": True}
+                                        ]},
+                                        {"name": "Agnes Maria Dedel", "year": 1742, "branch": "V", "steps": 7, "lateral": 0, "inLaw": True}
+                                    ]},
+                                    {"name": "Anthonia Immerentia Weveringh", "year": 1775, "branch": "V", "steps": 6, "lateral": 0, "inLaw": True},
+                                    {"name": "Beulah Salisbury", "year": 1814, "branch": "V", "steps": 5, "inLaw": True, "anchorStep": 5, "desc": "3x Great Grandmother", "children": [
+                                        {"name": "John Salisbury", "year": 1792, "branch": "V", "steps": 6, "lateral": 1, "isSpouseLine": True, "anchorStep": 5, "desc": "4x Great Grandparent"},
+                                        {"name": "Naomi Occouch Salisbury", "year": 1788, "branch": "V", "steps": 6, "lateral": 1, "isSpouseLine": True, "anchorStep": 5, "desc": "4x Great Grandparent"}
+                                    ]}
                                 ]}
                             ]},
                             {"name": "Leonard Jr. V.", "year": 1925, "branch": "V", "steps": 2, "lateral": 1, "desc": "Great Aunt / Uncle"},
@@ -558,16 +602,39 @@ def get_migration_data():
         "Vanderhoop": {
             "base_color": (0, 240, 0), # Green
             "nodes": [
+                {"city": "Batavia, Indonesia", "lat": -6.2000, "lon": 106.8166, "people": [
+                    {"name": "Baron Francois Adrien Vanderhoop", "years": "1675-1741", "desc": "Born in Batavia, Dutch East Indies."}
+                ]},
+                {"city": "The Hague, Netherlands", "lat": 52.0705, "lon": 4.3007, "people": [
+                    {"name": "Baron Francois Adrien Vanderhoop", "years": "d. 1741", "desc": "Returned from Indonesia, passed away here."},
+                    {"name": "Baron Adriaan Vanderhoop I", "years": "1701-1767", "desc": "Born in 's-Gravenhage (The Hague)."},
+                    {"name": "Joan Cornelis Vanderhoop", "years": "1742-1825", "desc": "Lived entire life in The Hague."}
+                ]},
+                {"city": "Amsterdam / Santpoort, Netherlands", "lat": 52.4089, "lon": 4.6300, "people": [
+                    {"name": "Baron Adriaan vanDel Vanderhoop Sr.", "years": "1778-1854", "desc": "Lived in Amsterdam and Santpoort Estate."}
+                ]},
                 {"city": "Paramaribo, Suriname", "lat": 5.8520, "lon": -55.2038, "people": [
                     {"name": "William A. Vanderhoop", "years": "b. 1816", "desc": "Dutch Surinamese immigrant."}
                 ]},
                 {"city": "Gay Head (Aquinnah), MA", "lat": 41.3368, "lon": -70.8316, "people": [
                     {"name": "William A. Vanderhoop", "years": "d. 1893", "desc": "First Vanderhoop on Martha's Vineyard. Built the homestead."},
-                    {"name": "Beulah Salisbury", "years": "1814-1892", "desc": "'Princess of Aquinnah'. Hid escaped slaves under a false barn floor (Underground Railroad)."},
                     {"name": "Edwin Devries Vanderhoop", "years": "1848-1923", "desc": "<b>Military:</b> Union Navy gunboat Maheska (Civil War)."}
                 ]},
                 {"city": "Las Vegas, NV", "lat": 36.1699, "lon": -115.1398, "people": [
                     {"name": "John O. Vanderhoop", "years": "1934-2022", "desc": "<b>Military:</b> USAF Major (Vietnam/Thailand/Germany). Bronze Star."}
+                ]}
+            ]
+        },
+        "Vanderhoop_Salisbury": {
+            "base_color": (205, 127, 50), # Bright Bronze (Mom's In-Laws)
+            "nodes": [
+                {"city": "Gay Head (Aquinnah), MA", "lat": 41.3368, "lon": -70.8316, "people": [
+                    {"name": "John Salisbury", "years": "~1792-~1870", "desc": "Wampanoag Tribal Member."},
+                    {"name": "Naomi Occouch Salisbury", "years": "1788-?", "desc": "Wampanoag Tribal Member."},
+                    {"name": "Beulah Salisbury", "years": "1814-1892", "desc": "'Princess of Aquinnah'. Hid escaped slaves under a false barn floor (Underground Railroad)."}
+                ]},
+                {"city": "Las Vegas, NV", "lat": 36.1699, "lon": -115.1398, "people": [
+                    {"name": "Christina Vanderhoop", "years": "1961-Present", "desc": "Current resident."}
                 ]}
             ]
         },

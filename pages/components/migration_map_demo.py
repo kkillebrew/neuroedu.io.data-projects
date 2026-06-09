@@ -40,6 +40,9 @@ def render_migration_map():
                 name=legend_html,
                 showlegend=True
             ))
+        elif branch_name == "Vanderhoop_Salisbury":
+            # This line's color is already represented in the tri-color legend above!
+            pass
         else:
             fig.add_trace(go.Scattergeo(
                 lon=[None], lat=[None],
