@@ -105,6 +105,7 @@ def get_family_tree_data():
             # --- VANDERHOOP BRANCH (V) ---
             {"id": "Leonard V.", "branch": "V", "steps": 3, "lateral": 0, "desc": "Great Grandparent (1895 - 1989)", "bio": "Gay Head, Dukes, MA.<br><a href='#' target='_blank'>[Wampanoag Recording: The Cranberry Hunt]</a>"},
             {"id": "Edwin DeVries V.", "branch": "V", "steps": 4, "lateral": 0, "desc": "Great Great Grandparent (1848 - 1923)", "bio": "Served in the Navy on the gunboat Maheska during the Civil War (Union)."},
+            {"id": "Baroness Mary Ann Cleggett", "branch": "V", "steps": 4, "inLaw": True, "anchorStep": 4, "desc": "Great Great Grandmother (1860-1924)", "bio": "Born in Pennsylvania, migrated to Aquinnah."},
             {"id": "William A. V.", "branch": "V", "steps": 5, "lateral": 0, "desc": "3x Great Grandparent (~1816 - 1893)", "bio": "Dutch Surinamese Immigrant from Paramaribo. Built the Vanderhoop homestead in Gay Head."},
             {"id": "Beulah Salisbury", "branch": "V", "steps": 5, "inLaw": True, "anchorStep": 5, "desc": "3x Great Grandmother (1814-1892)", "bio": "Known as the 'Princess of Aquinnah'. Assisted the Underground Railroad by hiding escaped slaves under a false floor in her family's barn."},
             
@@ -116,7 +117,11 @@ def get_family_tree_data():
             {"id": "Baron Adriaan Vanderhoop I", "branch": "V", "steps": 8, "lateral": 0, "desc": "6x Great Grandparent (1701-1767)", "bio": "'s-Gravenhage; Naaldwijk, Netherlands."},
             {"id": "Susana Sophia Dedel", "branch": "V", "steps": 8, "lateral": 0, "inLaw": True, "desc": "6x Great Grandmother (1708-1796)"},
             {"id": "Baron Francois Adrien Vanderhoop", "branch": "V", "steps": 9, "lateral": 0, "desc": "7x Great Grandparent (1675-1741)", "bio": "Born in Batavia, Indonesia; died in 's-Gravenhage, Netherlands."},
-            
+            {"id": "Maria Hartley", "branch": "V", "steps": 9, "lateral": 0, "inLaw": True, "desc": "7x Great Grandmother (1682-?)"},
+            {"id": "Baron Cornelis Jacobus Vanderhoop", "branch": "V", "steps": 10, "lateral": 0, "desc": "8x Great Grandparent (1640-1689)", "bio": "Born in Amsterdam, migrated to Batavia, Indonesia."},
+            {"id": "Dorthea Alma", "branch": "V", "steps": 10, "inLaw": True, "anchorStep": 10, "desc": "8x Great Grandmother"},
+            {"id": "Francois Adriend l'Espoir", "branch": "V", "steps": 11, "lateral": 0, "desc": "9x Great Grandparent", "bio": "Original patriarch. Born in Champagne, France. Migrated to Amsterdam."},
+
             # --- SALISBURY SPOUSAL OFFSHOOTS ---
             {"id": "John Salisbury", "branch": "V", "steps": 6, "lateral": 1, "isSpouseLine": True, "anchorStep": 5, "desc": "4x Great Grandparent (~1792-~1870)", "bio": "Gay Head, MA."},
             {"id": "Naomi Occouch Salisbury", "branch": "V", "steps": 6, "lateral": 1, "isSpouseLine": True, "anchorStep": 5, "desc": "4x Great Grandparent (1788-?)", "bio": "Gay Head, MA."},
@@ -147,6 +152,20 @@ def get_family_tree_data():
             {"id": "Paul's Wife", "branch": "V", "steps": 1, "lateral": 2, "inLaw": True},
             {"id": "Maushup V.", "branch": "V", "steps": 0, "lateral": 3, "desc": "Second Cousin"},
             {"id": "Nashawn V.", "branch": "V", "steps": 0, "lateral": 3, "desc": "Second Cousin"},
+            
+            # Cleggett & Madison Laterals & Siblings of Edwin V.
+            {"id": "David F. Vanderhoop", "branch": "V", "steps": 3, "lateral": 1, "desc": "Great Grand Uncle", "bio": "WWI Veteran."},
+            {"id": "Anna Vanderhoop", "branch": "V", "steps": 3, "lateral": 1, "desc": "Great Grand Aunt (1886-?)"},
+            {"id": "William Diamond Vanderhoop, Sr.", "branch": "V", "steps": 3, "lateral": 1, "desc": "Great Grand Uncle (1890-?)", "bio": "Served in the Air Force."},
+            {"id": "Anne Madison", "branch": "V", "steps": 3, "lateral": 1, "inLaw": True, "anchorStep": 3, "desc": "Spouse", "bio": "Famous Aquinnah matriarch. Migrated from Providence to Gay Head via Edgartown."},
+            {"id": "William D. 'Buddy' Vanderhoop Jr.", "branch": "V", "steps": 2, "lateral": 2, "desc": "First Cousin Twice Removed (1927-2004)", "bio": "Legendary Aquinnah fisherman."},
+            
+            {"id": "Cummings Bray Vanderhoop", "branch": "V", "steps": 4, "lateral": 1, "desc": "Great Great Grand Uncle (1853-1886)", "bio": "Gay Head, MA."},
+            {"id": "Josephine J. Smalley", "branch": "V", "steps": 4, "lateral": 1, "inLaw": True, "desc": "Spouse (1858-?)"},
+            {"id": "Arthur Herbert Vanderhoop", "branch": "V", "steps": 3, "lateral": 2, "desc": "1st Cousin 3x Removed (1877-?)"},
+            {"id": "Evelyn Moss", "branch": "V", "steps": 3, "lateral": 2, "inLaw": True, "desc": "Spouse (1889-?)"},
+            {"id": "Helen Edith (Vanderhoop) Manning", "branch": "V", "steps": 2, "lateral": 3, "desc": "2nd Cousin 2x Removed (1919-?)", "bio": "Famous Aquinnah storyteller. Authored 'Moshup's Footsteps'."},
+            {"id": "June Manning", "branch": "V", "steps": 1, "lateral": 4, "desc": "3rd Cousin 1x Removed", "bio": "Aquinnah native and family historian."},
 
             # --- LIEBER BRANCH (L) ---
             {"id": "G. Heinrich L. Lieber", "branch": "L", "steps": 3, "lateral": 0, "desc": "Great Grandparent"},
@@ -208,6 +227,8 @@ def get_family_tree_data():
             {"source": "Baron Adriaan vanDel Vanderhoop Sr.", "target": "Joan Cornelis Vanderhoop", "type": "main"},
             {"source": "Joan Cornelis Vanderhoop", "target": "Baron Adriaan Vanderhoop I", "type": "main"},
             {"source": "Baron Adriaan Vanderhoop I", "target": "Baron Francois Adrien Vanderhoop", "type": "main"},
+            {"source": "Baron Francois Adrien Vanderhoop", "target": "Baron Cornelis Jacobus Vanderhoop", "type": "main"},
+            {"source": "Baron Cornelis Jacobus Vanderhoop", "target": "Francois Adriend l'Espoir", "type": "main"},
 
             # Marriages
             {"source": "Eric Killebrew", "target": "Christina Vanderhoop", "type": "marriage"},
@@ -215,6 +236,7 @@ def get_family_tree_data():
             {"source": "Robert Killebrew", "target": "Bonnie Rasmussen", "type": "marriage"},
             {"source": "John O. Vanderhoop", "target": "Waltrud M. Lieber", "type": "marriage"},
             {"source": "Leonard V.", "target": "Baroness Elsie Ester (Diamond) Vanderhoop", "type": "marriage"},
+            {"source": "Edwin DeVries V.", "target": "Baroness Mary Ann Cleggett", "type": "marriage"},
             {"source": "Peter Buzunis", "target": "Anastasia Ginakes", "type": "marriage"},
             {"source": "Theodore Buzunis", "target": "Constantina Colilos", "type": "marriage"},
             {"source": "George Constantine Buzunis", "target": "Elenis 'Helen' Georgakopoulis", "type": "marriage"},
@@ -226,6 +248,8 @@ def get_family_tree_data():
             {"source": "Baron Adriaan vanDel Vanderhoop Sr.", "target": "Anthonia Immerentia Weveringh", "type": "marriage"},
             {"source": "Joan Cornelis Vanderhoop", "target": "Agnes Maria Dedel", "type": "marriage"},
             {"source": "Baron Adriaan Vanderhoop I", "target": "Susana Sophia Dedel", "type": "marriage"},
+            {"source": "Baron Cornelis Jacobus Vanderhoop", "target": "Dorthea Alma", "type": "marriage"},
+            {"source": "Baron Francois Adrien Vanderhoop", "target": "Maria Hartley", "type": "marriage"},
 
             # Robinson/Impson Spouse Line
             {"source": "William H. K.", "target": "Mary Esther Robinson", "type": "marriage"},
@@ -259,6 +283,19 @@ def get_family_tree_data():
             {"source": "James Diamond", "target": "Rosetta Ellis Diamond", "type": "leaf"},
             {"source": "Rosetta Ellis Diamond", "target": "Raymond Frances Madison", "type": "inlaw"},
             {"source": "Samuel Smalley", "target": "Amos Peters Smalley", "type": "leaf"},
+
+            # Cleggett & Madison Laterals & Siblings of Edwin V.
+            {"source": "Edwin DeVries V.", "target": "David F. Vanderhoop", "type": "leaf"},
+            {"source": "Edwin DeVries V.", "target": "Anna Vanderhoop", "type": "leaf"},
+            {"source": "Edwin DeVries V.", "target": "William Diamond Vanderhoop, Sr.", "type": "leaf"},
+            {"source": "William Diamond Vanderhoop, Sr.", "target": "Anne Madison", "type": "inlaw"},
+            {"source": "William Diamond Vanderhoop, Sr.", "target": "William D. 'Buddy' Vanderhoop Jr.", "type": "leaf"},
+            {"source": "William A. V.", "target": "Cummings Bray Vanderhoop", "type": "leaf"},
+            {"source": "Cummings Bray Vanderhoop", "target": "Josephine J. Smalley", "type": "inlaw"},
+            {"source": "Cummings Bray Vanderhoop", "target": "Arthur Herbert Vanderhoop", "type": "leaf"},
+            {"source": "Arthur Herbert Vanderhoop", "target": "Evelyn Moss", "type": "inlaw"},
+            {"source": "Arthur Herbert Vanderhoop", "target": "Helen Edith (Vanderhoop) Manning", "type": "leaf"},
+            {"source": "Helen Edith (Vanderhoop) Manning", "target": "June Manning", "type": "leaf"},
 
             # Laterals (Killebrew/Rasmussen/Vanderhoop/Lieber/Buzunis/Ginakes)
             {"source": "Eric Killebrew", "target": "Andrea Nicole Killebrew", "type": "leaf"},
@@ -514,11 +551,24 @@ def get_family_tree_data():
                                 ]}
                             ]},
                             {"name": "Edwin DeVries V.", "year": 1848, "branch": "V", "steps": 4, "lateral": 0, "desc": "Great Great Grandparent", "children": [
+                                {"name": "Baroness Mary Ann Cleggett", "year": 1860, "branch": "V", "steps": 4, "inLaw": True, "anchorStep": 4, "desc": "Great Great Grandmother"},
+                                {"name": "David F. Vanderhoop", "year": 1892, "branch": "V", "steps": 3, "lateral": 1, "desc": "Great Grand Uncle"},
+                                {"name": "Anna Vanderhoop", "year": 1886, "branch": "V", "steps": 3, "lateral": 1, "desc": "Great Grand Aunt"},
+                                {"name": "William Diamond Vanderhoop, Sr.", "year": 1890, "branch": "V", "steps": 3, "lateral": 1, "desc": "Great Grand Uncle", "children": [
+                                    {"name": "Anne Madison", "year": 1895, "branch": "V", "steps": 3, "lateral": 1, "inLaw": True, "anchorStep": 3, "desc": "Spouse"},
+                                    {"name": "William D. 'Buddy' Vanderhoop Jr.", "year": 1927, "branch": "V", "steps": 2, "lateral": 2, "desc": "First Cousin Twice Removed"}
+                                ]},
                                 {"name": "William A. V.", "year": 1816, "branch": "V", "steps": 5, "lateral": 0, "desc": "3x Great Grandparent", "children": [
                                     {"name": "Baron Adriaan vanDel Vanderhoop Sr.", "year": 1778, "branch": "V", "steps": 6, "lateral": 0, "desc": "4x Great Grandparent", "children": [
                                         {"name": "Joan Cornelis Vanderhoop", "year": 1742, "branch": "V", "steps": 7, "lateral": 0, "desc": "5x Great Grandparent", "children": [
                                             {"name": "Baron Adriaan Vanderhoop I", "year": 1701, "branch": "V", "steps": 8, "lateral": 0, "desc": "6x Great Grandparent", "children": [
-                                                {"name": "Baron Francois Adrien Vanderhoop", "year": 1675, "branch": "V", "steps": 9, "lateral": 0, "desc": "7x Great Grandparent"}
+                                                {"name": "Baron Francois Adrien Vanderhoop", "year": 1675, "branch": "V", "steps": 9, "lateral": 0, "desc": "7x Great Grandparent", "children": [
+                                                    {"name": "Maria Hartley", "year": 1682, "branch": "V", "steps": 9, "inLaw": True, "anchorStep": 9, "desc": "7x Great Grandmother"},
+                                                    {"name": "Baron Cornelis Jacobus Vanderhoop", "year": 1640, "branch": "V", "steps": 10, "lateral": 0, "desc": "8x Great Grandparent", "children": [
+                                                        {"name": "Francois Adriend l'Espoir", "year": 1610, "branch": "V", "steps": 11, "lateral": 0, "desc": "9x Great Grandparent"},
+                                                        {"name": "Dorthea Alma", "year": 1645, "branch": "V", "steps": 10, "inLaw": True, "anchorStep": 10, "desc": "8x Great Grandmother"}
+                                                    ]}
+                                                ]}
                                             ]},
                                             {"name": "Susana Sophia Dedel", "year": 1708, "branch": "V", "steps": 8, "lateral": 0, "inLaw": True}
                                         ]},
@@ -528,6 +578,15 @@ def get_family_tree_data():
                                     {"name": "Beulah Salisbury", "year": 1814, "branch": "V", "steps": 5, "inLaw": True, "anchorStep": 5, "desc": "3x Great Grandmother", "children": [
                                         {"name": "John Salisbury", "year": 1792, "branch": "V", "steps": 6, "lateral": 1, "isSpouseLine": True, "anchorStep": 5, "desc": "4x Great Grandparent"},
                                         {"name": "Naomi Occouch Salisbury", "year": 1788, "branch": "V", "steps": 6, "lateral": 1, "isSpouseLine": True, "anchorStep": 5, "desc": "4x Great Grandparent"}
+                                    ]},
+                                    {"name": "Cummings Bray Vanderhoop", "year": 1853, "branch": "V", "steps": 4, "lateral": 1, "desc": "Great Great Grand Uncle", "children": [
+                                        {"name": "Josephine J. Smalley", "year": 1858, "branch": "V", "steps": 4, "lateral": 1, "inLaw": True},
+                                        {"name": "Arthur Herbert Vanderhoop", "year": 1877, "branch": "V", "steps": 3, "lateral": 2, "desc": "1st Cousin 3x Removed", "children": [
+                                            {"name": "Evelyn Moss", "year": 1889, "branch": "V", "steps": 3, "lateral": 2, "inLaw": True},
+                                            {"name": "Helen Edith (Vanderhoop) Manning", "year": 1919, "branch": "V", "steps": 2, "lateral": 3, "desc": "2nd Cousin 2x Removed", "children": [
+                                                {"name": "June Manning", "year": 1950, "branch": "V", "steps": 1, "lateral": 4, "desc": "3rd Cousin 1x Removed"}
+                                            ]}
+                                        ]}
                                     ]}
                                 ]}
                             ]},
@@ -649,23 +708,36 @@ def get_migration_data():
         "Vanderhoop": {
             "base_color": (0, 240, 0), # Green
             "nodes": [
+                {"city": "Champagne, France", "lat": 48.9567, "lon": 4.3631, "people": [
+                    {"name": "Francois Adriend l'Espoir", "years": "Unknown", "desc": "Original patriarch. Migrated to Amsterdam."}
+                ]},
+                {"city": "Amsterdam, Netherlands", "lat": 52.3676, "lon": 4.9041, "people": [
+                    {"name": "Baron Cornelis Jacobus Vanderhoop", "years": "1640-1689", "desc": "Born here, eventually migrated to Batavia, Indonesia."},
+                    {"name": "Baron Adriaan vanDel Vanderhoop Sr.", "years": "1778-1854", "desc": "Lived in Amsterdam and Santpoort Estate."}
+                ]},
                 {"city": "Batavia, Indonesia", "lat": -6.2000, "lon": 106.8166, "people": [
                     {"name": "Baron Francois Adrien Vanderhoop", "years": "1675-1741", "desc": "Born in Batavia, Dutch East Indies."}
                 ]},
                 {"city": "The Hague, Netherlands", "lat": 52.0705, "lon": 4.3007, "people": [
                     {"name": "Baron Francois Adrien Vanderhoop", "years": "d. 1741", "desc": "Returned from Indonesia, passed away here."},
+                    {"name": "Maria Hartley", "years": "1682-?", "desc": "Married Baron Francois Adrien."},
                     {"name": "Baron Adriaan Vanderhoop I", "years": "1701-1767", "desc": "Born in 's-Gravenhage (The Hague)."},
                     {"name": "Joan Cornelis Vanderhoop", "years": "1742-1825", "desc": "Lived entire life in The Hague."}
-                ]},
-                {"city": "Amsterdam / Santpoort, Netherlands", "lat": 52.4089, "lon": 4.6300, "people": [
-                    {"name": "Baron Adriaan vanDel Vanderhoop Sr.", "years": "1778-1854", "desc": "Lived in Amsterdam and Santpoort Estate."}
                 ]},
                 {"city": "Paramaribo, Suriname", "lat": 5.8520, "lon": -55.2038, "people": [
                     {"name": "William A. Vanderhoop", "years": "b. 1816", "desc": "Dutch Surinamese immigrant."}
                 ]},
                 {"city": "Gay Head (Aquinnah), MA", "lat": 41.3368, "lon": -70.8316, "people": [
                     {"name": "William A. Vanderhoop", "years": "d. 1893", "desc": "First Vanderhoop on Martha's Vineyard. Built the homestead."},
-                    {"name": "Edwin Devries Vanderhoop", "years": "1848-1923", "desc": "<b>Military:</b> Union Navy gunboat Maheska (Civil War)."}
+                    {"name": "Cummings Bray Vanderhoop", "years": "1853-1886", "desc": "Born and lived here."},
+                    {"name": "Edwin Devries Vanderhoop", "years": "1848-1923", "desc": "<b>Military:</b> Union Navy gunboat Maheska (Civil War)."},
+                    {"name": "David F. Vanderhoop", "years": "Unknown", "desc": "<b>Military:</b> WWI Veteran."},
+                    {"name": "Arthur Herbert Vanderhoop", "years": "1877-?", "desc": "Born here."},
+                    {"name": "Baroness Mary Ann Cleggett", "years": "1860-1924", "desc": "Born in PA, lived and passed away here."},
+                    {"name": "William Diamond Vanderhoop, Sr.", "years": "1890-?", "desc": "Air Force member."},
+                    {"name": "Helen Edith (Vanderhoop) Manning", "years": "1919-?", "desc": "Authored 'Moshup's Footsteps'."},
+                    {"name": "June Manning", "years": "Unknown", "desc": "Aquinnah native and family historian."},
+                    {"name": "William D. 'Buddy' Vanderhoop Jr.", "years": "1927-2004", "desc": "Legendary Aquinnah fisherman."}
                 ]},
                 {"city": "Las Vegas, NV", "lat": 36.1699, "lon": -115.1398, "people": [
                     {"name": "John O. Vanderhoop", "years": "1934-2022", "desc": "<b>Military:</b> USAF Major (Vietnam/Thailand/Germany). Bronze Star."}
@@ -709,6 +781,24 @@ def get_migration_data():
                 ]},
                 {"city": "Las Vegas, NV", "lat": 36.1699, "lon": -115.1398, "people": [
                     {"name": "Christina Vanderhoop", "years": "1961-Present", "desc": "Current resident."}
+                ]}
+            ]
+        },
+        "Vanderhoop_Matriarchs": {
+            "base_color": (205, 127, 50), # Bright Bronze (Mom's In-Laws)
+            "nodes": [
+                {"city": "Pennsylvania, USA", "lat": 41.2033, "lon": -77.1945, "people": [
+                    {"name": "Baroness Mary Ann Cleggett", "years": "b. 1860", "desc": "Born in Pennsylvania."}
+                ]},
+                {"city": "Providence, RI", "lat": 41.8240, "lon": -71.4128, "people": [
+                    {"name": "Anne Madison", "years": "Unknown", "desc": "Lived in Providence before migrating."}
+                ]},
+                {"city": "Edgartown, MA", "lat": 41.3888, "lon": -70.5133, "people": [
+                    {"name": "Anne Madison", "years": "Unknown", "desc": "Moved through Edgartown on her way to Gay Head."}
+                ]},
+                {"city": "Gay Head (Aquinnah), MA", "lat": 41.3368, "lon": -70.8316, "people": [
+                    {"name": "Baroness Mary Ann Cleggett", "years": "d. 1924", "desc": "Married Edwin Devries Vanderhoop."},
+                    {"name": "Anne Madison", "years": "Unknown", "desc": "Married William Diamond Vanderhoop Sr."}
                 ]}
             ]
         },
