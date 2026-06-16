@@ -95,44 +95,50 @@ def get_family_tree_data():
     if not indis:
         return {"nodes": [], "links": []}, {"name": "Data Unavailable"}
 
-    # 1. DYNAMIC COLOR MAPPING
-    # To maintain 100% exact color formatting, we seed the branches based on primary surnames
+    # =================================================================
+    # 1. EXPANDED DYNAMIC COLOR MAPPING
+    # =================================================================
     def assign_branch(name, current_branch):
         name_lower = name.lower()
-        if "rasmussen" in name_lower or "rasmusson" in name_lower: return "R"
-        if "vanderhoop" in name_lower or "cleggett" in name_lower or "salisbury" in name_lower: return "V"
+        
+        # Core Identity Overrides (Locks the center of the gravity graph)
+        if "kyle william" in name_lower: return "M"
+        if "eric scott" in name_lower: return "K"
+        if "antonia constance" in name_lower: return "B"
+        
+        # Procedural Surname Catch-alls for Extended Families
+        if any(sub in name_lower for sub in ["killebrew", "robinson", "impson", "moore"]): return "K"
+        if any(sub in name_lower for sub in ["rasmussen", "rasmusson", "gregerson", "gregersen"]): return "R"
+        if any(sub in name_lower for sub in ["vanderhoop", "cleggett", "salisbury", "diamond", "madison", "smalley"]): return "V"
         if "lieber" in name_lower: return "L"
         if "buzunis" in name_lower: return "B"
-        if "ginakes" in name_lower or "boosalis" in name_lower: return "A"
+        if any(sub in name_lower for sub in ["ginakes", "giannakis", "boosalis", "effos"]): return "A"
+        
         return current_branch
 
     # Locate the Root Node dynamically
     root_id = next((i_id for i_id, d in indis.items() if "Kyle William" in d['name']), None)
     
-    nodes, links, visited = [], [], set()
+    nodes, raw_links, visited = [], [], set()
     queue = []
     
     if root_id:
         queue.append((root_id, "M", 0, 0, False))
 
+    # =================================================================
     # 2. BUILD THE FORCE GRAPH DATA (Left Panel BFS)
+    # =================================================================
     while queue:
         curr_id, branch, steps, lateral, in_law = queue.pop(0)
         
-        # Guardrail: Prevent infinite recursion and cap the visualization depth
+        # Guardrail: Prevent infinite recursion and cap the depth
         if curr_id in visited or steps > 8 or lateral > 2: continue
         visited.add(curr_id)
         
         indi = indis[curr_id]
         name = indi['name']
+        branch = assign_branch(name, branch)
         
-        # Special logic to ensure Antonia Constance Buzunis spawns her own branch color
-        if "Antonia Constance" in name:
-            branch = "B"
-        else:
-            branch = assign_branch(name, branch)
-        
-        # Format display text perfectly matching prior aesthetics
         by, dy = indi['birth'], indi['death']
         years = f"({by} - {dy})" if by and dy else f"({by})" if by else f"(d. {dy})" if dy else ""
         
@@ -143,12 +149,12 @@ def get_family_tree_data():
         if in_law: desc = "Spouse / In-Law"
             
         nodes.append({
-            "id": name, "name": name, "branch": branch, "steps": steps, 
+            "id": curr_id, # Strict GEDCOM ID to prevent duplicate name crashes
+            "name": name, "branch": branch, "steps": steps, 
             "lateral": lateral, "desc": f"{desc} {years}".strip(), 
             "bio": indi['bio'], "inLaw": in_law, "isSpouseLine": in_law, "anchorStep": steps
         })
         
-        # Ascend Tree (Parents & Siblings)
         if lateral == 0:
             for famc_id in indi['famc']:
                 fam = fams.get(famc_id)
@@ -158,16 +164,15 @@ def get_family_tree_data():
                     p_id = fam.get(p_key)
                     if p_id:
                         queue.append((p_id, branch, steps + 1, 0, False))
-                        links.append({"source": indis[p_id]['name'], "target": name, "type": "main"})
+                        raw_links.append({"source": p_id, "target": curr_id, "type": "main"})
                         
                 for chil_id in fam['chil']:
                     if chil_id != curr_id and chil_id not in visited:
                         queue.append((chil_id, branch, steps, lateral + 1, False))
                         parent_src = fam['husb'] if fam['husb'] else fam['wife']
                         if parent_src:
-                            links.append({"source": indis[parent_src]['name'], "target": indis[chil_id]['name'], "type": "leaf"})
+                            raw_links.append({"source": parent_src, "target": chil_id, "type": "leaf"})
 
-        # Map Marriages (Spouses)
         for fams_id in indi['fams']:
             fam = fams.get(fams_id)
             if not fam: continue
@@ -175,18 +180,28 @@ def get_family_tree_data():
             spouse_id = fam['wife'] if fam['husb'] == curr_id else fam['husb']
             if spouse_id and spouse_id not in visited:
                 queue.append((spouse_id, branch, steps, lateral, True))
-                links.append({"source": name, "target": indis[spouse_id]['name'], "type": "marriage"})
+                raw_links.append({"source": curr_id, "target": spouse_id, "type": "marriage"})
 
+    # D3 Safe-Link Culling Filter
+    valid_node_ids = {n["id"] for n in nodes}
+    links = [l for l in raw_links if l["source"] in valid_node_ids and l["target"] in valid_node_ids]
+    
     graph_data = {"nodes": nodes, "links": links}
 
-    # 3. BUILD THE HIERARCHICAL TREE DATA (Right Panel Recursive Search)
-    def build_pedigree(curr_id, current_step=0, current_branch="M"):
-        if current_step > 5: return None
+    # =================================================================
+    # 3. BUILD THE HIERARCHICAL TREE DATA (Right Panel Recursive)
+    # =================================================================
+    def build_pedigree(curr_id, current_step=0, current_branch="M", tree_visited=None):
+        if tree_visited is None: tree_visited = set()
+        
+        # Protect against recursive loops
+        if current_step > 5 or curr_id in tree_visited: return None
+        tree_visited.add(curr_id)
+        
         indi = indis.get(curr_id)
         if not indi: return None
         
         b = assign_branch(indi['name'], current_branch)
-        if "Antonia Constance" in indi['name']: b = "B"
         
         node = {
             "name": indi['name'],
@@ -202,10 +217,10 @@ def get_family_tree_data():
             fam = fams.get(famc_id)
             if fam:
                 if fam.get('husb'): 
-                    h_node = build_pedigree(fam['husb'], current_step + 1, b)
+                    h_node = build_pedigree(fam['husb'], current_step + 1, b, set(tree_visited))
                     if h_node: children.append(h_node)
                 if fam.get('wife'):
-                    w_node = build_pedigree(fam['wife'], current_step + 1, b)
+                    w_node = build_pedigree(fam['wife'], current_step + 1, b, set(tree_visited))
                     if w_node: children.append(w_node)
                     
         if children:
