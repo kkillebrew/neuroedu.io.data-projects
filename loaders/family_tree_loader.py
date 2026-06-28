@@ -131,8 +131,9 @@ def get_family_tree_data():
     while queue:
         curr_id, branch, steps, lateral, in_law = queue.pop(0)
         
-        # Guardrail: Prevent infinite recursion and cap the depth
-        if curr_id in visited or steps > 8 or lateral > 2: continue
+        # [DELTA] Removed steps > 8 and lateral > 2 to load the ENTIRE GEDCOM.
+        # Guardrail: Prevent infinite recursion using only the visited set.
+        if curr_id in visited: continue
         visited.add(curr_id)
         
         indi = indis[curr_id]
