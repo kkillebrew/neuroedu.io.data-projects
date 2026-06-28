@@ -14,78 +14,38 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
+import os
 
 # Standard UI Lock for Plotly
 PLOTLY_CONFIG = {'scrollZoom': False, 'displayModeBar': False, 'staticPlot': False}
 
 @st.cache_data
-def generate_simulated_genomic_data():
+def load_authentic_genomic_data():
     """
-    Simulates the output from bioinformatics toolboxes (admix, myvariant).
-    In production, this would load a pre-processed .parquet file to avoid 
-    OOM crashes on the DigitalOcean server.
+    Gracefully loads the pre-processed Parquet files from the documents folder.
+    MATLAB Analogy: Equivalent to a robust load('documents/genomic_data.mat')
+    with an embedded try/catch block.
     """
-    np.random.seed(42) # Locked for consistency
+    # System Pathing: Navigate up 3 directories to reach the Root /documents/ folder
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    root_dir = os.path.dirname(os.path.dirname(current_dir))
+    doc_dir = os.path.join(root_dir, "documents")
     
-    # 1. ADMIXTURE PROPORTIONS (Simulated `admix` output)
+    # Establish the color map for Admixture consistency
     regions = ["Northwestern European", "Aegean / Mediterranean", "Baltic", "Indigenous Americas", "Sub-Saharan African", "Unassigned"]
     colors = ["#1E3A8A", "#10B981", "#38BDF8", "#F59E0B", "#8B5CF6", "#64748B"]
     color_map = dict(zip(regions, colors))
     
-    # Global Pie Chart Data
-    pie_data = pd.DataFrame({
-        "Region": regions,
-        "Percentage": [55.2, 22.1, 12.5, 6.2, 3.1, 0.9]
-    })
-    
-    # 2. CHROMOSOME PAINTING (Segment Data)
-    segments = []
-    chromosomes = [str(i) for i in range(1, 23)] + ['X']
-    
-    for chrom in chromosomes:
-        # Generate random alternating blocks of DNA for each chromosome
-        current_pos = 0
-        chrom_length = np.random.randint(80, 150) # Simulated Megabases (Mb)
+    try:
+        # Load the ultra-fast Parquet binaries
+        pie_data = pd.read_parquet(os.path.join(doc_dir, "dna_pie.parquet"))
+        chrom_df = pd.read_parquet(os.path.join(doc_dir, "dna_chromosomes.parquet"))
+        traits_data = pd.read_parquet(os.path.join(doc_dir, "dna_traits.parquet"))
+        return pie_data, chrom_df, color_map, traits_data
         
-        while current_pos < chrom_length:
-            step = np.random.randint(5, 40)
-            if current_pos + step > chrom_length:
-                step = chrom_length - current_pos
-                
-            region = np.random.choice(regions, p=[0.55, 0.22, 0.12, 0.06, 0.04, 0.01])
-            segments.append({
-                "Chromosome": chrom,
-                "Length_Mb": step,
-                "Region": region
-            })
-            current_pos += step
-            
-    chrom_df = pd.DataFrame(segments)
-    
-    # 3. POLYGENIC RISK SCORES (PRS) & TRAITS (Simulated GWAS/myvariant output)
-    # Z-Scores: 0 is population average. + is higher expression/risk, - is lower.
-    traits_data = pd.DataFrame({
-        "Trait": [
-            "Schizophrenia Variance (CACNA1C)", 
-            "Psychosis Endophenotype (COMT)", 
-            "Autism Spectrum Sensitivity (OXTR)", 
-            "Male Pattern Baldness (AR)", 
-            "Height Variance (Polygenic)", 
-            "Eye Color Lightness (HERC2/OCA2)"
-        ],
-        "Category": ["Neuro/Psych", "Neuro/Psych", "Neuro/Psych", "Physical", "Physical", "Physical"],
-        "Z_Score": [-1.2, 2.4, 0.8, 1.8, 1.2, 2.1], # Example metrics
-        "Bio_Note": [
-            "Below average genetic risk.",
-            "Elevated 'Worrier' phenotype; high working memory but stress sensitive.",
-            "Slightly elevated socio-emotional sensitivity marker.",
-            "High DHT receptor sensitivity detected.",
-            "Polygenic markers indicate above-average height.",
-            "Homozygous recessive variants detected (Light eyes)."
-        ]
-    })
-    
-    return pie_data, chrom_df, color_map, traits_data
+    except FileNotFoundError:
+        # Graceful Failure: Return empty structures to trigger the UI warning safely
+        return pd.DataFrame(), pd.DataFrame(), color_map, pd.DataFrame()
 
 def render_dna_evidence():
     pie_data, chrom_df, color_map, traits_data = load_authentic_genomic_data()

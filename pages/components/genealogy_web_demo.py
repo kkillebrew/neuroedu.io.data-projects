@@ -19,6 +19,9 @@ from loaders.family_tree_loader import get_family_tree_data
 PLOTLY_CONFIG = {'scrollZoom': False, 'displayModeBar': False, 'staticPlot': False}
 
 def render_genealogy_web():
+
+    st.subheader("Ancestral Web")
+    st.write("Visualizing the direct ancestral flow backwards through the generations.")
     
     # 1. Fetch abstracted data from our Python loader
     graph_data, _ = get_family_tree_data() # We drop tree_data as we are using Plotly now
