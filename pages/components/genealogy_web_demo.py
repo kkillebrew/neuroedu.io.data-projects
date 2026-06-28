@@ -125,44 +125,48 @@ def render_genealogy_web():
             const height = 750;
             fSvg.attr("viewBox", [-width / 2, -height / 2, width, height]);
 
-            // [DELTA] Create a wrapper group for zooming
-            const zoomContainer = fSvg.append("g");
+            // [DELTA] 1. Create a Master Zoom Container
+            const zoomContainer = fSvg.append("g").attr("class", "zoom-container");
 
-            // [DELTA] Implement D3 Zoom Behavior
             const zoom = d3.zoom()
-                .scaleExtent([0.1, 5]) // Allow zooming out to 10% and in to 500%
+                .scaleExtent([0.1, 5])
                 .on("zoom", (e) => {
+                    // Apply zoom/pan strictly to the master container
                     zoomContainer.attr("transform", e.transform);
                 });
-            fSvg.call(zoom); // Bind zoom to the main SVG
+            fSvg.call(zoom);
 
-            // [DELTA] Adjusted Physics Engine for massive clusters
+            // [DELTA] 2. Create sub-groups INSIDE the zoom container
+            const linkGroup = zoomContainer.append("g").attr("class", "links");
+            const nodeGroup = zoomContainer.append("g").attr("class", "nodes");
+
+            // Physics Engine (Unchanged)
             const simulation = d3.forceSimulation(graphData.nodes)
                 .force("link", d3.forceLink(graphData.links).id(d => d.id)
                     .distance(d => {
                         let isSameBranch = (d.source.branch === d.target.branch);
                         let rootStep = d.target.steps || 1;
-                        let dist = isSameBranch ? 10 : 35; // Tighter if same family line
-                        return Math.max(5, dist * Math.pow(0.85, rootStep)); // Exponential decay
+                        let dist = isSameBranch ? 10 : 35; 
+                        return Math.max(5, dist * Math.pow(0.85, rootStep)); 
                     })
-                    .strength(d => (d.source.branch === d.target.branch) ? 1.5 : 0.5) // Higher attraction for family
+                    .strength(d => (d.source.branch === d.target.branch) ? 1.5 : 0.5) 
                 )
                 .force("charge", d3.forceManyBody().strength(d => {
                     let rootStep = d.lateral > 0 ? (d.steps + d.lateral) : d.steps;
-                    let repulsion = -350 * Math.pow(0.55, rootStep); // Less pushing on edges
+                    let repulsion = -350 * Math.pow(0.55, rootStep); 
                     return Math.min(-5, repulsion); 
                 }))
                 .force("collide", d3.forceCollide().radius(d => calcRadius(d) + 4).iterations(3))
                 .force("x", d3.forceX())
                 .force("y", d3.forceY());
-            
-            // [DELTA] Append links and nodes to the ZOOM CONTAINER instead of the main SVG
-            const fLink = zoomContainer.append("g").selectAll("line").data(graphData.links).join("line")
+
+            // [DELTA] 3. Append data to the sub-groups, NOT fSvg
+            const fLink = linkGroup.selectAll("line").data(graphData.links).join("line")
                 .attr("class", d => `link-${d.type}`)
                 .attr("stroke-width", d => Math.max(1, calcRadius(d.target) * 0.2))
                 .attr("stroke-opacity", d => calcOpacity(d.target));
 
-            const fNode = fSvg.append("g").selectAll("g").data(graphData.nodes).join("g")
+            const fNode = nodeGroup.selectAll("g").data(graphData.nodes).join("g")
                 .call(d3.drag()
                     .on("start", (e,d) => { if(!e.active) simulation.alphaTarget(0.3).restart(); d.fx=d.x; d.fy=d.y; })
                     .on("drag", (e,d) => { d.fx=e.x; d.fy=e.y; })
@@ -248,12 +252,18 @@ def render_genealogy_web():
         )
     )])
 
+    # [DELTA] Calculate dynamic height based on the density of the node array
+    # Base height of 400px, adding 20px for every ancestor found to prevent UI cramping
+    dynamic_height = max(600, 400 + (len(direct_nodes) * 20))
+
     fig.update_layout(
         font=dict(size=10, color="#F8FAFC"),
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
-        height=600,
+        height=dynamic_height, # <-- Dynamically stretches the canvas
         margin=dict(l=0, r=0, t=10, b=10)
     )
     
-    st.plotly_chart(fig, use_container_width=True, config=PLOTLY_CONFIG)
+    # We create a specific Sankey config to ensure page-scrolling isn't hijacked
+    SANKEY_CONFIG = {'scrollZoom': False, 'displayModeBar': False, 'staticPlot': False}
+    st.plotly_chart(fig, use_container_width=True, config=SANKEY_CONFIG)
