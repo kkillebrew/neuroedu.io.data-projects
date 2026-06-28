@@ -21,6 +21,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from data_projects_loader import get_data_bio_metadata, get_project_descriptions
 from pages.components.genealogy_web_demo import render_genealogy_web # <-- NEW IMPORT
 from pages.components.migration_map_demo import render_migration_map # <-- ADD THIS LINE
+from pages.components.dna_evidence_demo import render_dna_evidence # <-- ADD THIS LINE
 
 from data_projects_sidebar import apply_global_settings, render_sidebar
 
@@ -146,7 +147,8 @@ if tree_view == "Ancestral Tree":
 elif tree_view == "Migration Journeys":
     render_migration_map()
 elif tree_view == "DNA Evidence":
-    st.info("DNA sequencing and genomic variance module is currently in development.")
+    # [DELTA] Replace the st.info placeholder with the actual component call
+    render_dna_evidence()
 
 st.divider()
 
