@@ -252,18 +252,22 @@ def render_genealogy_web():
         )
     )])
 
-    # [DELTA] Calculate dynamic height based on the density of the node array
-    # Base height of 400px, adding 20px for every ancestor found to prevent UI cramping
+    # [DELTA] Keep internal dynamic height so the text doesn't squish
     dynamic_height = max(600, 400 + (len(direct_nodes) * 20))
 
     fig.update_layout(
         font=dict(size=10, color="#F8FAFC"),
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
-        height=dynamic_height, # <-- Dynamically stretches the canvas
+        height=dynamic_height, 
         margin=dict(l=0, r=0, t=10, b=10)
     )
     
-    # We create a specific Sankey config to ensure page-scrolling isn't hijacked
     SANKEY_CONFIG = {'scrollZoom': False, 'displayModeBar': False, 'staticPlot': False}
-    st.plotly_chart(fig, use_container_width=True, config=SANKEY_CONFIG)
+    
+    # [DELTA] Wrap the massive Plotly canvas in a fixed-height scrollable window (Viewport)
+    # This locks the UI footprint to 650px, allowing seamless vertical panning through the graph.
+    st.info("💡 **Navigation:** Scroll vertically inside the window below to explore distant generations without sacrificing legibility.")
+    
+    with st.container(height=650):
+        st.plotly_chart(fig, use_container_width=True, config=SANKEY_CONFIG)
