@@ -125,6 +125,17 @@ def render_genealogy_web():
             const height = 750;
             fSvg.attr("viewBox", [-width / 2, -height / 2, width, height]);
 
+            // [DELTA] Create a wrapper group for zooming
+            const zoomContainer = fSvg.append("g");
+
+            // [DELTA] Implement D3 Zoom Behavior
+            const zoom = d3.zoom()
+                .scaleExtent([0.1, 5]) // Allow zooming out to 10% and in to 500%
+                .on("zoom", (e) => {
+                    zoomContainer.attr("transform", e.transform);
+                });
+            fSvg.call(zoom); // Bind zoom to the main SVG
+
             // [DELTA] Adjusted Physics Engine for massive clusters
             const simulation = d3.forceSimulation(graphData.nodes)
                 .force("link", d3.forceLink(graphData.links).id(d => d.id)
@@ -144,8 +155,9 @@ def render_genealogy_web():
                 .force("collide", d3.forceCollide().radius(d => calcRadius(d) + 4).iterations(3))
                 .force("x", d3.forceX())
                 .force("y", d3.forceY());
-
-            const fLink = fSvg.append("g").selectAll("line").data(graphData.links).join("line")
+            
+            // [DELTA] Append links and nodes to the ZOOM CONTAINER instead of the main SVG
+            const fLink = zoomContainer.append("g").selectAll("line").data(graphData.links).join("line")
                 .attr("class", d => `link-${d.type}`)
                 .attr("stroke-width", d => Math.max(1, calcRadius(d.target) * 0.2))
                 .attr("stroke-opacity", d => calcOpacity(d.target));

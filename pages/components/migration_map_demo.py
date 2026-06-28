@@ -19,14 +19,18 @@ def render_migration_map():
 
     fig = go.Figure()
 
-    # 2. Vector Overlays with Fading Gradients
-    for branch_name, data in lineages.items():
+    # 2. Vector Overlays with Fading Gradients & Spatial Jitter
+    for branch_idx, (branch_name, data) in enumerate(lineages.items()):
         nodes = data["nodes"]
         bc = data["base_color"]
         max_steps = len(nodes) - 1
 
+        # [DELTA] Calculate a deterministic micro-offset to fan out overlapping lines (e.g., terminating in Vegas)
+        # This shifts each branch slightly along a radial axis so they don't stack on top of each other
+        lat_offset = (branch_idx % 3 - 1) * 0.45
+        lon_offset = (branch_idx * 0.35) - 0.7
+
         # --- CUSTOM LEGEND HANDLING ---
-        # If it's the spouse line, we inject the vertically stacked Tri-Color marker via HTML
         if branch_name == "Robinson_Impson":
             legend_html = (
                 "<span style='color:rgb(255, 105, 180)'>●</span><br>"
@@ -34,66 +38,47 @@ def render_migration_map():
                 "<span style='color:rgb(205, 127, 50)'>●</span>"
             )
             fig.add_trace(go.Scattergeo(
-                lon=[None], lat=[None],
-                mode="markers",
-                marker=dict(size=1, color="rgba(0,0,0,0)"), # Hides the native single-color marker
-                name=legend_html,
-                showlegend=True
+                lon=[None], lat=[None], mode="markers",
+                marker=dict(size=1, color="rgba(0,0,0,0)"), name=legend_html, showlegend=True
             ))
         elif branch_name in ["Vanderhoop_Salisbury", "Vanderhoop_Diamond"]:
-            # This line's color is already represented in the tri-color legend above!
             pass
         else:
             fig.add_trace(go.Scattergeo(
-                lon=[None], lat=[None],
-                mode="markers",
+                lon=[None], lat=[None], mode="markers",
                 marker=dict(size=10, color=f"rgb({bc[0]},{bc[1]},{bc[2]})"),
-                name=branch_name.replace("_", "/"),
-                showlegend=True
+                name=branch_name.replace("_", "/"), showlegend=True
             ))
 
-        # Iterating through nodes to construct lines and aggregated tooltips
         for i in range(max_steps):
             start_node = nodes[i]
             end_node = nodes[i+1]
 
-            # Linear gradient interpolation: Color fades to White (240) as it approaches Vegas
+            # [DELTA] Apply the jitter ONLY if it's the final converging node, or apply slightly across the board
+            # For simplicity and clean visuals, we apply it to all coordinates for this specific branch trace
+            s_lat = start_node["lat"] + lat_offset
+            s_lon = start_node["lon"] + lon_offset
+            e_lat = end_node["lat"] + lat_offset
+            e_lon = end_node["lon"] + lon_offset
+
             t_start = i / max_steps
-            r1 = int(bc[0] + (240 - bc[0]) * t_start)
-            g1 = int(bc[1] + (240 - bc[1]) * t_start)
-            b1 = int(bc[2] + (240 - bc[2]) * t_start)
-            c_start = f"rgb({r1},{g1},{b1})"
-
+            c_start = f"rgb({int(bc[0] + (240 - bc[0]) * t_start)},{int(bc[1] + (240 - bc[1]) * t_start)},{int(bc[2] + (240 - bc[2]) * t_start)})"
+            
             t_end = (i + 1) / max_steps
-            r2 = int(bc[0] + (240 - bc[0]) * t_end)
-            g2 = int(bc[1] + (240 - bc[1]) * t_end)
-            b2 = int(bc[2] + (240 - bc[2]) * t_end)
-            c_end = f"rgb({r2},{g2},{b2})"
+            c_end = f"rgb({int(bc[0] + (240 - bc[0]) * t_end)},{int(bc[1] + (240 - bc[1]) * t_end)},{int(bc[2] + (240 - bc[2]) * t_end)})"
 
-            # --- HOVER HTML BUG FIX ---
-            # Replaced <hr> with Unicode line-drawing to bypass Plotly's strict HTML sanitizer
             hover_text_start = f"<b>{start_node['city']}</b><br>──────────<br>"
-            for p in start_node['people']:
-                hover_text_start += f"<b>{p['name']}</b> ({p['years']})<br>{p['desc']}<br><br>"
+            for p in start_node['people']: hover_text_start += f"<b>{p['name']}</b> ({p['years']})<br>{p['desc']}<br><br>"
 
             hover_text_end = f"<b>{end_node['city']}</b><br>──────────<br>"
-            for p in end_node['people']:
-                hover_text_end += f"<b>{p['name']}</b> ({p['years']})<br>{p['desc']}<br><br>"
+            for p in end_node['people']: hover_text_end += f"<b>{p['name']}</b> ({p['years']})<br>{p['desc']}<br><br>"
 
             fig.add_trace(go.Scattergeo(
-                lon=[start_node["lon"], end_node["lon"]],
-                lat=[start_node["lat"], end_node["lat"]],
-                mode="lines+markers",
-                line=dict(width=3, color=c_start), 
-                marker=dict(
-                    size=[8, 8],
-                    color=[c_start, c_end], 
-                    line=dict(width=1, color="#F8FAFC")
-                ),
-                text=[hover_text_start, hover_text_end],
-                hovertemplate="%{text}<extra></extra>", # Hides secondary coordinate boxes
-                name=branch_name,
-                showlegend=False
+                lon=[s_lon, e_lon], lat=[s_lat, e_lat], # [DELTA] Using the offset coordinates
+                mode="lines+markers", line=dict(width=3, color=c_start), 
+                marker=dict(size=[8, 8], color=[c_start, c_end], line=dict(width=1, color="#F8FAFC")),
+                text=[hover_text_start, hover_text_end], hovertemplate="%{text}<extra></extra>",
+                name=branch_name, showlegend=False
             ))
 
     # 3. Globe & Camera Configuration
